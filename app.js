@@ -42,6 +42,7 @@ function initializeApp() {
     displayChecklist();
     setDefaultDateTime();
     scheduleReminders();
+    checkNotificationStatus();
 }
 
 function setupEventListeners() {
@@ -501,14 +502,47 @@ function exportToCSV() {
     showToast('CSV eksportert! ✓');
 }
 
+// Check and display notification status
+function checkNotificationStatus() {
+    const statusText = document.getElementById('notificationStatusText');
+    const enableBtn = document.getElementById('enableNotificationsBtn');
+    
+    if (!statusText) return; // Element not loaded yet
+    
+    if (!('Notification' in window)) {
+        statusText.textContent = 'Ikke støttet på denne enheten';
+        statusText.className = 'text-danger';
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        statusText.textContent = 'Aktivert ✅';
+        statusText.className = 'text-success';
+    } else if (Notification.permission === 'denied') {
+        statusText.textContent = 'Blokkert ❌ - Aktiver i Safari-innstillinger';
+        statusText.className = 'text-danger';
+    } else {
+        statusText.textContent = 'Ikke aktivert';
+        statusText.className = 'text-warning';
+        if (enableBtn) enableBtn.style.display = 'inline-block';
+    }
+}
+
 // Notification handling
 function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 showToast('Påminnelser aktivert! ✓');
+            } else if (permission === 'denied') {
+                showToast('⚠️ Notifikasjoner blokkert - sjekk innstillinger');
             }
         });
+    } else if ('Notification' in window && Notification.permission === 'granted') {
+        showToast('✅ Notifikasjoner allerede aktivert');
+    } else {
+        // iOS eller annen begrensning
+        showToast('ℹ️ Denne enheten har begrenset notifikasjonsstøtte');
     }
 }
 
