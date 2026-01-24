@@ -162,14 +162,14 @@ function switchUser() {
 
 function updateUserDisplay() {
   const display = document.getElementById('currentUserDisplay');
-  if (display && currentUser) {
-    display.textContent = currentUser;
+  if (display) {
+    display.textContent = currentUser || 'Ingen';
   }
   
   // Update welcome screen
   const welcomeName = document.getElementById('welcomeUserName');
-  if (welcomeName && currentUser) {
-    welcomeName.textContent = currentUser;
+  if (welcomeName) {
+    welcomeName.textContent = currentUser || 'Bruker';
   }
 }
 
