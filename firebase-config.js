@@ -165,6 +165,12 @@ function updateUserDisplay() {
   if (display && currentUser) {
     display.textContent = currentUser;
   }
+  
+  // Update welcome screen
+  const welcomeName = document.getElementById('welcomeUserName');
+  if (welcomeName && currentUser) {
+    welcomeName.textContent = currentUser;
+  }
 }
 
 // Firestore Sync Functions

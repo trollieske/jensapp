@@ -118,7 +118,7 @@ function handleTypeChange(e) {
         document.getElementById('bmAmountField').classList.remove('hidden');
         document.getElementById('bmConsistencyField').classList.remove('hidden');
         document.getElementById('bmColorField').classList.remove('hidden');
-    } else if (type === 'Urinering') {
+    } else if (type === 'vannlating') {
         document.getElementById('urineAmountField').classList.remove('hidden');
         document.getElementById('urineColorField').classList.remove('hidden');
         document.getElementById('urineSmellField').classList.remove('hidden');
@@ -150,7 +150,7 @@ function handleLogSubmit(e) {
         log.bmAmount = document.getElementById('bmAmount').value;
         log.bmConsistency = document.getElementById('bmConsistency').value;
         log.bmColor = document.getElementById('bmColor').value;
-    } else if (type === 'Urinering') {
+    } else if (type === 'vannlating') {
         log.urineAmount = document.getElementById('urineAmount').value;
         log.urineColor = document.getElementById('urineColor').value;
         log.urineSmell = document.getElementById('urineSmell').value;
@@ -552,7 +552,7 @@ function getDetails(log) {
         const bristolShort = log.bmConsistency ? 
             log.bmConsistency.split(':')[0] : '';
         return `Mengde: ${log.bmAmount || '-'}, ${bristolShort}, Farge: ${log.bmColor || '-'}`;
-    } else if (log.type === 'Urinering') {
+    } else if (log.type === 'vannlating') {
         return `Mengde: ${log.urineAmount || '-'}, Farge: ${log.urineColor || '-'}, Lukt: ${log.urineSmell || '-'}`;
     }
     return '-';
@@ -893,7 +893,7 @@ function submitQuickBowelMovement() {
     }
 }
 
-function submitQuickUrination() {
+function submitQuickvannlating() {
     const amount = document.getElementById('quickUrineAmount').value;
     const color = document.getElementById('quickUrineColor').value;
     const smell = document.getElementById('quickUrineSmell').value;
@@ -901,7 +901,7 @@ function submitQuickUrination() {
     const now = new Date();
     const log = {
         id: Date.now(),
-        type: 'Urinering',
+        type: 'vannlating',
         urineAmount: amount,
         urineColor: color,
         urineSmell: smell || 'Normal',
@@ -911,13 +911,13 @@ function submitQuickUrination() {
     };
     
     // Close modal first
-    bootstrap.Modal.getInstance(document.getElementById('urinationModal')).hide();
+    bootstrap.Modal.getInstance(document.getElementById('vannlatingModal')).hide();
     
     // Save to Firestore
     if (typeof saveLogToFirestore === 'function') {
         saveLogToFirestore(log)
             .then(() => {
-                showToast(`✓ Urinering logget av ${currentUser || 'deg'}!`);
+                showToast(`✓ vannlating logget av ${currentUser || 'deg'}!`);
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -930,7 +930,7 @@ function submitQuickUrination() {
         displayHistory();
         displayStats();
         displayChecklist();
-        showToast('✓ Urinering logget!');
+        showToast('✓ vannlating logget!');
     }
 }
 
@@ -940,3 +940,4 @@ if ('serviceWorker' in navigator) {
         .then(registration => console.log('Service Worker registered'))
         .catch(error => console.log('Service Worker registration failed:', error));
 }
+

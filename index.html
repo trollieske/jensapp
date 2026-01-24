@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dosevakt - Medisin & Omsorgslogg</title>
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#1e3a8a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Dosevakt">
@@ -28,11 +28,11 @@
             --bg-primary: #f0f4f8;
             --bg-secondary: #ffffff;
             --bg-card: #ffffff;
-            --bg-gradient-start: #667eea;
-            --bg-gradient-end: #764ba2;
-            --accent-blue: #5b7cff;
+            --bg-gradient-start: #1e3a8a;
+            --bg-gradient-end: #60a5fa;
+            --accent-blue: #3b82f6;
             --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
+            --accent-teal: #06b6d4;
             --accent-orange: #f59e0b;
             --accent-pink: #ec4899;
             --text-primary: #1f2937;
@@ -134,7 +134,7 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-teal) 100%);
             border: none;
             font-weight: 500;
             transition: all 0.3s ease;
@@ -143,8 +143,8 @@
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(91, 124, 255, 0.4);
-            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-blue) 100%);
         }
         
         .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info {
@@ -159,7 +159,7 @@
         }
         
         h1 {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -541,7 +541,10 @@
         <!-- Tabs -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist" type="button">Sjekkliste</button>
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button">🏠 Hjem</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist" type="button">Sjekkliste</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button">Ny Logg</button>
@@ -561,8 +564,67 @@
         </ul>
         
         <div class="tab-content">
+            <!-- Hjem Tab -->
+            <div class="tab-pane fade show active" id="home" role="tabpanel">
+                <div class="text-center mt-5 mb-4">
+                    <h2 class="display-4 mb-3">👋 Velkommen, <span id="welcomeUserName" style="color: var(--accent-blue);">TEL</span>!</h2>
+                    <p class="lead text-muted">Klar for å ta vare på Jens i dag</p>
+                </div>
+                
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">💊</div>
+                                <h5 class="card-title">Sjekkliste</h5>
+                                <p class="card-text text-muted">Rask logging av daglige medisiner og rutiner</p>
+                                <button class="btn btn-primary" onclick="document.getElementById('checklist-tab').click()">
+                                    Gå til sjekkliste
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">⏰</div>
+                                <h5 class="card-title">Påminnelser</h5>
+                                <p class="card-text text-muted">Administrer og se aktive påminnelser</p>
+                                <button class="btn btn-primary" onclick="document.getElementById('reminders-tab').click()">
+                                    Se påminnelser
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                                <h5 class="card-title">Statistikk</h5>
+                                <p class="card-text text-muted">Se oversikt og trender</p>
+                                <button class="btn btn-primary" onclick="document.getElementById('stats-tab').click()">
+                                    Vis statistikk
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                                <h5 class="card-title">I dag</h5>
+                                <p class="card-text text-muted">Se dagens aktiviteter</p>
+                                <button class="btn btn-primary" onclick="document.getElementById('today-tab').click()">
+                                    Se i dag
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Sjekkliste Tab -->
-            <div class="tab-pane fade show active" id="checklist" role="tabpanel">
+            <div class="tab-pane fade" id="checklist" role="tabpanel">
                 <h5 class="mt-3">Daglig sjekkliste</h5>
                 <p class="text-muted small">Klikk på knappene for å raskt logge at medisiner/oppgaver er utført</p>
                 
@@ -608,8 +670,8 @@
                                     <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#bowelModal">
                                         💩 Logg avføring
                                     </button>
-                                    <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#urinationModal">
-                                        💧 Logg urinering
+                                    <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#vannlatingModal">
+                                        💧 Logg vannlating
                                     </button>
                                 </div>
                             </div>
@@ -641,7 +703,7 @@
                                             <option value="Medisin">Medisin</option>
                                             <option value="Sondemat">Sondemat</option>
                                             <option value="Avføring">Avføring</option>
-                                            <option value="Urinering">Urinering</option>
+                                            <option value="vannlating">vannlating</option>
                                             <option value="Annet">Annet</option>
                                         </select>
                                     </div>
@@ -705,7 +767,7 @@
                                         <input type="text" class="form-control" id="bmColor" placeholder="f.eks. Brun, Grønn, Blodig">
                                     </div>
                                     
-                                    <!-- Urinering-spesifikke felt -->
+                                    <!-- vannlating-spesifikke felt -->
                                     <div class="mb-3 hidden" id="urineAmountField">
                                         <label for="urineAmount" class="form-label">Mengde urin</label>
                                         <select class="form-select" id="urineAmount">
@@ -934,12 +996,12 @@
         </div>
     </div>
     
-    <!-- Quick Urination Modal -->
-    <div class="modal fade" id="urinationModal" tabindex="-1">
+    <!-- Quick vannlating Modal -->
+    <div class="modal fade" id="vannlatingModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">💧 Logg urinering</h5>
+                    <h5 class="modal-title">💧 Logg vannlating</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -968,7 +1030,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="button" class="btn btn-primary" onclick="submitQuickUrination()">Lagre</button>
+                    <button type="button" class="btn btn-primary" onclick="submitQuickvannlating()">Lagre</button>
                 </div>
             </div>
         </div>
@@ -1019,9 +1081,17 @@
                         <input type="text" class="form-control" id="customPlanName" placeholder="F.eks. Mari sin morgenrutine" required>
                     </div>
                     <hr>
-                    <h6>Velg medisiner og tidspunkter:</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Velg medisiner og tidspunkter:</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomMedicineField()">
+                            ➕ Legg til ny medisin
+                        </button>
+                    </div>
                     <div id="medicineTimePicker" style="max-height: 400px; overflow-y: auto;">
                         <!-- Generated dynamically -->
+                    </div>
+                    <div id="customMedicineContainer" class="mt-3">
+                        <!-- Custom medicines will be added here -->
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1065,3 +1135,4 @@
     </footer>
 </body>
 </html>
+

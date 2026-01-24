@@ -46,7 +46,7 @@ function showCustomPlanBuilder() {
 function buildMedicineTimePicker() {
     const container = document.getElementById('medicineTimePicker');
     
-    const allMedicines = [
+    window.allMedicines = [
         { name: 'Bactrim', default: '08:00' },
         { name: 'Nycoplus Multi Barn', default: '08:00' },
         { name: 'Nexium', default: '08:00' },
@@ -58,7 +58,7 @@ function buildMedicineTimePicker() {
         { name: 'Nutrini peptisorb', default: '08:00' }
     ];
     
-    container.innerHTML = allMedicines.map((med, index) => `
+    container.innerHTML = window.allMedicines.map((med, index) => `
         <div class="mb-3">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="med-${index}" value="${med.name}" checked>
@@ -71,6 +71,46 @@ function buildMedicineTimePicker() {
             </div>
         </div>
     `).join('');
+    
+    // Clear custom medicines container
+    const customContainer = document.getElementById('customMedicineContainer');
+    if (customContainer) {
+        customContainer.innerHTML = '';
+    }
+}
+
+// Add custom medicine field
+let customMedicineCounter = 0;
+function addCustomMedicineField() {
+    const container = document.getElementById('customMedicineContainer');
+    const id = `custom-med-${customMedicineCounter++}`;
+    
+    const div = document.createElement('div');
+    div.className = 'mb-3 p-3 border rounded';
+    div.id = id;
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Ny medisin</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCustomMedicineField('${id}')">
+                ×
+            </button>
+        </div>
+        <div class="mb-2">
+            <input type="text" class="form-control form-control-sm custom-med-name" placeholder="Medisinnavn" required>
+        </div>
+        <div>
+            <input type="time" class="form-control form-control-sm custom-med-time" value="08:00" style="width: 120px;">
+        </div>
+    `;
+    
+    container.appendChild(div);
+}
+
+function removeCustomMedicineField(id) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.remove();
+    }
 }
 
 // Save custom dosing plan
@@ -82,18 +122,31 @@ function saveCustomPlan() {
     }
     
     const selectedMedicines = [];
-    const allMedicines = [
-        'Bactrim', 'Nycoplus Multi Barn', 'Nexium', 'Zyprexa', 'Emend',
-        'Paracetamol', 'Movicol', 'Deksklorfeniramin', 'Nutrini peptisorb'
-    ];
     
-    allMedicines.forEach((med, index) => {
-        const checkbox = document.getElementById(`med-${index}`);
-        const timeInput = document.getElementById(`time-${index}`);
+    // Get standard medicines
+    if (window.allMedicines) {
+        window.allMedicines.forEach((med, index) => {
+            const checkbox = document.getElementById(`med-${index}`);
+            const timeInput = document.getElementById(`time-${index}`);
+            
+            if (checkbox && checkbox.checked && timeInput) {
+                selectedMedicines.push({
+                    name: med.name,
+                    time: timeInput.value
+                });
+            }
+        });
+    }
+    
+    // Get custom medicines
+    const customMeds = document.querySelectorAll('#customMedicineContainer > div');
+    customMeds.forEach((div) => {
+        const nameInput = div.querySelector('.custom-med-name');
+        const timeInput = div.querySelector('.custom-med-time');
         
-        if (checkbox && checkbox.checked && timeInput) {
+        if (nameInput && timeInput && nameInput.value.trim()) {
             selectedMedicines.push({
-                name: med,
+                name: nameInput.value.trim(),
                 time: timeInput.value
             });
         }
@@ -237,14 +290,24 @@ X-WR-CALDESC:Doseringsplan for Jens
         const now = new Date();
         const dtstart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
         
-        const formatDate = (date) => {
+        const formatDateLocal = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            const sec = String(date.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}T${hour}${min}${sec}`;
+        };
+        
+        const formatDateUTC = (date) => {
             return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         };
         
         icsContent += `BEGIN:VEVENT
 UID:${plan.id}-${index}@dosevakt.app
-DTSTAMP:${formatDate(now)}
-DTSTART:${formatDate(dtstart)}
+DTSTAMP:${formatDateUTC(now)}
+DTSTART:${formatDateLocal(dtstart)}
 RRULE:FREQ=DAILY
 SUMMARY:💊 ${med.name}
 DESCRIPTION:Medisinering for Jens - ${plan.name}
