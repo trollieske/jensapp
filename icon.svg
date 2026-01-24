@@ -1,4 +1,42 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="32" fill="#007bff"/>
-  <text x="96" y="130" font-size="100" text-anchor="middle" fill="white">💊</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Gradient bakgrunn -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Avrundet bakgrunn -->
+  <rect width="512" height="512" rx="110" fill="url(#grad)"/>
+  
+  <!-- Pille (større og mer synlig) -->
+  <g transform="translate(256, 200)" filter="url(#shadow)">
+    <!-- Venstre halvdel (lyseblå) -->
+    <ellipse cx="-40" cy="0" rx="50" ry="70" fill="#10b981" transform="rotate(-20)"/>
+    <!-- Høyre halvdel (rosa) -->
+    <ellipse cx="40" cy="0" rx="50" ry="70" fill="#ec4899" transform="rotate(-20)"/>
+    <!-- Midtlinje -->
+    <rect x="-5" y="-70" width="10" height="140" fill="#ffffff" opacity="0.8" transform="rotate(-20)"/>
+    <!-- Glans-effekt -->
+    <ellipse cx="-20" cy="-30" rx="15" ry="25" fill="#ffffff" opacity="0.5" transform="rotate(-20)"/>
+  </g>
+  
+  <!-- Glad smiley under pillen -->
+  <g transform="translate(256, 350)">
+    <!-- Smiley-sirkel -->
+    <circle cx="0" cy="0" r="80" fill="#fbbf24" filter="url(#shadow)"/>
+    <!-- Venstre øye -->
+    <circle cx="-30" cy="-15" r="12" fill="#1f2937"/>
+    <!-- Høyre øye -->
+    <circle cx="30" cy="-15" r="12" fill="#1f2937"/>
+    <!-- Glad munn (stor smile) -->
+    <path d="M -40 10 Q 0 50 40 10" stroke="#1f2937" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <!-- Glans på smiley -->
+    <circle cx="-25" cy="-30" r="15" fill="#ffffff" opacity="0.6"/>
+  </g>
 </svg>
