@@ -132,6 +132,30 @@ function scheduleFirebaseReminder(name, time) {
 function showUserSelector() {
   const modal = document.getElementById('userSelectorModal');
   if (modal) {
+    // Get all previous users from localStorage
+    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    const uniqueUsers = ['TEL', 'Mari', ...allUsers.filter(u => u !== 'TEL' && u !== 'Mari')];
+    
+    // Build user buttons dynamically
+    const modalBody = modal.querySelector('.modal-body');
+    const buttonContainer = modalBody.querySelector('.d-grid');
+    
+    let buttonsHTML = '';
+    uniqueUsers.forEach(user => {
+      const emoji = user === 'TEL' ? '👨' : user === 'Mari' ? '👩' : '👤';
+      buttonsHTML += `<button class="btn btn-lg btn-primary" onclick="selectUser('${user}')">${emoji} ${user}</button>`;
+    });
+    
+    buttonsHTML += `<hr>
+        <div class="input-group">
+            <input type="text" class="form-control" id="customUserInput" placeholder="Nytt navn...">
+            <button class="btn btn-outline-secondary" onclick="selectUser(document.getElementById('customUserInput').value)">
+                OK
+            </button>
+        </div>`;
+    
+    buttonContainer.innerHTML = buttonsHTML;
+    
     const bsModal = new bootstrap.Modal(modal, {
       backdrop: 'static',
       keyboard: false
@@ -141,8 +165,19 @@ function showUserSelector() {
 }
 
 function selectUser(username) {
+  if (!username || username.trim() === '') return;
+  
+  username = username.trim();
   currentUser = username;
   localStorage.setItem('currentUser', username);
+  
+  // Add to allUsers list if not already there
+  const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+  if (!allUsers.includes(username)) {
+    allUsers.push(username);
+    localStorage.setItem('allUsers', JSON.stringify(allUsers));
+  }
+  
   updateUserDisplay();
   
   const modal = document.getElementById('userSelectorModal');
