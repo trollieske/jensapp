@@ -411,8 +411,20 @@ function displayChecklist() {
     // Get today's logs for each medicine
     const todayLogs = logs.filter(log => new Date(log.time).toDateString() === today);
     
-    // Display medicines
-    medicineList.innerHTML = checklistItems.medicines.map((item, index) => {
+    // Helper function to check if Palonosetron should be given today
+    function shouldGivePalonosetron() {
+        const lastLog = logs
+            .filter(log => log.type === 'Medisin' && log.name === 'Palonosetron')
+            .sort((a, b) => b.timestamp - a.timestamp)[0];
+        
+        if (!lastLog) return true; // Never given, show it
+        
+        const daysSinceLastDose = Math.floor((Date.now() - lastLog.timestamp) / (1000 * 60 * 60 * 24));
+        return daysSinceLastDose >= 3;
+    }
+    
+    // Helper to render a medicine item
+    function renderMedicineItem(item, index) {
         const logsForItem = todayLogs.filter(log => 
             log.type === 'Medisin' && log.name === item.name
         );
@@ -421,12 +433,26 @@ function displayChecklist() {
         const loggedClass = isLogged ? 'logged-today' : '';
         const defaultAmount = parseFloat(item.dose) || '';
         
+        let scheduleInfo = '';
+        if (item.schedule === 'every3days') {
+            const shouldShow = shouldGivePalonosetron();
+            if (!shouldShow) {
+                return ''; // Don't show if not due
+            }
+            scheduleInfo = '<span class="badge bg-warning text-dark ms-2">Hver 3. dag</span>';
+        }
+        
+        const timeInfo = item.times.length > 0 ? item.times.join(', ') : 'Ved behov';
+        
         return `
             <div class="list-group-item ${loggedClass}" style="border-radius: 8px; margin-bottom: 8px;">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1">
-                        <strong>${item.name}</strong><br>
-                        <small class="text-muted">${item.dose} - ${item.times.join(', ')}</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <strong>${item.name}</strong>
+                            ${scheduleInfo}
+                        </div>
+                        <small class="text-muted">${item.dose} - ${timeInfo}</small>
                         <div class="dose-input-group">
                             <input type="number" 
                                    class="dose-input" 
@@ -448,7 +474,42 @@ function displayChecklist() {
                 </div>
             </div>
         `;
-    }).join('');
+    }
+    
+    // Group medicines by category
+    const dagMeds = checklistItems.medicines.filter(m => m.category === 'dag');
+    const kveldMeds = checklistItems.medicines.filter(m => m.category === 'kveld');
+    const spesiellMeds = checklistItems.medicines.filter(m => m.category === 'spesiell');
+    const prnMeds = checklistItems.medicines.filter(m => m.category === 'prn');
+    
+    // Build HTML with sections
+    let html = '';
+    
+    // Dag section
+    if (dagMeds.length > 0) {
+        html += '<h6 class="text-primary mt-3 mb-2">🌅 Dagtid (morgen/middag)</h6>';
+        html += dagMeds.map((item, idx) => renderMedicineItem(item, idx)).join('');
+    }
+    
+    // Kveld section
+    if (kveldMeds.length > 0) {
+        html += '<h6 class="text-primary mt-4 mb-2">🌙 Kveld</h6>';
+        html += kveldMeds.map((item, idx) => renderMedicineItem(item, 100 + idx)).join('');
+    }
+    
+    // Spesiell dosering section
+    if (spesiellMeds.length > 0) {
+        html += '<h6 class="text-warning mt-4 mb-2">⏰ Spesiell dosering</h6>';
+        html += spesiellMeds.map((item, idx) => renderMedicineItem(item, 200 + idx)).filter(h => h).join('');
+    }
+    
+    // Ved behov section
+    if (prnMeds.length > 0) {
+        html += '<h6 class="text-secondary mt-4 mb-2">🎯 Ved behov</h6>';
+        html += prnMeds.map((item, idx) => renderMedicineItem(item, 300 + idx)).join('');
+    }
+    
+    medicineList.innerHTML = html;
     
     // Display sonde
     sondeList.innerHTML = checklistItems.sonde.map((item, index) => {
