@@ -528,7 +528,12 @@ function scheduleReminders() {
         
         if (delay > 0) {
             setTimeout(() => {
-                showNotification(reminder.name);
+                // Use Firebase-enhanced notifications if available
+                if (typeof scheduleFirebaseReminder === 'function') {
+                    scheduleFirebaseReminder(reminder.name, reminder.time);
+                } else {
+                    showNotification(reminder.name);
+                }
                 // Reschedule for next day
                 scheduleReminders();
             }, delay);
