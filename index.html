@@ -639,6 +639,9 @@
                         <div id="collapseMeds" class="accordion-collapse collapse show" data-bs-parent="#checklistAccordion">
                             <div class="accordion-body">
                                 <div class="list-group" id="medicineChecklist"></div>
+                                <button class="btn btn-outline-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addMedicineModal">
+                                    ➕ Legg til ny medisin
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -653,6 +656,9 @@
                         <div id="collapseSonde" class="accordion-collapse collapse" data-bs-parent="#checklistAccordion">
                             <div class="accordion-body">
                                 <div class="list-group" id="sondeChecklist"></div>
+                                <button class="btn btn-outline-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addSondematModal">
+                                    ➕ Legg til ny sondemat
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1062,6 +1068,70 @@
                     <p class="text-muted text-center mt-3 small">
                         ℹ️ Alle logger vil bli tagget med ditt navn
                     </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Medicine to Checklist Modal -->
+    <div class="modal fade" id="addMedicineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">💊 Legg til ny medisin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newMedicineName" class="form-label">Medisinnavn *</label>
+                        <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Ibux" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newMedicineDose" class="form-label">Dose/mengde</label>
+                        <input type="text" class="form-control" id="newMedicineDose" placeholder="F.eks. 10 ml, 1 tablett">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newMedicineFrequency" class="form-label">Frekvens</label>
+                        <input type="text" class="form-control" id="newMedicineFrequency" placeholder="F.eks. 2x daglig, ved behov">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn btn-primary" onclick="addNewMedicineToChecklist()">
+                        💾 Lagre
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Sondemat to Checklist Modal -->
+    <div class="modal fade" id="addSondematModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🍼 Legg til ny sondemat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newSondematName" class="form-label">Sondematenavn *</label>
+                        <input type="text" class="form-control" id="newSondematName" placeholder="F.eks. Fresubin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newSondematAmount" class="form-label">Mengde</label>
+                        <input type="text" class="form-control" id="newSondematAmount" placeholder="F.eks. 500 ml">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newSondematFrequency" class="form-label">Frekvens</label>
+                        <input type="text" class="form-control" id="newSondematFrequency" placeholder="F.eks. 3x daglig">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn btn-primary" onclick="addNewSondematToChecklist()">
+                        💾 Lagre
+                    </button>
                 </div>
             </div>
         </div>

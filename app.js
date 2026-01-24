@@ -2,8 +2,8 @@
 let logs = [];
 let reminders = [];
 
-// Checklist items configuration
-const checklistItems = {
+// Checklist items configuration (stored in localStorage for persistence)
+let checklistItems = JSON.parse(localStorage.getItem('checklistItems')) || {
     medicines: [
         { name: 'Bactrim', dose: '10 ml', unit: 'ml', times: ['morgen', 'kveld'] },
         { name: 'Nycoplus Multi Barn', dose: '1 tablett', unit: 'tablett', times: ['morgen'] },
@@ -20,6 +20,11 @@ const checklistItems = {
         { name: 'Nutrini peptisorb', dose: '1300 ml', unit: 'ml', times: ['daglig'] }
     ]
 };
+
+// Save checklist items to localStorage
+function saveChecklistItems() {
+    localStorage.setItem('checklistItems', JSON.stringify(checklistItems));
+}
 
 // Save data to Firestore (replaced localStorage)
 // Note: Individual save functions are now in firebase-config.js
@@ -932,6 +937,96 @@ function submitQuickvannlating() {
         displayChecklist();
         showToast('✓ vannlating logget!');
     }
+}
+
+// Add new medicine to checklist
+function addNewMedicineToChecklist() {
+    const name = document.getElementById('newMedicineName').value.trim();
+    const dose = document.getElementById('newMedicineDose').value.trim();
+    const frequency = document.getElementById('newMedicineFrequency').value.trim();
+    
+    if (!name) {
+        showToast('⚠️ Vennligst fyll inn medisinnavn');
+        return;
+    }
+    
+    // Check if medicine already exists
+    const exists = checklistItems.medicines.some(m => m.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        showToast('⚠️ Denne medisinen finnes allerede i listen');
+        return;
+    }
+    
+    // Parse frequency to times array
+    const times = frequency ? [frequency] : ['ved behov'];
+    
+    // Add to checklist
+    checklistItems.medicines.push({
+        name: name,
+        dose: dose || '',
+        unit: '',
+        times: times
+    });
+    
+    // Save to localStorage
+    saveChecklistItems();
+    
+    // Close modal and reset form
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addMedicineModal'));
+    if (modal) modal.hide();
+    document.getElementById('newMedicineName').value = '';
+    document.getElementById('newMedicineDose').value = '';
+    document.getElementById('newMedicineFrequency').value = '';
+    
+    // Refresh checklist display
+    displayChecklist();
+    
+    showToast(`✅ ${name} lagt til i sjekklisten!`);
+}
+
+// Add new sondemat to checklist
+function addNewSondematToChecklist() {
+    const name = document.getElementById('newSondematName').value.trim();
+    const amount = document.getElementById('newSondematAmount').value.trim();
+    const frequency = document.getElementById('newSondematFrequency').value.trim();
+    
+    if (!name) {
+        showToast('⚠️ Vennligst fyll inn sondematenavn');
+        return;
+    }
+    
+    // Check if sondemat already exists
+    const exists = checklistItems.sonde.some(s => s.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        showToast('⚠️ Denne sondematen finnes allerede i listen');
+        return;
+    }
+    
+    // Parse frequency to times array
+    const times = frequency ? [frequency] : ['daglig'];
+    
+    // Add to checklist
+    checklistItems.sonde.push({
+        name: name,
+        dose: amount || '',
+        unit: 'ml',
+        times: times
+    });
+    
+    // Save to localStorage
+    saveChecklistItems();
+    
+    // Close modal and reset form
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addSondematModal'));
+    if (modal) modal.hide();
+    document.getElementById('newSondematName').value = '';
+    document.getElementById('newSondematAmount').value = '';
+    document.getElementById('newSondematFrequency').value = '';
+    
+    // Refresh checklist display
+    displayChecklist();
+    
+    showToast(`✅ ${name} lagt til i sjekklisten!`);
 }
 
 // Service Worker registration
