@@ -171,6 +171,9 @@ function updateUserDisplay() {
 function startRealtimeSync() {
   if (!db || !currentUser) return;
   
+  // Check if we need to migrate localStorage data
+  migrateLocalStorageToFirestore();
+  
   // Listen to logs collection
   db.collection('logs').onSnapshot((snapshot) => {
     logs = [];
@@ -262,5 +265,52 @@ function deleteReminderFromFirestore(reminderId) {
     .catch((error) => {
       console.error('Error deleting reminder:', error);
       throw error;
+    });
+}
+
+// Migrate localStorage data to Firestore (one-time)
+function migrateLocalStorageToFirestore() {
+  // Check if migration has already been done
+  const migrated = localStorage.getItem('firestoreMigrated');
+  if (migrated === 'true') {
+    console.log('Data already migrated to Firestore');
+    return;
+  }
+  
+  // Get localStorage data
+  const localLogs = JSON.parse(localStorage.getItem('logs') || '[]');
+  const localReminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+  
+  if (localLogs.length === 0 && localReminders.length === 0) {
+    console.log('No localStorage data to migrate');
+    localStorage.setItem('firestoreMigrated', 'true');
+    return;
+  }
+  
+  console.log(`Migrating ${localLogs.length} logs and ${localReminders.length} reminders to Firestore...`);
+  
+  // Migrate logs
+  const logPromises = localLogs.map(log => {
+    log.loggedBy = log.loggedBy || currentUser;
+    log.loggedAt = firebase.firestore.FieldValue.serverTimestamp();
+    return db.collection('logs').add(log);
+  });
+  
+  // Migrate reminders
+  const reminderPromises = localReminders.map(reminder => {
+    reminder.createdBy = reminder.createdBy || currentUser;
+    reminder.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    return db.collection('reminders').add(reminder);
+  });
+  
+  Promise.all([...logPromises, ...reminderPromises])
+    .then(() => {
+      console.log('Migration completed successfully!');
+      localStorage.setItem('firestoreMigrated', 'true');
+      showToast('✓ Historikk importert til Firestore!');
+    })
+    .catch((error) => {
+      console.error('Migration error:', error);
+      showToast('⚠️ Feil ved import av historikk');
     });
 }

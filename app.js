@@ -307,7 +307,6 @@ function displayHistory() {
         </tr>`;
     }).join('');
 }
-}
 
 function displayReminders() {
     const list = document.getElementById('reminderList');
