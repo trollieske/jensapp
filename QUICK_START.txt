@@ -1,0 +1,42 @@
+============================================
+JENS MEDISINAPP - Quick Deploy Guide
+============================================
+
+ENKLESTE METODE (5 minutter):
+
+1. Åpne denne mappen i File Explorer
+2. Marker ALLE filer (Ctrl+A)
+3. Høyreklikk → "Send til" → "Compressed (zipped) folder"
+4. Gi navn: jensapp.zip
+
+5. Åpne nettleser
+6. Gå til: https://app.netlify.com/drop
+7. Dra jensapp.zip inn i boksen
+8. FERDIG! Du får en URL
+
+EKSEMPEL URL:
+https://jens-medisinapp.netlify.app
+
+APPEN FUNGERER NÅ PÅ:
+- Mobil
+- Nettbrett  
+- PC
+- Offline (etter første besøk)
+
+INSTALLER SOM APP PÅ MOBIL:
+- iPhone: Åpne i Safari → Del → "Legg til på Hjem"
+- Android: Åpne i Chrome → Meny → "Legg til på startskjerm"
+
+DATA:
+✓ Alt lagres LOKALT på enheten
+✓ Ingen data går til server
+✓ Fungerer offline
+
+OPPDATERE:
+1. Gjør endringer i filene
+2. Lag ny zip
+3. Dra inn i Netlify igjen
+
+Mer info: Les DEPLOY_GUIDE.md
+
+============================================

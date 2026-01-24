@@ -1,0 +1,28 @@
+# Backup folders
+jensapp_backup_*/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if you add build tools later)
+node_modules/
+npm-debug.log
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Windows specific
+ehthumbs.db
