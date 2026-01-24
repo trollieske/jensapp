@@ -503,9 +503,14 @@
             <div class="header-user">
                 <small class="text-muted d-block">Innlogget som:</small>
                 <strong id="currentUserDisplay" class="d-block" style="font-size: 1.0rem;">Venter...</strong>
-                <button class="btn btn-sm btn-outline-secondary mt-1" onclick="switchUser()">
-                    Bytt bruker
-                </button>
+                <div class="d-flex gap-1 mt-1">
+                    <button class="btn btn-sm btn-outline-primary" onclick="location.reload()" title="Last inn siden på nytt">
+                        🔄
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="switchUser()">
+                        Bytt bruker
+                    </button>
+                </div>
             </div>
         </div>
     </header>
