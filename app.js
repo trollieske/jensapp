@@ -307,6 +307,7 @@ function displayHistory() {
         </tr>`;
     }).join('');
 }
+}
 
 function displayReminders() {
     const list = document.getElementById('reminderList');
@@ -317,12 +318,61 @@ function displayReminders() {
     }
     
     list.innerHTML = reminders.map(reminder => {
-        return `<li class="list-group-item d-flex justify-content-between align-items-center" 
-                    style="cursor: pointer;" onclick="deleteReminder(${reminder.id})">
-            <span>⏰ ${reminder.name}</span>
-            <span class="badge bg-info">${reminder.time}</span>
+        const reminderId = reminder.id;
+        return `<li class="list-group-item reminder-item d-flex justify-content-between align-items-center" 
+                    style="position: relative;">
+            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                <span>⏰ ${reminder.name}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="time" 
+                       class="form-control form-control-sm" 
+                       value="${reminder.time}" 
+                       style="width: 100px;" 
+                       onchange="updateReminderTime('${reminderId}', this.value)"
+                       onclick="event.stopPropagation()">
+                <button class="btn btn-sm btn-danger" 
+                        onclick="deleteReminder('${reminderId}')" 
+                        title="Slett påminnelse">
+                    🗑️
+                </button>
+            </div>
         </li>`;
     }).join('');
+}
+
+function updateReminderTime(reminderId, newTime) {
+    const reminder = reminders.find(r => r.id == reminderId);
+    if (!reminder) {
+        showToast('⚠️ Fant ikke påminnelsen');
+        return;
+    }
+    
+    const oldTime = reminder.time;
+    reminder.time = newTime;
+    
+    // Update in Firestore
+    if (typeof db !== 'undefined' && db) {
+        db.collection('reminders').doc(reminderId).update({
+            time: newTime
+        })
+        .then(() => {
+            showToast(`✓ Påminnelse endret fra ${oldTime} til ${newTime}`);
+            scheduleReminders();
+        })
+        .catch((error) => {
+            console.error('Error updating reminder:', error);
+            showToast('⚠️ Feil ved oppdatering');
+            reminder.time = oldTime; // Rollback
+            displayReminders();
+        });
+    } else {
+        // Fallback to localStorage
+        saveData();
+        displayReminders();
+        scheduleReminders();
+        showToast(`✓ Påminnelse endret fra ${oldTime} til ${newTime}`);
+    }
 }
 
 function displayChecklist() {
@@ -495,10 +545,23 @@ function getDetails(log) {
 
 function deleteReminder(id) {
     if (confirm('Vil du slette denne påminnelsen?')) {
-        reminders = reminders.filter(r => r.id !== id);
-        saveData();
-        displayReminders();
-        showToast('Påminnelse slettet');
+        // Delete from Firestore
+        if (typeof deleteReminderFromFirestore === 'function') {
+            deleteReminderFromFirestore(id)
+                .then(() => {
+                    showToast('✓ Påminnelse slettet');
+                })
+                .catch((error) => {
+                    console.error('Error deleting reminder:', error);
+                    showToast('⚠️ Feil ved sletting');
+                });
+        } else {
+            // Fallback to localStorage
+            reminders = reminders.filter(r => r.id != id);
+            saveData();
+            displayReminders();
+            showToast('Påminnelse slettet');
+        }
     }
 }
 

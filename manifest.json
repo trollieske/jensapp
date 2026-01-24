@@ -1,7 +1,7 @@
 {
-  "name": "Medisinlogg - Jens",
-  "short_name": "Medisinlogg",
-  "description": "Enkel logging av medisin, sondemat og helseinformasjon",
+  "name": "Dosevakt - Medisin & Omsorgslogg",
+  "short_name": "Dosevakt",
+  "description": "Smart medisinlogging for Jens - Hold oversikt over medisin, sondemat og helse",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
