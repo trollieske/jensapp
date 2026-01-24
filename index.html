@@ -949,6 +949,35 @@
         </div>
     </div>
     
+    <!-- Custom Plan Builder Modal -->
+    <div class="modal fade" id="customPlanModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">⚙️ Lag egen doseringsplan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="customPlanName" class="form-label">Navn på plan *</label>
+                        <input type="text" class="form-control" id="customPlanName" placeholder="F.eks. Mari sin morgenrutine" required>
+                    </div>
+                    <hr>
+                    <h6>Velg medisiner og tidspunkter:</h6>
+                    <div id="medicineTimePicker" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Generated dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCustomPlan()">
+                        💾 Lagre plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Firebase SDK -->
@@ -961,6 +990,9 @@
     
     <!-- App JS -->
     <script src="app.js"></script>
+    
+    <!-- Dosing Plan JS -->
+    <script src="dosing-plan.js"></script>
     
     <!-- Initialize Firebase after page load -->
     <script>
