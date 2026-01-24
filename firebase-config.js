@@ -62,7 +62,18 @@ function setupMessaging() {
           console.log('FCM Token:', currentToken);
           // Save token to localStorage for later use
           localStorage.setItem('fcmToken', currentToken);
-          showToast('✓ Push-varsler aktivert!');
+          
+          // Save token to Firestore via Cloud Function
+          const saveFcmToken = firebase.functions().httpsCallable('saveFcmToken');
+          saveFcmToken({ token: currentToken, userId: currentUser })
+            .then((result) => {
+              console.log('Token saved to Firestore:', result.data);
+              showToast('✓ Push-varsler aktivert!');
+            })
+            .catch((error) => {
+              console.error('Error saving token:', error);
+              showToast('✓ Push-varsler delvis aktivert (lokal)');
+            });
         } else {
           console.log('No registration token available');
         }
