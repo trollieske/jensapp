@@ -5,19 +5,27 @@ let reminders = [];
 // Checklist items configuration (stored in localStorage for persistence)
 let checklistItems = JSON.parse(localStorage.getItem('checklistItems')) || {
     medicines: [
-        { name: 'Bactrim', dose: '10 ml', unit: 'ml', times: ['morgen', 'kveld'] },
-        { name: 'Nycoplus Multi Barn', dose: '1 tablett', unit: 'tablett', times: ['morgen'] },
-        { name: 'Nexium', dose: '1-2 poser', unit: 'pose', times: ['morgen'] },
-        { name: 'Zyprexa', dose: '1.25-2.5 mg', unit: 'mg', times: ['kveld'] },
-        { name: 'Palonosetron', dose: '390 μg', unit: 'μg', times: ['hver 48t'] },
-        { name: 'Emend', dose: '40 mg', unit: 'mg', times: ['morgen'] },
-        { name: 'Paracetamol', dose: '300 mg', unit: 'mg', times: ['ved behov'] },
-        { name: 'Movicol', dose: '1 pose', unit: 'pose', times: ['ved behov'] },
-        { name: 'Deksklorfeniramin', dose: '1 mg', unit: 'mg', times: ['morgen', 'middag', 'kveld'] },
-        { name: 'Ibuprofen', dose: '', unit: 'mg', times: ['ved behov'] }
+        // DAGTID
+        { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'dag', times: ['08:00'], description: 'Antibiotikum mot bakterielle infeksjoner' },
+        { name: 'Nycoplus Multi Barn', dose: '1 tablett', unit: 'tablett', category: 'dag', times: ['08:00'], description: 'Multivitamin og mineraltilskudd' },
+        { name: 'Nexium', dose: '1-2 poser', unit: 'pose', category: 'dag', times: ['08:00'], description: 'Protonpumpehemmer mot syrerelaterte mageproblemer' },
+        { name: 'Emend', dose: '40 mg', unit: 'mg', category: 'dag', times: ['08:00'], description: 'Antiemetikum mot kvalme ved cellegift' },
+        
+        // KVELD
+        { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'kveld', times: ['20:00'], description: 'Antibiotikum mot bakterielle infeksjoner' },
+        { name: 'Zyprexa', dose: '1.25-2.5 mg', unit: 'mg', category: 'kveld', times: ['18:00'], description: 'Antipsykotikum, brukes også mot kvalme' },
+        
+        // SPESIELL DOSERING
+        { name: 'Palonosetron', dose: '500 μg', unit: 'μg', category: 'spesiell', schedule: 'every3days', times: [], description: 'Antiemetikum mot kvalme ved cellegift, hver 3. dag' },
+        
+        // VED BEHOV
+        { name: 'Paracetamol', dose: '300 mg', unit: 'mg', category: 'prn', times: [], description: 'Smertestillende og febernedsettende, maks 4 doser/døgn' },
+        { name: 'Movicol', dose: '1 pose', unit: 'pose', category: 'prn', times: [], description: 'Avføringsregulerende, mot forstoppelse' },
+        { name: 'Deksklorfeniramin', dose: '1 mg', unit: 'mg', category: 'prn', times: [], description: 'Antihistamin mot allergi og kløe, kun ved behov' },
+        { name: 'Ibuprofen', dose: '200 mg', unit: 'mg', category: 'prn', times: [], description: 'Betennelsesdempende og smertestillende, kun ved behov' }
     ],
     sonde: [
-        { name: 'Nutrini peptisorb', dose: '1300 ml', unit: 'ml', times: ['daglig'] }
+        { name: 'Nutrini peptisorb', dose: '1300 ml', unit: 'ml', category: 'dag', times: ['08:00'], description: 'Sondernæring for komplett ernæring' }
     ]
 };
 
