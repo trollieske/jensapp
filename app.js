@@ -29,8 +29,24 @@ function saveData() {
     console.log('Data synced via Firestore');
 }
 
+// Welcome screen management
+function showWelcomeScreen() {
+    const welcomed = localStorage.getItem('welcomed');
+    if (!welcomed) {
+        document.getElementById('welcomeScreen').classList.add('show');
+    }
+}
+
+function closeWelcomeScreen() {
+    document.getElementById('welcomeScreen').classList.remove('show');
+    localStorage.setItem('welcomed', 'true');
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    // Show welcome screen for first-time users
+    setTimeout(() => showWelcomeScreen(), 3000); // After splash screen
+    
     initializeApp();
     setupEventListeners();
     requestNotificationPermission();

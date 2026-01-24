@@ -383,6 +383,54 @@
         .reminder-item:hover .reminder-edit-btn {
             opacity: 1;
         }
+        
+        /* Welcome Screen */
+        #welcomeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        
+        #welcomeScreen.show {
+            display: flex;
+        }
+        
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .welcome-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -392,11 +440,38 @@
             <source src="dosevakt.mp4" type="video/mp4">
         </video>
     </div>
+    
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen">
+        <div class="welcome-card">
+            <img src="./icon.svg" alt="Dosevakt" class="welcome-logo">
+            <h2 style="color: var(--text-primary); margin-bottom: 16px;">👋 Velkommen til Dosevakt!</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;">
+                Din smarte assistent for å holde oversikt over medisiner, sondemat og helse for Jens.
+            </p>
+            <div style="text-align: left; margin-bottom: 24px;">
+                <p style="color: var(--text-primary); margin-bottom: 8px;"><strong>✅ Sjekklister</strong> - Rask logging av daglige medisiner</p>
+                <p style="color: var(--text-primary); margin-bottom: 8px;"><strong>⏰ Påminnelser</strong> - Automatiske varsler</p>
+                <p style="color: var(--text-primary); margin-bottom: 8px;"><strong>📊 Statistikk</strong> - Oversikt over historikk</p>
+                <p style="color: var(--text-primary);"><strong>☁️ Sky-synkronisering</strong> - Del data mellom enheter</p>
+            </div>
+            <button class="btn btn-primary btn-lg w-100" onclick="closeWelcomeScreen()">
+                Kom i gang 🚀
+            </button>
+        </div>
+    </div>
+    
+    <!-- Splash Screen (legacy, kept for video) -->
+    <div id="splashScreen" style="display: none;">
+        <video autoplay muted playsinline>
+            <source src="dosevakt.mp4" type="video/mp4">
+        </video>
+    </div>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center gap-3">
-                <img src="icon.svg" alt="Dosevakt Logo" style="width: 60px; height: 60px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <h1 class="mb-0">Dosevakt</h1>
+                <img src="./icon.svg" alt="Dosevakt Logo" style="width: 60px; height: 60px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" onerror="console.error('Logo failed to load'); this.style.display='none';">
+                <h1 class="mb-0">💊 Dosevakt</h1>
             </div>
             <div class="text-end">
                 <small class="text-muted d-block">Innlogget som:</small>
@@ -677,70 +752,41 @@
                     </button>
                 </div>
                 
-                <!-- Forhåndsdefinerte påminnelser -->
+                <!-- Legens plan -->
                 <div class="card mb-4">
-                    <div class="card-header">
-                        <strong>📋 Medisineringsplan - Hurtigvalg</strong>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>👨‍⚕️ Medisineringsplan fra legen</strong>
+                        <button class="btn btn-sm btn-success" onclick="addDoctorPlan()">
+                            ⚙️ Last inn hele planen
+                        </button>
                     </div>
                     <div class="card-body">
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-primary w-100" onclick="addPresetReminder('Bactrim morgen', '08:00')">
-                                    🌅 Bactrim morgen (08:00)
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-primary w-100" onclick="addPresetReminder('Bactrim kveld', '20:00')">
-                                    🌙 Bactrim kveld (20:00)
-                                </button>
-                            </div>
+                        <p class="text-muted small mb-3">
+                            📅 Legens anbefalte tidspunkter basert på medisineringsplanen
+                        </p>
+                        <div class="alert alert-info">
+                            <strong>Vil du laste inn alle påminnelsene fra legen?</strong><br>
+                            Klikk "Last inn hele planen" for å legge til alle medisiner med anbefalte tidspunkter.
                         </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-success w-100" onclick="addPresetReminder('Nycoplus Multi Barn', '08:00')">
-                                    💊 Nycoplus (08:00)
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-success w-100" onclick="addPresetReminder('Nexium', '08:00')">
-                                    💊 Nexium (08:00)
-                                </button>
-                            </div>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-warning w-100" onclick="addPresetReminder('Zyprexa', '18:00')">
-                                    🌆 Zyprexa (18:00)
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-warning w-100" onclick="addPresetReminder('Emend', '08:00')">
-                                    💊 Emend (08:00)
-                                </button>
-                            </div>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-4">
-                                <button class="btn btn-outline-info w-100" onclick="addPresetReminder('Deksklorfeniramin morgen', '08:00')">
-                                    🌅 Deksklorf. (08:00)
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button class="btn btn-outline-info w-100" onclick="addPresetReminder('Deksklorfeniramin middag', '14:00')">
-                                    ☀️ Deksklorf. (14:00)
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button class="btn btn-outline-info w-100" onclick="addPresetReminder('Deksklorfeniramin kveld', '20:00')">
-                                    🌙 Deksklorf. (20:00)
-                                </button>
-                            </div>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-md-12">
-                                <button class="btn btn-outline-secondary w-100" onclick="addPresetReminder('Nutrini peptisorb', '08:00')">
-                                    🍼 Nutrini peptisorb (08:00)
-                                </button>
+                    </div>
+                </div>
+                
+                <!-- Egen doseringsplan -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>⚙️ Lag egen doseringsplan</strong>
+                        <button class="btn btn-sm btn-primary" onclick="showCustomPlanBuilder()">
+                            ➕ Ny plan
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            🗓️ Tilpass tidspunkter for Maris rutiner og Jens søvnmønster
+                        </p>
+                        <div id="customPlanList">
+                            <div class="alert alert-secondary">
+                                <strong>Ingen egendefinerte planer ennå</strong><br>
+                                Klikk "Ny plan" for å lage en tilpasset doseringsplan.
                             </div>
                         </div>
                     </div>
