@@ -6,13 +6,13 @@ let reminders = [];
 let checklistItems = JSON.parse(localStorage.getItem('checklistItems')) || {
     medicines: [
         // DAGTID
-        { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'dag', times: ['08:00'], description: 'Antibiotikum mot bakterielle infeksjoner' },
+        { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'dag', schedule: 'weekendOnly', times: ['08:00'], description: 'Antibiotikum mot bakterielle infeksjoner - kun lørdag og søndag' },
         { name: 'Nycoplus Multi Barn', dose: '1 tablett', unit: 'tablett', category: 'dag', times: ['08:00'], description: 'Multivitamin og mineraltilskudd' },
         { name: 'Nexium', dose: '1-2 poser', unit: 'pose', category: 'dag', times: ['08:00'], description: 'Protonpumpehemmer mot syrerelaterte mageproblemer' },
         { name: 'Emend', dose: '40 mg', unit: 'mg', category: 'dag', times: ['08:00'], description: 'Antiemetikum mot kvalme ved cellegift' },
         
         // KVELD
-        { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'kveld', times: ['20:00'], description: 'Antibiotikum mot bakterielle infeksjoner' },
+        { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'kveld', schedule: 'weekendOnly', times: ['20:00'], description: 'Antibiotikum mot bakterielle infeksjoner - kun lørdag og søndag' },
         { name: 'Zyprexa', dose: '1.25-2.5 mg', unit: 'mg', category: 'kveld', times: ['18:00'], description: 'Antipsykotikum, brukes også mot kvalme' },
         
         // SPESIELL DOSERING
@@ -434,6 +434,18 @@ function displayChecklist() {
         const defaultAmount = parseFloat(item.dose) || '';
         
         let scheduleInfo = '';
+        
+        // Check if weekend-only medicine
+        if (item.schedule === 'weekendOnly') {
+            const dayOfWeek = new Date().getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // 0=Søndag, 6=Lørdag
+            if (!isWeekend) {
+                return ''; // Don't show on weekdays
+            }
+            scheduleInfo = '<span class="badge bg-info text-dark ms-2">Kun helg</span>';
+        }
+        
+        // Check if every 3 days medicine
         if (item.schedule === 'every3days') {
             const shouldShow = shouldGivePalonosetron();
             if (!shouldShow) {
