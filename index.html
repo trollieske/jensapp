@@ -298,7 +298,16 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4">💊 Medisin- og Omsorgslogg</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">💊 Medisin- og Omsorgslogg</h1>
+            <div class="text-end">
+                <small class="text-muted d-block">Innlogget som:</small>
+                <strong id="currentUserDisplay" class="d-block" style="font-size: 1.1rem;">Venter...</strong>
+                <button class="btn btn-sm btn-outline-secondary mt-1" onclick="switchUser()">
+                    Bytt bruker
+                </button>
+            </div>
+        </div>
         
         <!-- Tabs -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -764,11 +773,44 @@
             </div>
         </div>
     </div>
+    <!-- User Selector Modal -->
+    <div class="modal fade" id="userSelectorModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom: none;">
+                    <h5 class="modal-title w-100 text-center">👤 Velg bruker</h5>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center text-muted mb-4">Hvem logger inn?</p>
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-lg btn-primary" onclick="selectUser('TEL')">
+                            👨 TEL
+                        </button>
+                        <button class="btn btn-lg btn-primary" onclick="selectUser('Mari')">
+                            👩 Mari
+                        </button>
+                        <hr>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="customUserInput" placeholder="Annet navn...">
+                            <button class="btn btn-outline-secondary" onclick="selectUser(document.getElementById('customUserInput').value)">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-muted text-center mt-3 small">
+                        ℹ️ Alle logger vil bli tagget med ditt navn
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <!-- Firebase Config -->
     <script src="firebase-config.js"></script>

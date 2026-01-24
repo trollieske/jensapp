@@ -12,14 +12,37 @@ const firebaseConfig = {
 // Initialize Firebase (will be loaded from CDN in index.html)
 let app;
 let messaging;
+let db;
+
+// Current user (TEL or Mari or custom)
+let currentUser = localStorage.getItem('currentUser') || null;
 
 function initializeFirebase() {
   if (typeof firebase !== 'undefined') {
     app = firebase.initializeApp(firebaseConfig);
     messaging = firebase.messaging();
+    db = firebase.firestore();
     
-    console.log('Firebase initialized');
+    // Enable offline persistence
+    db.enablePersistence()
+      .catch((err) => {
+        if (err.code == 'failed-precondition') {
+          console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+        } else if (err.code == 'unimplemented') {
+          console.log('The current browser does not support persistence.');
+        }
+      });
+    
+    console.log('Firebase initialized with Firestore');
     setupMessaging();
+    
+    // Show user selector if no user selected
+    if (!currentUser) {
+      showUserSelector();
+    } else {
+      updateUserDisplay();
+      startRealtimeSync();
+    }
   } else {
     console.error('Firebase not loaded');
   }
@@ -103,4 +126,141 @@ function scheduleFirebaseReminder(name, time) {
       });
     }
   }, delay);
+}
+
+// User Management
+function showUserSelector() {
+  const modal = document.getElementById('userSelectorModal');
+  if (modal) {
+    const bsModal = new bootstrap.Modal(modal, {
+      backdrop: 'static',
+      keyboard: false
+    });
+    bsModal.show();
+  }
+}
+
+function selectUser(username) {
+  currentUser = username;
+  localStorage.setItem('currentUser', username);
+  updateUserDisplay();
+  
+  const modal = document.getElementById('userSelectorModal');
+  if (modal) {
+    bootstrap.Modal.getInstance(modal).hide();
+  }
+  
+  showToast(`✓ Logget inn som ${username}`);
+  startRealtimeSync();
+}
+
+function switchUser() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');
+  showUserSelector();
+}
+
+function updateUserDisplay() {
+  const display = document.getElementById('currentUserDisplay');
+  if (display && currentUser) {
+    display.textContent = currentUser;
+  }
+}
+
+// Firestore Sync Functions
+function startRealtimeSync() {
+  if (!db || !currentUser) return;
+  
+  // Listen to logs collection
+  db.collection('logs').onSnapshot((snapshot) => {
+    logs = [];
+    snapshot.forEach((doc) => {
+      logs.push({ id: doc.id, ...doc.data() });
+    });
+    
+    // Update all displays
+    if (typeof displayToday === 'function') displayToday();
+    if (typeof displayHistory === 'function') displayHistory();
+    if (typeof displayStats === 'function') displayStats();
+    if (typeof displayChecklist === 'function') displayChecklist();
+  });
+  
+  // Listen to reminders collection
+  db.collection('reminders').onSnapshot((snapshot) => {
+    reminders = [];
+    snapshot.forEach((doc) => {
+      reminders.push({ id: doc.id, ...doc.data() });
+    });
+    
+    if (typeof displayReminders === 'function') displayReminders();
+    if (typeof scheduleReminders === 'function') scheduleReminders();
+  });
+}
+
+function saveLogToFirestore(log) {
+  if (!db || !currentUser) {
+    console.error('Firestore not initialized or no user selected');
+    return Promise.reject('No user selected');
+  }
+  
+  // Add user info to log
+  log.loggedBy = currentUser;
+  log.loggedAt = firebase.firestore.FieldValue.serverTimestamp();
+  
+  return db.collection('logs').add(log)
+    .then((docRef) => {
+      console.log('Log saved with ID:', docRef.id);
+      return docRef.id;
+    })
+    .catch((error) => {
+      console.error('Error saving log:', error);
+      throw error;
+    });
+}
+
+function saveReminderToFirestore(reminder) {
+  if (!db || !currentUser) {
+    console.error('Firestore not initialized or no user selected');
+    return Promise.reject('No user selected');
+  }
+  
+  // Add user info
+  reminder.createdBy = currentUser;
+  reminder.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  
+  return db.collection('reminders').add(reminder)
+    .then((docRef) => {
+      console.log('Reminder saved with ID:', docRef.id);
+      return docRef.id;
+    })
+    .catch((error) => {
+      console.error('Error saving reminder:', error);
+      throw error;
+    });
+}
+
+function deleteLogFromFirestore(logId) {
+  if (!db) return Promise.reject('Firestore not initialized');
+  
+  return db.collection('logs').doc(logId).delete()
+    .then(() => {
+      console.log('Log deleted:', logId);
+    })
+    .catch((error) => {
+      console.error('Error deleting log:', error);
+      throw error;
+    });
+}
+
+function deleteReminderFromFirestore(reminderId) {
+  if (!db) return Promise.reject('Firestore not initialized');
+  
+  return db.collection('reminders').doc(reminderId).delete()
+    .then(() => {
+      console.log('Reminder deleted:', reminderId);
+    })
+    .catch((error) => {
+      console.error('Error deleting reminder:', error);
+      throw error;
+    });
 }

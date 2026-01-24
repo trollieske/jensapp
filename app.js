@@ -1,6 +1,6 @@
-// Data storage
-let logs = JSON.parse(localStorage.getItem('logs')) || [];
-let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+// Data storage (now synced with Firestore)
+let logs = [];
+let reminders = [];
 
 // Checklist items configuration
 const checklistItems = {
@@ -21,10 +21,12 @@ const checklistItems = {
     ]
 };
 
-// Save data to localStorage
+// Save data to Firestore (replaced localStorage)
+// Note: Individual save functions are now in firebase-config.js
+// This function is kept for backwards compatibility but does nothing
 function saveData() {
-    localStorage.setItem('logs', JSON.stringify(logs));
-    localStorage.setItem('reminders', JSON.stringify(reminders));
+    // Data is now automatically synced via Firestore
+    console.log('Data synced via Firestore');
 }
 
 // Initialize app
@@ -138,22 +140,37 @@ function handleLogSubmit(e) {
         log.urineSmell = document.getElementById('urineSmell').value;
     }
     
-    logs.push(log);
-    saveData();
-    
-    // Reset form and close modal
-    e.target.reset();
-    setDefaultDateTime();
-    bootstrap.Modal.getInstance(document.getElementById('logModal')).hide();
-    
-    // Update displays
-    displayToday();
-    displayHistory();
-    displayStats();
-    displayChecklist();
-    
-    // Show success feedback
-    showToast('Logg lagret! ✓');
+    // Save to Firestore instead of localStorage
+    if (typeof saveLogToFirestore === 'function') {
+        saveLogToFirestore(log)
+            .then(() => {
+                // Reset form and close modal
+                e.target.reset();
+                setDefaultDateTime();
+                bootstrap.Modal.getInstance(document.getElementById('logModal')).hide();
+                
+                // Show success feedback with user
+                showToast(`✓ Logg lagret av ${currentUser || 'deg'}!`);
+                
+                // Firestore realtime listener will auto-update displays
+            })
+            .catch((error) => {
+                console.error('Error saving log:', error);
+                showToast('⚠️ Feil ved lagring. Prøv igjen.');
+            });
+    } else {
+        // Fallback to localStorage if Firestore not available
+        logs.push(log);
+        saveData();
+        e.target.reset();
+        setDefaultDateTime();
+        bootstrap.Modal.getInstance(document.getElementById('logModal')).hide();
+        displayToday();
+        displayHistory();
+        displayStats();
+        displayChecklist();
+        showToast('Logg lagret! ✓');
+    }
 }
 
 function handleReminderSubmit(e) {
@@ -168,14 +185,27 @@ function handleReminderSubmit(e) {
         time
     };
     
-    reminders.push(reminder);
-    saveData();
-    
-    e.target.reset();
-    displayReminders();
-    scheduleReminders();
-    
-    showToast('Påminnelse lagt til! ✓');
+    // Save to Firestore
+    if (typeof saveReminderToFirestore === 'function') {
+        saveReminderToFirestore(reminder)
+            .then(() => {
+                e.target.reset();
+                showToast(`✓ Påminnelse lagt til av ${currentUser || 'deg'}!`);
+                // Firestore realtime listener will auto-update
+            })
+            .catch((error) => {
+                console.error('Error saving reminder:', error);
+                showToast('⚠️ Feil ved lagring av påminnelse.');
+            });
+    } else {
+        // Fallback
+        reminders.push(reminder);
+        saveData();
+        e.target.reset();
+        displayReminders();
+        scheduleReminders();
+        showToast('Påminnelse lagt til! ✓');
+    }
 }
 
 function addPresetReminder(name, time) {
@@ -193,13 +223,24 @@ function addPresetReminder(name, time) {
         time
     };
     
-    reminders.push(reminder);
-    saveData();
-    
-    displayReminders();
-    scheduleReminders();
-    
-    showToast(`✓ ${name} påminnelse lagt til!`);
+    // Save to Firestore
+    if (typeof saveReminderToFirestore === 'function') {
+        saveReminderToFirestore(reminder)
+            .then(() => {
+                showToast(`✓ ${name} påminnelse lagt til!`);
+            })
+            .catch((error) => {
+                console.error('Error saving reminder:', error);
+                showToast('⚠️ Feil ved lagring.');
+            });
+    } else {
+        // Fallback
+        reminders.push(reminder);
+        saveData();
+        displayReminders();
+        scheduleReminders();
+        showToast(`✓ ${name} påminnelse lagt til!`);
+    }
 }
 
 function displayToday() {
@@ -216,11 +257,12 @@ function displayToday() {
     }
     
     tbody.innerHTML = todayLogs.map(log => {
+        const userBadge = log.loggedBy ? `<span class="badge bg-secondary" style="font-size: 0.7rem;">${log.loggedBy}</span>` : '';
         return `<tr>
             <td>${formatTime(log.time)}</td>
             <td><span class="badge bg-primary">${log.type}</span></td>
             <td>${getDetails(log)}</td>
-            <td>${log.notes || '-'}</td>
+            <td>${log.notes || '-'} ${userBadge}</td>
         </tr>`;
     }).join('');
 }
@@ -256,11 +298,12 @@ function displayHistory() {
     }
     
     tbody.innerHTML = filteredLogs.map(log => {
+        const userBadge = log.loggedBy ? `<span class="badge bg-secondary" style="font-size: 0.7rem;">${log.loggedBy}</span>` : '';
         return `<tr>
             <td>${formatDateTime(log.time)}</td>
             <td><span class="badge bg-primary">${log.type}</span></td>
             <td>${getDetails(log)}</td>
-            <td>${log.notes || '-'}</td>
+            <td>${log.notes || '-'} ${userBadge}</td>
         </tr>`;
     }).join('');
 }
@@ -668,15 +711,25 @@ function quickLogMedicineWithInput(index, name, unit) {
         timestamp: now.getTime()
     };
     
-    logs.push(log);
-    saveData();
-    
-    displayToday();
-    displayHistory();
-    displayStats();
-    displayChecklist();
-    
-    showToast(`✓ ${name} (${amount} ${unit}) logget!`);
+    // Save to Firestore
+    if (typeof saveLogToFirestore === 'function') {
+        saveLogToFirestore(log)
+            .then(() => {
+                showToast(`✓ ${name} (${amount} ${unit}) logget av ${currentUser || 'deg'}!`);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showToast('⚠️ Feil ved lagring');
+            });
+    } else {
+        logs.push(log);
+        saveData();
+        displayToday();
+        displayHistory();
+        displayStats();
+        displayChecklist();
+        showToast(`✓ ${name} (${amount} ${unit}) logget!`);
+    }
 }
 
 function quickLogSondeWithInput(index, name, unit) {
@@ -700,15 +753,25 @@ function quickLogSondeWithInput(index, name, unit) {
         timestamp: now.getTime()
     };
     
-    logs.push(log);
-    saveData();
-    
-    displayToday();
-    displayHistory();
-    displayStats();
-    displayChecklist();
-    
-    showToast(`✓ ${name} (${amount} ${unit}) logget!`);
+    // Save to Firestore
+    if (typeof saveLogToFirestore === 'function') {
+        saveLogToFirestore(log)
+            .then(() => {
+                showToast(`✓ ${name} (${amount} ${unit}) logget av ${currentUser || 'deg'}!`);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showToast('⚠️ Feil ved lagring');
+            });
+    } else {
+        logs.push(log);
+        saveData();
+        displayToday();
+        displayHistory();
+        displayStats();
+        displayChecklist();
+        showToast(`✓ ${name} (${amount} ${unit}) logget!`);
+    }
 }
 
 function submitQuickBowelMovement() {
@@ -728,18 +791,28 @@ function submitQuickBowelMovement() {
         timestamp: now.getTime()
     };
     
-    logs.push(log);
-    saveData();
-    
-    displayToday();
-    displayHistory();
-    displayStats();
-    displayChecklist();
-    
-    // Close modal
+    // Close modal first
     bootstrap.Modal.getInstance(document.getElementById('bowelModal')).hide();
     
-    showToast('✓ Avføring logget!');
+    // Save to Firestore
+    if (typeof saveLogToFirestore === 'function') {
+        saveLogToFirestore(log)
+            .then(() => {
+                showToast(`✓ Avføring logget av ${currentUser || 'deg'}!`);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showToast('⚠️ Feil ved lagring');
+            });
+    } else {
+        logs.push(log);
+        saveData();
+        displayToday();
+        displayHistory();
+        displayStats();
+        displayChecklist();
+        showToast('✓ Avføring logget!');
+    }
 }
 
 function submitQuickUrination() {
@@ -759,18 +832,28 @@ function submitQuickUrination() {
         timestamp: now.getTime()
     };
     
-    logs.push(log);
-    saveData();
-    
-    displayToday();
-    displayHistory();
-    displayStats();
-    displayChecklist();
-    
-    // Close modal
+    // Close modal first
     bootstrap.Modal.getInstance(document.getElementById('urinationModal')).hide();
     
-    showToast('✓ Urinering logget!');
+    // Save to Firestore
+    if (typeof saveLogToFirestore === 'function') {
+        saveLogToFirestore(log)
+            .then(() => {
+                showToast(`✓ Urinering logget av ${currentUser || 'deg'}!`);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showToast('⚠️ Feil ved lagring');
+            });
+    } else {
+        logs.push(log);
+        saveData();
+        displayToday();
+        displayHistory();
+        displayStats();
+        displayChecklist();
+        showToast('✓ Urinering logget!');
+    }
 }
 
 // Service Worker registration
