@@ -297,9 +297,11 @@ function saveReminderToFirestore(reminder) {
 function deleteLogFromFirestore(logId) {
   if (!db) return Promise.reject('Firestore not initialized');
   
-  return db.collection('logs').doc(logId).delete()
+  console.log('Attempting to delete log with ID:', logId);
+  
+  return db.collection('logs').doc(String(logId)).delete()
     .then(() => {
-      console.log('Log deleted:', logId);
+      console.log('Log deleted successfully:', logId);
     })
     .catch((error) => {
       console.error('Error deleting log:', error);
