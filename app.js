@@ -291,7 +291,14 @@ function displayToday() {
             <td>${formatTime(log.time)}</td>
             <td><span class="badge bg-primary">${log.type}</span></td>
             <td>${getDetails(log)}</td>
-            <td>${log.notes || '-'} ${userBadge}</td>
+            <td>
+                ${log.notes || '-'} ${userBadge}
+                <button class="btn btn-sm btn-danger ms-2" 
+                        onclick="deleteLog('${log.id}')" 
+                        title="Slett logg">
+                    🗑️
+                </button>
+            </td>
         </tr>`;
     }).join('');
 }
@@ -332,7 +339,14 @@ function displayHistory() {
             <td>${formatDateTime(log.time)}</td>
             <td><span class="badge bg-primary">${log.type}</span></td>
             <td>${getDetails(log)}</td>
-            <td>${log.notes || '-'} ${userBadge}</td>
+            <td>
+                ${log.notes || '-'} ${userBadge}
+                <button class="btn btn-sm btn-danger ms-2" 
+                        onclick="deleteLog('${log.id}')" 
+                        title="Slett logg">
+                    🗑️
+                </button>
+            </td>
         </tr>`;
     }).join('');
 }
@@ -658,6 +672,31 @@ function getDetails(log) {
         return `Mengde: ${log.urineAmount || '-'}, Farge: ${log.urineColor || '-'}, Lukt: ${log.urineSmell || '-'}`;
     }
     return '-';
+}
+
+function deleteLog(id) {
+    if (confirm('Er du sikker på at du vil slette denne loggen?')) {
+        // Delete from Firestore
+        if (typeof deleteLogFromFirestore === 'function') {
+            deleteLogFromFirestore(id)
+                .then(() => {
+                    showToast('✓ Logg slettet');
+                })
+                .catch((error) => {
+                    console.error('Error deleting log:', error);
+                    showToast('⚠️ Feil ved sletting');
+                });
+        } else {
+            // Fallback to localStorage
+            logs = logs.filter(l => l.id != id);
+            saveData();
+            displayToday();
+            displayHistory();
+            displayStats();
+            displayChecklist();
+            showToast('Logg slettet');
+        }
+    }
 }
 
 function deleteReminder(id) {
