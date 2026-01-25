@@ -2,9 +2,13 @@
 
 En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat, og helse for personer med spesielle omsorgsbehov. Designet for familiebruk med multi-bruker støtte og sanntidssynkronisering via Firebase.
 
+**Versjon:** v15 (Januar 2026)  
+**Sist oppdatert:** 25. januar 2026
+
 ## 🌐 Live App
 
-**🔗 URL:** https://jensapp.pages.dev (Cloudflare Pages)
+**🔗 Primær URL:** https://jensapp-14069.web.app (Firebase Hosting)  
+**🔗 Alternativ:** https://jensapp.pages.dev (Cloudflare Pages)
 
 ## ✨ Hovedfunksjoner
 
@@ -21,6 +25,18 @@ En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat,
   - Bactrim (kun helg - lørdag/søndag)
   - Palonosetron (hver 3. dag, vises kun når det er tid)
 - **🎯 Ved behov (PRN)**: Medisiner som gis kun ved behov
+
+### 💊 Medisininfo-system
+- **Lokal database**: Norsk informasjon om alle Jens sine medisiner
+- **OpenFDA-integrasjon**: Automatisk oppslag for ukjente medisiner
+- **Oversettelse**: 200+ medisinske termer oversettes automatisk til norsk
+- **Trykk ⓘ-knappen** på en medisin for å se bruksområde, virkningsmekanisme, bivirkninger, advarsler, interaksjoner og oppbevaring
+
+### ➕ Legg til nye medisiner
+- Legg til egendefinerte medisiner i sjekklisten
+- Velg kategori: Morgen, Kveld, Begge (legges til i begge), eller Ved behov
+- Sett valgfritt tidspunkt for faste medisiner
+- Slett egendefinerte medisiner med bekreftelsesdialog
 
 ### 🔔 Push-varsler med Cloud Functions
 - Scheduled Cloud Functions kjører hvert minutt
@@ -72,15 +88,21 @@ jensapp/
 ├── app.js                  # Core app logic & Firebase realtime sync
 ├── firebase-config.js      # Firebase initialisering & FCM token handling
 ├── dosing-plan.js          # Doseringsplan builder
-├── sw.js                   # Service Worker for PWA & offline support
+├── medicine-info.js        # Medisininfo-system med OpenFDA API
+├── sw.js                   # Service Worker for PWA & offline support (v15)
 ├── manifest.json           # PWA manifest
+├── logo.svg                # SVG logo for header
+├── logo-full.png           # Full-størrelse logo for hjemskjerm
+├── favicon.png             # Favicon/header-ikon
+├── icon-192.png            # PWA-ikon 192x192
+├── icon-512.png            # PWA-ikon 512x512
 ├── wrangler.jsonc          # Cloudflare Pages config
 ├── firebase.json           # Firebase project config
 ├── functions/
 │   ├── index.js            # Cloud Functions (scheduled reminders)
 │   ├── package.json        # Node.js dependencies
 │   └── .eslintrc.js        # ESLint config
-└── icons/                  # PWA icons (192x192, 512x512)
+└── .firebase/              # Firebase deployment cache
 ```
 
 ## 🛠️ Teknisk arkitektur
@@ -289,8 +311,16 @@ firebase functions:log
 - ✅ Kategorisert medisinliste (dag/kveld/spesiell/PRN)
 - ✅ Weekend-only og every-3-days scheduling
 - ✅ iOS PWA installation guide
-- ✅ Cloudflare Pages deployment
+- ✅ Cloudflare Pages + Firebase Hosting deployment
 - ✅ CSV export
+- ✅ Medisininfo-system med lokal database og OpenFDA API
+- ✅ Legg til egendefinerte medisiner med kategorivalg
+- ✅ Slett-funksjon for medisiner med bekreftelse
+- ✅ Migrering av gamle medisiner uten kategori
+- ✅ Ny hjemside med gradient-kort design
+- ✅ Logo og header redesign
+- ✅ Forbedret påminnelse-UI med tidlagring
+- ✅ 200+ medisinske termer oversatt til norsk
 
 ### 📅 Planlagt
 - 📈 Grafer og visualiseringer (Chart.js)
@@ -304,6 +334,38 @@ firebase functions:log
 ## 👥 Bidragsytere
 - **Tomer Klarsen** - Initial development, Firebase integration, Cloud Functions
 - **Warp AI** - Architecture design, bug fixes, documentation
+
+## 📃 Endringslogg
+
+### v15 (25. januar 2026)
+- **Legg til medisin redesignet**: Kategorivalg (Morgen/Kveld/Begge/Ved behov), tidspunkt-input
+- **Slett-funksjon**: Egendefinerte medisiner kan slettes med bekreftelsesdialog
+- **Migrering**: Gamle medisiner uten kategori flyttes automatisk til "Ved behov"
+- **Forbedret oversettelse**: Utvidet ordbok fra ~50 til 200+ medisinske termer
+- Service worker oppdatert til v15
+
+### v14 (24. januar 2026)
+- **Medisininfo-system**: Ny `medicine-info.js` med lokal database og OpenFDA-integrasjon
+- **Info-knapp (ⓘ)**: Vises ved hver medisin i sjekklisten
+- **Norsk oversettelse**: Automatisk oversettelse av engelske medisinske termer
+- **Loading-indikator**: Viser modal mens medisininfo hentes fra API
+
+### v13 (23. januar 2026)
+- **Påminnelser forbedret**: Nytt design med to-linje layout og Lagre-knapp
+- **Font-size 16px**: Forhindrer iOS zoom på input-felter
+- **Fikset time-input bug**: Endret fra onchange til Lagre-knapp
+
+### v12 (22. januar 2026)
+- **Logo og header redesign**: Ny favicon og logo-full
+- **Hjemskjerm redesignet**: Gradient-kort med hurtigvalg-knapper
+- **Firebase Hosting**: Migrerte fra kun Cloudflare til Firebase Hosting som primær
+
+### v11 og tidligere
+- Initial Firebase Firestore integration
+- Multi-bruker støtte
+- Push notifications via Cloud Functions
+- PWA med offline-støtte
+- Kategorisert medisinliste
 
 ## 📝 Lisens
 Private project - ikke for kommersiell bruk.

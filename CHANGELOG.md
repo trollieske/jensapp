@@ -1,4 +1,116 @@
-# Endringslogg - Jens Medisinapp
+# Endringslogg - Dosevakt (Jens Medisinapp)
+
+**Siste versjon:** v15  
+**Sist oppdatert:** 25. januar 2026  
+**Repository:** https://github.com/trollieske/jensapp  
+**Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v15 (25. januar 2026) - Kategorivalg og slett-funksjon
+
+### Nye funksjoner
+- **Kategorivalg ved ny medisin**: Modal for "Legg til medisin" har nå fire valg:
+  - 🌅 Morgen (kategori: `dag`)
+  - 🌙 Kveld (kategori: `kveld`)  
+  - 🔄 Begge (legger til to entries: dag + kveld)
+  - 🎯 Ved behov (kategori: `prn`)
+- **Tidspunkt-input**: Valgfritt felt for å sette fast tidspunkt for medisiner
+- **Slett-funksjon**: Egendefinerte medisiner har nå en søppelkasse-knapp (🗑️)
+  - Kun synlig på medisiner med `isCustom: true`
+  - Bekreftelsesdialog: "Er du sikker på at du vil slette..."
+- **Automatisk migrering**: `migrateOldMedicines()` kjøres ved oppstart
+  - Medisiner uten `category`-felt får `category: 'prn'` og `isCustom: true`
+  - Løser problemet med Marevan og andre medisiner som ikke vistes
+
+### Forbedringer
+- **Utvidet oversettelsesordbok**: Fra ~50 til 200+ medisinske termer
+  - Nye kategorier: legemiddeltyper, bivirkninger, kroppsdeler, medisinske tilstander
+  - Nye fraser: instruksjoner, advarsler, doseringsinformasjon
+- **Service worker v15**: Cache oppdatert med nye filer
+
+### Tekniske endringer
+- `app.js`:
+  - `addNewMedicineToChecklist()`: Leser kategorivalg fra radio-knapper, håndterer "begge" ved å legge til to entries
+  - `deleteMedicineFromChecklist(name, category)`: Ny funksjon for sletting
+  - `migrateOldMedicines()`: Kjøres automatisk ved oppstart
+  - `renderMedicineItem()`: Viser slett-knapp for egendefinerte medisiner
+- `medicine-info.js`:
+  - `medicalTranslations`: Utvidet fra ~50 til 200+ termer
+- `index.html`:
+  - Modal redesignet med radio-knapper for kategorivalg
+  - Tidspunkt-input felt lagt til
+
+### Filer endret
+- `app.js` (linjer 1302-1427, 586-630)
+- `medicine-info.js` (linjer 308-553)
+- `index.html` (linjer 1060-1116)
+- `sw.js` (linje 1: cache name)
+
+---
+
+## v14 (24. januar 2026) - Medisininfo-system
+
+### Nye funksjoner
+- **Medisininfo-system**: Ny `medicine-info.js` med komplett system
+  - Lokal database med norsk informasjon om alle Jens sine medisiner
+  - OpenFDA API-integrasjon for ukjente medisiner
+  - Automatisk oversettelse fra engelsk til norsk
+- **Info-knapp (ⓘ)**: Vises ved hver medisin i sjekklisten
+  - Trykk for å se: bruksområde, virkningsmekanisme, bivirkninger, advarsler, interaksjoner, oppbevaring
+- **Loading-modal**: Vises mens medisininfo hentes fra API
+
+### Tekniske detaljer
+- `medicine-info.js` (ny fil, 516 linjer):
+  - `medicineDatabase`: Lokal database med norsk medisininfo
+  - `showMedicineInfo(name)`: Hovedfunksjon som viser info-modal
+  - `fetchMedicineInfoExternal(name)`: Henter fra OpenFDA API
+  - `translateToNorwegian(text)`: Oversetter engelske termer
+  - `extractAndTranslate()`, `extractSideEffects()`: Parserer API-respons
+  - `medicalTranslations`: Ordbok med ~50 medisinske termer
+
+---
+
+## v13 (23. januar 2026) - Påminnelse-forbedringer
+
+### Bugfiks
+- **Time-input zoom på iOS**: Fikset ved å sette `font-size: 16px`
+- **Påminnelse-tidspunkt endres umiddelbart**: Endret fra `onchange` til "Lagre"-knapp
+
+### UI-forbedringer
+- **Påminnelse-kort redesignet**:
+  - To-linje layout: navn øverst, tid + knapper under
+  - Lagre-knapp ved siden av tidsinput
+  - Slett-knapp med ikon
+
+### Tekniske endringer
+- `app.js`:
+  - `displayReminders()`: Nytt design med flex-layout
+  - `saveReminderTime(reminderId)`: Ny funksjon for å lagre tidendringer
+  - Alle time-inputs har nå `font-size: 16px`
+
+---
+
+## v12 (22. januar 2026) - Logo og Firebase Hosting
+
+### Nye funksjoner
+- **Firebase Hosting**: Migrerte til Firebase som primær hosting
+  - URL: https://jensapp-14069.web.app
+  - Cloudflare Pages beholdt som backup
+- **Logo og header redesign**:
+  - Ny `logo-full.png` for hjemskjerm (120px)
+  - Ny `favicon.png` for header (36px)
+  - Header viser favicon + "Dosevakt" tekst
+
+### UI-forbedringer
+- **Hjemskjerm redesignet**:
+  - Gradient-kort i 2x2 grid for hovedseksjoner
+  - "Hurtigvalg"-seksjon med raske handlinger
+  - Moderne utseende med avrundede hjørner og skygger
+
+---
+
+## Tidligere versjoner (v1-v11)
 
 ## 2026-01-24 - Sjekkliste-forbedringer
 
