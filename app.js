@@ -713,21 +713,47 @@ function exportToCSV() {
 function checkNotificationStatus() {
     const statusText = document.getElementById('notificationStatusText');
     const enableBtn = document.getElementById('enableNotificationsBtn');
+    const iosGuide = document.getElementById('iosGuide');
     
     if (!statusText) return; // Element not loaded yet
     
+    // Detect if running as PWA (standalone mode)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                        window.navigator.standalone === true;
+    
+    // Check if iOS (iPhone/iPad)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
     if (!('Notification' in window)) {
-        statusText.textContent = 'Ikke støttet på denne enheten';
-        statusText.className = 'text-danger';
+        if (isIOS && !isStandalone) {
+            statusText.textContent = 'iOS: Legg til på hjemskjerm først 📱';
+            statusText.className = 'text-info';
+            if (iosGuide) iosGuide.style.display = 'block';
+        } else {
+            statusText.textContent = 'Ikke støttet på denne enheten';
+            statusText.className = 'text-danger';
+            if (iosGuide) iosGuide.style.display = 'none';
+        }
+        if (enableBtn) enableBtn.style.display = 'none';
         return;
     }
+    
+    // Hide iOS guide if notifications are supported
+    if (iosGuide) iosGuide.style.display = 'none';
     
     if (Notification.permission === 'granted') {
         statusText.textContent = 'Aktivert ✅';
         statusText.className = 'text-success';
+        if (enableBtn) enableBtn.style.display = 'none';
     } else if (Notification.permission === 'denied') {
-        statusText.textContent = 'Blokkert ❌ - Aktiver i Safari-innstillinger';
+        // Show platform-specific instructions
+        if (isIOS) {
+            statusText.textContent = 'Blokkert ❌ - Åpne Innstillinger → Safari/Chrome';
+        } else {
+            statusText.textContent = 'Blokkert ❌ - Åpne nettleserinnstillinger';
+        }
         statusText.className = 'text-danger';
+        if (enableBtn) enableBtn.style.display = 'none';
     } else {
         statusText.textContent = 'Ikke aktivert';
         statusText.className = 'text-warning';
@@ -737,19 +763,33 @@ function checkNotificationStatus() {
 
 // Notification handling
 function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                        window.navigator.standalone === true;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (!('Notification' in window)) {
+        if (isIOS && !isStandalone) {
+            showToast('📱 iOS: Legg til appen på hjemskjermen først! Trykk Del-knappen → Legg til på Hjem-skjerm');
+        } else {
+            showToast('⚠️ Notifikasjoner støttes ikke på denne enheten');
+        }
+        return;
+    }
+    
+    if (Notification.permission === 'default') {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 showToast('Påminnelser aktivert! ✓');
+                checkNotificationStatus();
             } else if (permission === 'denied') {
                 showToast('⚠️ Notifikasjoner blokkert - sjekk innstillinger');
+                checkNotificationStatus();
             }
         });
-    } else if ('Notification' in window && Notification.permission === 'granted') {
+    } else if (Notification.permission === 'granted') {
         showToast('✅ Notifikasjoner allerede aktivert');
     } else {
-        // iOS eller annen begrensning
-        showToast('ℹ️ Denne enheten har begrenset notifikasjonsstøtte');
+        showToast('⚠️ Notifikasjoner er blokkert - sjekk nettleserinnstillinger');
     }
 }
 
