@@ -273,7 +273,7 @@ function addPresetReminder(name, time) {
 }
 
 function displayToday() {
-    const tbody = document.getElementById('todayTableBody');
+    const container = document.getElementById('todayTableBody');
     const today = new Date().toDateString();
     
     const todayLogs = logs.filter(log => {
@@ -281,30 +281,39 @@ function displayToday() {
     }).sort((a, b) => b.timestamp - a.timestamp);
     
     if (todayLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Ingen logger i dag</td></tr>';
+        container.innerHTML = '<div class="text-center text-muted p-4">Ingen logger i dag</div>';
         return;
     }
     
-    tbody.innerHTML = todayLogs.map(log => {
+    container.innerHTML = todayLogs.map(log => {
         const userBadge = log.loggedBy ? `<span class="badge bg-secondary" style="font-size: 0.7rem;">${log.loggedBy}</span>` : '';
-        return `<tr>
-            <td>${formatTime(log.time)}</td>
-            <td><span class="badge bg-primary">${log.type}</span></td>
-            <td>${getDetails(log)}</td>
-            <td>
-                ${log.notes || '-'} ${userBadge}
-                <button class="btn btn-sm btn-danger ms-2" 
-                        onclick="deleteLog('${log.id}')" 
-                        title="Slett logg">
-                    🗑️
-                </button>
-            </td>
-        </tr>`;
+        return `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">
+                                <span class="badge bg-primary">${log.type}</span>
+                                <small class="text-muted ms-2">${formatTime(log.time)}</small>
+                            </h5>
+                            <p class="card-text">${getDetails(log)}</p>
+                            ${log.notes ? `<p class="card-text"><small class="text-muted">Notater: ${log.notes}</small></p>` : ''}
+                            <p class="card-text"><small class="text-muted">${userBadge}</small></p>
+                        </div>
+                        <button class="btn btn-sm btn-danger" 
+                                onclick="deleteLog('${log.id}')" 
+                                title="Slett logg">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
 function displayHistory() {
-    const tbody = document.getElementById('historyTableBody');
+    const container = document.getElementById('historyTableBody');
     const dateFilter = document.getElementById('historyDate').value;
     const searchQuery = document.getElementById('search').value.toLowerCase();
     
@@ -329,25 +338,34 @@ function displayHistory() {
     filteredLogs.sort((a, b) => b.timestamp - a.timestamp);
     
     if (filteredLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Ingen logger funnet</td></tr>';
+        container.innerHTML = '<div class="text-center text-muted p-4">Ingen logger funnet</div>';
         return;
     }
     
-    tbody.innerHTML = filteredLogs.map(log => {
+    container.innerHTML = filteredLogs.map(log => {
         const userBadge = log.loggedBy ? `<span class="badge bg-secondary" style="font-size: 0.7rem;">${log.loggedBy}</span>` : '';
-        return `<tr>
-            <td>${formatDateTime(log.time)}</td>
-            <td><span class="badge bg-primary">${log.type}</span></td>
-            <td>${getDetails(log)}</td>
-            <td>
-                ${log.notes || '-'} ${userBadge}
-                <button class="btn btn-sm btn-danger ms-2" 
-                        onclick="deleteLog('${log.id}')" 
-                        title="Slett logg">
-                    🗑️
-                </button>
-            </td>
-        </tr>`;
+        return `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">
+                                <span class="badge bg-primary">${log.type}</span>
+                                <small class="text-muted ms-2">${formatDateTime(log.time)}</small>
+                            </h5>
+                            <p class="card-text">${getDetails(log)}</p>
+                            ${log.notes ? `<p class="card-text"><small class="text-muted">Notater: ${log.notes}</small></p>` : ''}
+                            <p class="card-text"><small class="text-muted">${userBadge}</small></p>
+                        </div>
+                        <button class="btn btn-sm btn-danger" 
+                                onclick="deleteLog('${log.id}')" 
+                                title="Slett logg">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
