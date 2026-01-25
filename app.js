@@ -42,6 +42,29 @@ function saveData() {
     console.log('Data synced via Firestore');
 }
 
+// Helper functions for log display
+function getTypeIcon(type) {
+    const icons = {
+        'Medisin': '💊',
+        'Sondemat': '🍼',
+        'Avføring': '💩',
+        'vannlating': '💧',
+        'Annet': '📝'
+    };
+    return icons[type] || '📝';
+}
+
+function getTypeColor(type) {
+    const colors = {
+        'Medisin': 'linear-gradient(135deg, #4CAF50, #81C784)',
+        'Sondemat': 'linear-gradient(135deg, #2196F3, #64B5F6)',
+        'Avføring': 'linear-gradient(135deg, #FF9800, #FFB74D)',
+        'vannlating': 'linear-gradient(135deg, #00BCD4, #4DD0E1)',
+        'Annet': 'linear-gradient(135deg, #9C27B0, #BA68C8)'
+    };
+    return colors[type] || 'linear-gradient(135deg, #607D8B, #90A4AE)';
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
@@ -270,26 +293,27 @@ function displayToday() {
     }
     
     container.innerHTML = todayLogs.map(log => {
-        const userBadge = log.loggedBy ? `<span class="badge bg-secondary" style="font-size: 0.7rem;">${log.loggedBy}</span>` : '';
+        const userBadge = log.loggedBy ? `<span style="color: #888; font-size: 0.75rem;">${log.loggedBy}</span>` : '';
+        const typeIcon = getTypeIcon(log.type);
+        const typeColor = getTypeColor(log.type);
         return `
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title">
-                                <span class="badge bg-primary">${log.type}</span>
-                                <small class="text-muted ms-2">${formatTime(log.time)}</small>
-                            </h5>
-                            <p class="card-text">${getDetails(log)}</p>
-                            ${log.notes ? `<p class="card-text"><small class="text-muted">Notater: ${log.notes}</small></p>` : ''}
-                            <p class="card-text"><small class="text-muted">${userBadge}</small></p>
+            <div style="background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid #eee; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3 flex-grow-1">
+                        <div style="background: ${typeColor}; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                            ${typeIcon}
                         </div>
-                        <button class="btn btn-sm btn-danger" 
-                                onclick="deleteLog('${log.id}')" 
-                                title="Slett logg">
-                            🗑️
-                        </button>
+                        <div>
+                            <div style="font-weight: 600; color: #333;">${getDetails(log)}</div>
+                            <div style="font-size: 0.8rem; color: #888;">${formatTime(log.time)} ${userBadge ? '· ' + userBadge : ''}</div>
+                            ${log.notes ? `<div style="font-size: 0.8rem; color: #666; margin-top: 4px;"><i class="bi bi-chat-left-text"></i> ${log.notes}</div>` : ''}
+                        </div>
                     </div>
+                    <button onclick="deleteLog('${log.id}')" 
+                            style="color: #999; background: none; border: none; padding: 4px 8px; font-size: 1rem;"
+                            title="Slett">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -327,26 +351,27 @@ function displayHistory() {
     }
     
     container.innerHTML = filteredLogs.map(log => {
-        const userBadge = log.loggedBy ? `<span class="badge bg-secondary" style="font-size: 0.7rem;">${log.loggedBy}</span>` : '';
+        const userBadge = log.loggedBy ? `<span style="color: #888; font-size: 0.75rem;">${log.loggedBy}</span>` : '';
+        const typeIcon = getTypeIcon(log.type);
+        const typeColor = getTypeColor(log.type);
         return `
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <h5 class="card-title">
-                                <span class="badge bg-primary">${log.type}</span>
-                                <small class="text-muted ms-2">${formatDateTime(log.time)}</small>
-                            </h5>
-                            <p class="card-text">${getDetails(log)}</p>
-                            ${log.notes ? `<p class="card-text"><small class="text-muted">Notater: ${log.notes}</small></p>` : ''}
-                            <p class="card-text"><small class="text-muted">${userBadge}</small></p>
+            <div style="background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid #eee; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3 flex-grow-1">
+                        <div style="background: ${typeColor}; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                            ${typeIcon}
                         </div>
-                        <button class="btn btn-sm btn-danger" 
-                                onclick="deleteLog('${log.id}')" 
-                                title="Slett logg">
-                            🗑️
-                        </button>
+                        <div>
+                            <div style="font-weight: 600; color: #333;">${getDetails(log)}</div>
+                            <div style="font-size: 0.8rem; color: #888;">${formatDateTime(log.time)} ${userBadge ? '· ' + userBadge : ''}</div>
+                            ${log.notes ? `<div style="font-size: 0.8rem; color: #666; margin-top: 4px;"><i class="bi bi-chat-left-text"></i> ${log.notes}</div>` : ''}
+                        </div>
                     </div>
+                    <button onclick="deleteLog('${log.id}')" 
+                            style="color: #999; background: none; border: none; padding: 4px 8px; font-size: 1rem;"
+                            title="Slett">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -356,36 +381,106 @@ function displayHistory() {
 function displayReminders() {
     const list = document.getElementById('reminderList');
     
+    if (!list) return;
+    
     if (reminders.length === 0) {
-        list.innerHTML = '<li class="list-group-item text-muted">Ingen påminnelser lagt til</li>';
+        list.innerHTML = '<div style="text-align: center; color: #888; padding: 40px 20px; background: #f8f9fa; border-radius: 12px;">Ingen aktive påminnelser ennå</div>';
         return;
     }
     
-    list.innerHTML = reminders.map(reminder => {
+    // Sort reminders by time
+    const sortedReminders = [...reminders].sort((a, b) => {
+        return a.time.localeCompare(b.time);
+    });
+    
+    list.innerHTML = sortedReminders.map(reminder => {
         const reminderId = reminder.id;
-        return `<li class="list-group-item reminder-item d-flex justify-content-between align-items-center" 
-                    style="position: relative;">
-            <div class="d-flex align-items-center gap-2 flex-grow-1">
-                <span>⏰ ${reminder.name}</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <input type="time" 
-                       class="form-control form-control-sm" 
-                       value="${reminder.time}" 
-                       style="width: 100px;" 
-                       onchange="updateReminderTime('${reminderId}', this.value)"
-                       onclick="event.stopPropagation()">
-                <button class="btn btn-sm btn-danger" 
-                        onclick="deleteReminder('${reminderId}')" 
-                        title="Slett påminnelse">
-                    🗑️
-                </button>
-            </div>
-        </li>`;
+        return `
+            <div class="reminder-card" style="background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 10px; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                            ⏰
+                        </div>
+                        <div style="font-weight: 600; color: #333; font-size: 1rem;">${reminder.name}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-left: 52px;">
+                        <div style="display: flex; align-items: center; background: #f0f4f8; border-radius: 10px; padding: 4px; flex: 1;">
+                            <input type="time" 
+                                   id="time-${reminderId}"
+                                   value="${reminder.time}" 
+                                   style="flex: 1; font-weight: 600; text-align: center; border: none; background: transparent; font-size: 16px; padding: 10px 8px;" 
+                                   onclick="event.stopPropagation()">
+                            <button onclick="saveReminderTime('${reminderId}')" 
+                                    style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                                Lagre
+                            </button>
+                        </div>
+                        <button onclick="deleteReminder('${reminderId}')" 
+                                style="color: #dc3545; background: rgba(220,53,69,0.08); border: none; border-radius: 10px; padding: 12px; cursor: pointer;"
+                                title="Slett">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
     }).join('');
 }
 
+// Called when user clicks OK button to save new time
+function saveReminderTime(reminderId) {
+    const input = document.getElementById(`time-${reminderId}`);
+    if (!input) {
+        showToast('⚠️ Feil ved oppdatering');
+        return;
+    }
+    
+    const newTime = input.value;
+    if (!newTime) {
+        showToast('⚠️ Velg et tidspunkt først');
+        return;
+    }
+    
+    const reminder = reminders.find(r => String(r.id) === String(reminderId));
+    if (!reminder) {
+        showToast('⚠️ Fant ikke påminnelsen');
+        return;
+    }
+    
+    // Check if time actually changed
+    if (reminder.time === newTime) {
+        showToast('✓ Ingen endring');
+        return;
+    }
+    
+    const oldTime = reminder.time;
+    reminder.time = newTime;
+    
+    // Update in Firestore
+    if (typeof db !== 'undefined' && db) {
+        db.collection('reminders').doc(String(reminderId)).update({
+            time: newTime
+        })
+        .then(() => {
+            showToast(`✓ Endret til ${newTime}`);
+            scheduleReminders();
+        })
+        .catch((error) => {
+            console.error('Error updating reminder:', error);
+            showToast('⚠️ Feil ved lagring');
+            reminder.time = oldTime; // Rollback
+            displayReminders();
+        });
+    } else {
+        // Fallback to localStorage
+        saveData();
+        scheduleReminders();
+        showToast(`✓ Endret til ${newTime}`);
+    }
+}
+
 function updateReminderTime(reminderId, newTime) {
+    // Legacy function - now using saveReminderTime
     const reminder = reminders.find(r => r.id == reminderId);
     if (!reminder) {
         showToast('⚠️ Fant ikke påminnelsen');
@@ -488,22 +583,36 @@ function displayChecklist() {
         
         const timeInfo = item.times.length > 0 ? item.times.join(', ') : 'Ved behov';
         
+        const deleteBtn = item.isCustom ? `
+            <button onclick="event.stopPropagation(); deleteMedicineFromChecklist('${item.name}', '${item.category}')" 
+                    style="background: none; border: none; color: #dc3545; padding: 4px; cursor: pointer; opacity: 0.6;"
+                    title="Slett medisin">
+                <i class="bi bi-trash"></i>
+            </button>` : '';
+        
         return `
-            <div class="list-group-item ${loggedClass}" style="border-radius: 8px; margin-bottom: 8px;">
+            <div class="list-group-item ${loggedClass}" style="border-radius: 12px; margin-bottom: 10px; padding: 14px;">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2">
-                            <strong>${item.name}</strong>
+                        <div class="d-flex align-items-center gap-2" style="margin-bottom: 4px;">
+                            <strong style="font-size: 1rem;">${item.name}</strong>
+                            <button onclick="event.stopPropagation(); showMedicineInfo('${item.name}')" 
+                                    style="background: #E3F2FD; color: #1976D2; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;"
+                                    title="Vis medisininfo">
+                                i
+                            </button>
                             ${scheduleInfo}
+                            ${deleteBtn}
                         </div>
                         <small class="text-muted">${item.dose} - ${timeInfo}</small>
-                        <div class="dose-input-group">
+                        <div class="dose-input-group" style="margin-top: 10px;">
                             <input type="number" 
                                    class="dose-input" 
                                    id="dose-${index}" 
                                    value="${defaultAmount}" 
                                    step="0.1" 
                                    placeholder="Dose"
+                                   style="font-size: 16px;"
                                    onclick="event.stopPropagation()">
                             <span class="text-muted" style="font-size: 0.85rem;">${item.unit}</span>
                             <button class="btn btn-primary btn-sm" 
@@ -678,19 +787,33 @@ function getDetails(log) {
 
 function deleteLog(id) {
     if (confirm('Er du sikker på at du vil slette denne loggen?')) {
+        console.log('Deleting log with ID:', id, 'Type:', typeof id);
+        console.log('Current logs count:', logs.length);
+        
         // Delete from Firestore
         if (typeof deleteLogFromFirestore === 'function') {
             deleteLogFromFirestore(id)
                 .then(() => {
+                    console.log('Firestore delete successful');
+                    // Immediately update local UI - convert both to string for comparison
+                    const idStr = String(id);
+                    const beforeCount = logs.length;
+                    logs = logs.filter(l => String(l.id) !== idStr);
+                    console.log('Filtered logs:', beforeCount, '->', logs.length);
+                    displayToday();
+                    displayHistory();
+                    displayStats();
+                    displayChecklist();
                     showToast('✓ Logg slettet');
                 })
                 .catch((error) => {
                     console.error('Error deleting log:', error);
-                    showToast('⚠️ Feil ved sletting');
+                    showToast('⚠️ Feil ved sletting: ' + error.message);
                 });
         } else {
             // Fallback to localStorage
-            logs = logs.filter(l => l.id != id);
+            const idStr = String(id);
+            logs = logs.filter(l => String(l.id) !== idStr);
             saveData();
             displayToday();
             displayHistory();
@@ -703,10 +826,16 @@ function deleteLog(id) {
 
 function deleteReminder(id) {
     if (confirm('Vil du slette denne påminnelsen?')) {
+        console.log('Deleting reminder with ID:', id);
+        
         // Delete from Firestore
         if (typeof deleteReminderFromFirestore === 'function') {
-            deleteReminderFromFirestore(id)
+            deleteReminderFromFirestore(String(id))
                 .then(() => {
+                    // Immediately update local UI
+                    const idStr = String(id);
+                    reminders = reminders.filter(r => String(r.id) !== idStr);
+                    displayReminders();
                     showToast('✓ Påminnelse slettet');
                 })
                 .catch((error) => {
@@ -715,7 +844,8 @@ function deleteReminder(id) {
                 });
         } else {
             // Fallback to localStorage
-            reminders = reminders.filter(r => r.id != id);
+            const idStr = String(id);
+            reminders = reminders.filter(r => String(r.id) !== idStr);
             saveData();
             displayReminders();
             showToast('Påminnelse slettet');
@@ -1181,30 +1311,66 @@ function submitQuickvannlating() {
 function addNewMedicineToChecklist() {
     const name = document.getElementById('newMedicineName').value.trim();
     const dose = document.getElementById('newMedicineDose').value.trim();
-    const frequency = document.getElementById('newMedicineFrequency').value.trim();
+    const timeInput = document.getElementById('newMedicineTime')?.value || '';
+    const categoryRadio = document.querySelector('input[name="medicineCategory"]:checked');
+    const category = categoryRadio ? categoryRadio.value : 'prn';
     
     if (!name) {
         showToast('⚠️ Vennligst fyll inn medisinnavn');
         return;
     }
     
-    // Check if medicine already exists
+    // Check if medicine already exists (case insensitive)
     const exists = checklistItems.medicines.some(m => m.name.toLowerCase() === name.toLowerCase());
     if (exists) {
         showToast('⚠️ Denne medisinen finnes allerede i listen');
         return;
     }
     
-    // Parse frequency to times array
-    const times = frequency ? [frequency] : ['ved behov'];
+    // Parse dose to extract unit
+    let unit = '';
+    const doseMatch = dose.match(/([\d.,]+)\s*(.*)/);
+    if (doseMatch && doseMatch[2]) {
+        unit = doseMatch[2];
+    }
     
-    // Add to checklist
-    checklistItems.medicines.push({
-        name: name,
-        dose: dose || '',
-        unit: '',
-        times: times
-    });
+    // Parse time
+    const times = timeInput ? [timeInput] : [];
+    
+    // Handle "both" category - add to both dag and kveld
+    if (category === 'both') {
+        // Add morning dose
+        checklistItems.medicines.push({
+            name: name,
+            dose: dose || '',
+            unit: unit,
+            category: 'dag',
+            times: times.length > 0 ? times : ['08:00'],
+            description: 'Egendefinert medisin',
+            isCustom: true
+        });
+        // Add evening dose
+        checklistItems.medicines.push({
+            name: name,
+            dose: dose || '',
+            unit: unit,
+            category: 'kveld',
+            times: ['20:00'],
+            description: 'Egendefinert medisin',
+            isCustom: true
+        });
+    } else {
+        // Add single entry
+        checklistItems.medicines.push({
+            name: name,
+            dose: dose || '',
+            unit: unit,
+            category: category,
+            times: times,
+            description: 'Egendefinert medisin',
+            isCustom: true
+        });
+    }
     
     // Save to localStorage
     saveChecklistItems();
@@ -1214,13 +1380,59 @@ function addNewMedicineToChecklist() {
     if (modal) modal.hide();
     document.getElementById('newMedicineName').value = '';
     document.getElementById('newMedicineDose').value = '';
-    document.getElementById('newMedicineFrequency').value = '';
+    if (document.getElementById('newMedicineTime')) {
+        document.getElementById('newMedicineTime').value = '';
+    }
+    // Reset category to default
+    const prnRadio = document.querySelector('input[name="medicineCategory"][value="prn"]');
+    if (prnRadio) prnRadio.checked = true;
     
     // Refresh checklist display
     displayChecklist();
     
     showToast(`✅ ${name} lagt til i sjekklisten!`);
 }
+
+// Delete medicine from checklist
+function deleteMedicineFromChecklist(medicineName, category) {
+    if (!confirm(`Er du sikker på at du vil slette "${medicineName}" fra sjekklisten?`)) {
+        return;
+    }
+    
+    // Remove from array
+    const beforeCount = checklistItems.medicines.length;
+    checklistItems.medicines = checklistItems.medicines.filter(m => 
+        !(m.name === medicineName && m.category === category)
+    );
+    
+    if (checklistItems.medicines.length < beforeCount) {
+        // Save and refresh
+        saveChecklistItems();
+        displayChecklist();
+        showToast(`✓ ${medicineName} fjernet fra sjekklisten`);
+    } else {
+        showToast('⚠️ Kunne ikke finne medisinen');
+    }
+}
+
+// Migrate old medicines without category
+function migrateOldMedicines() {
+    let migrated = false;
+    checklistItems.medicines = checklistItems.medicines.map(m => {
+        if (!m.category) {
+            migrated = true;
+            return { ...m, category: 'prn', isCustom: true };
+        }
+        return m;
+    });
+    if (migrated) {
+        saveChecklistItems();
+        console.log('Migrated old medicines without category');
+    }
+}
+
+// Run migration on load
+migrateOldMedicines();
 
 // Add new sondemat to checklist
 function addNewSondematToChecklist() {
@@ -1240,15 +1452,21 @@ function addNewSondematToChecklist() {
         return;
     }
     
-    // Parse frequency to times array
-    const times = frequency ? [frequency] : ['daglig'];
+    // Parse amount to extract unit
+    let unit = 'ml';
+    const amountMatch = amount.match(/([\d.,]+)\s*(.*)/);
+    if (amountMatch && amountMatch[2]) {
+        unit = amountMatch[2];
+    }
     
     // Add to checklist
     checklistItems.sonde.push({
         name: name,
         dose: amount || '',
-        unit: 'ml',
-        times: times
+        unit: unit,
+        category: 'dag',
+        times: [],
+        description: 'Egendefinert sondemat'
     });
     
     // Save to localStorage

@@ -145,27 +145,31 @@ function showUserSelector() {
   if (modal) {
     // Get all previous users from localStorage
     const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    const uniqueUsers = ['TEL', 'Mari', ...allUsers.filter(u => u !== 'TEL' && u !== 'Mari')];
+    const customUsers = allUsers.filter(u => u !== 'Tom-Erik' && u !== 'Mari');
     
-    // Build user buttons dynamically
-    const modalBody = modal.querySelector('.modal-body');
-    const buttonContainer = modalBody.querySelector('.d-grid');
-    
-    let buttonsHTML = '';
-    uniqueUsers.forEach(user => {
-      const emoji = user === 'TEL' ? '👨' : user === 'Mari' ? '👩' : '👤';
-      buttonsHTML += `<button class="btn btn-lg btn-primary" onclick="selectUser('${user}')">${emoji} ${user}</button>`;
-    });
-    
-    buttonsHTML += `<hr>
-        <div class="input-group">
-            <input type="text" class="form-control" id="customUserInput" placeholder="Nytt navn...">
-            <button class="btn btn-outline-secondary" onclick="selectUser(document.getElementById('customUserInput').value)">
-                OK
+    // Build custom user buttons
+    const savedUsersContainer = document.getElementById('savedUsersContainer');
+    if (savedUsersContainer && customUsers.length > 0) {
+      let html = '';
+      customUsers.forEach(user => {
+        html += `
+          <button onclick="selectUser('${user}')" 
+                  style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; width: 100%; margin-bottom: 12px;">
+            <div style="width: 48px; height: 48px; background: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👤</div>
+            <div style="text-align: left; flex: 1;">
+              <div style="font-weight: 600; font-size: 1.1rem; color: #333;">${user}</div>
+              <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
+            </div>
+            <button onclick="event.stopPropagation(); removeUser('${user}')" 
+                    style="background: none; border: none; color: #999; font-size: 1.2rem; cursor: pointer; padding: 8px;">
+              <i class="bi bi-x-lg"></i>
             </button>
-        </div>`;
-    
-    buttonContainer.innerHTML = buttonsHTML;
+          </button>`;
+      });
+      savedUsersContainer.innerHTML = html;
+    } else if (savedUsersContainer) {
+      savedUsersContainer.innerHTML = '';
+    }
     
     const bsModal = new bootstrap.Modal(modal, {
       backdrop: 'static',
@@ -173,6 +177,13 @@ function showUserSelector() {
     });
     bsModal.show();
   }
+}
+
+function removeUser(username) {
+  const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+  const filtered = allUsers.filter(u => u !== username);
+  localStorage.setItem('allUsers', JSON.stringify(filtered));
+  showUserSelector(); // Refresh the modal
 }
 
 function selectUser(username) {

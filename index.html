@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dosevakt - Medisin & Omsorgslogg</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1e3a8a">
@@ -48,7 +48,7 @@
         }
         
         body { 
-            padding-top: 70px;
+            padding-top: 75px;
             padding-bottom: 80px;
             background: linear-gradient(to bottom, #FFFFFF, #F8F9FA);
             color: var(--text-primary);
@@ -147,6 +147,7 @@
             border: 2px solid var(--border-color);
             color: var(--text-primary);
             border-radius: 8px;
+            font-size: 16px; /* Prevents zoom on iOS/Android */
         }
         
         .form-control:focus, .form-select:focus {
@@ -449,27 +450,6 @@
             opacity: 1;
         }
         
-        
-        /* Footer */
-        .app-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            padding: 12px 0;
-            text-align: center;
-            z-index: 1000;
-        }
-        
-        .app-footer p {
-            margin: 0;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-        
         /* Border radius and animations */
         .btn, .card, .modal-content {
             border-radius: 15px;
@@ -514,22 +494,21 @@
 </head>
 <body>
     <!-- Sticky Header -->
-    <header class="app-header">
-        <div class="header-content">
-            <div class="header-logo">
-                <img src="./logo.svg" alt="Dosevakt Logo">
+    <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="./favicon.png" alt="Dosevakt" style="height: 36px; width: 36px; border-radius: 8px;">
+                <span style="font-weight: 700; font-size: 1.1rem; color: #587dff;">Dosevakt</span>
             </div>
-            <div class="header-user">
-                <small class="text-muted d-block">Innlogget som:</small>
-                <strong id="currentUserDisplay" class="d-block" style="font-size: 1.0rem;">Venter...</strong>
-                <div class="d-flex gap-1 mt-1">
-                    <button class="btn btn-sm btn-outline-primary" onclick="location.reload()" title="Last inn siden på nytt">
-                        🔄
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="switchUser()">
-                        Bytt bruker
-                    </button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.6rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Bruker</div>
+                    <div id="currentUserDisplay" style="font-weight: 600; font-size: 0.85rem; color: #333;">Venter...</div>
                 </div>
+                <button onclick="switchUser()" 
+                        style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 16px; font-weight: 500; cursor: pointer;">
+                    Bytt
+                </button>
             </div>
         </div>
     </header>
@@ -571,59 +550,57 @@
         <div class="tab-content">
             <!-- Hjem Tab -->
             <div class="tab-pane fade show active" id="home" role="tabpanel">
-                <div class="text-center mt-5 mb-4">
-                    <h2 class="display-4 mb-3">👋 Velkommen, <span id="welcomeUserName" style="color: var(--accent-blue);">TEL</span>!</h2>
-                    <p class="lead text-muted">Klar for å ta vare på Jens i dag</p>
+                <div style="text-align: center; padding: 24px 20px 16px;">
+                    <img src="./logo-full.png" alt="Dosevakt" style="height: 120px; width: auto; margin-bottom: 16px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 600; color: #333; margin-bottom: 4px;">Hei, <span id="welcomeUserName" style="color: #4CAF50;">der</span>!</h2>
+                    <p style="color: #888; font-size: 0.9rem; margin: 0;">Klar for å ta vare på Jens</p>
                 </div>
                 
-                <div class="row g-3 mt-4">
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">💊</div>
-                                <h5 class="card-title">Sjekkliste</h5>
-                                <p class="card-text text-muted">Rask logging av daglige medisiner og rutiner</p>
-                                <button class="btn btn-primary" onclick="document.getElementById('checklist-tab').click()">
-                                    Gå til sjekkliste
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">⏰</div>
-                                <h5 class="card-title">Påminnelser</h5>
-                                <p class="card-text text-muted">Administrer og se aktive påminnelser</p>
-                                <button class="btn btn-primary" onclick="document.getElementById('reminders-tab').click()">
-                                    Se påminnelser
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-                                <h5 class="card-title">Statistikk</h5>
-                                <p class="card-text text-muted">Se oversikt og trender</p>
-                                <button class="btn btn-primary" onclick="document.getElementById('stats-tab').click()">
-                                    Vis statistikk
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
-                                <h5 class="card-title">I dag</h5>
-                                <p class="card-text text-muted">Se dagens aktiviteter</p>
-                                <button class="btn btn-primary" onclick="document.getElementById('today-tab').click()">
-                                    Se i dag
-                                </button>
-                            </div>
-                        </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                    <button onclick="document.getElementById('checklist-tab').click()" 
+                            style="background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">💊</div>
+                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">Sjekkliste</div>
+                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Daglige medisiner</div>
+                    </button>
+                    <button onclick="document.getElementById('reminders-tab').click()" 
+                            style="background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">⏰</div>
+                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">Påminnelser</div>
+                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Se varsler</div>
+                    </button>
+                    <button onclick="document.getElementById('today-tab').click()" 
+                            style="background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">📅</div>
+                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">I dag</div>
+                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Dagens logger</div>
+                    </button>
+                    <button onclick="document.getElementById('history-tab').click()" 
+                            style="background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">📊</div>
+                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">Historikk</div>
+                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Alle logger</div>
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; background: #f8f9fa; border-radius: 12px; padding: 16px;">
+                    <div style="font-weight: 600; color: #333; margin-bottom: 12px; font-size: 0.9rem;">Hurtigvalg</div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="document.getElementById('checklist-tab').click()" 
+                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
+                            <div style="font-size: 1.5rem;">💊</div>
+                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Medisin</div>
+                        </button>
+                        <button data-bs-toggle="modal" data-bs-target="#bowelModal" 
+                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
+                            <div style="font-size: 1.5rem;">💩</div>
+                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Avføring</div>
+                        </button>
+                        <button data-bs-toggle="modal" data-bs-target="#vannlatingModal" 
+                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
+                            <div style="font-size: 1.5rem;">💧</div>
+                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Vannlating</div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -907,32 +884,36 @@
                     </div>
                 </div>
                 
-                <!-- Egendefinert påminnelse -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <strong>➕ Legg til egendefinert påminnelse</strong>
-                    </div>
-                    <div class="card-body">
-                        <form id="reminderForm">
-                            <div class="row g-2">
-                                <div class="col-md-5">
-                                    <input type="text" class="form-control" id="reminderName" placeholder="Hva skal huskes?" required>
+                <!-- Legg til ny påminnelse -->
+                <div style="background: linear-gradient(135deg, #f0f4ff 0%, #fff 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #e3e8f0;">
+                    <div style="font-weight: 600; color: #333; margin-bottom: 16px; font-size: 1rem;">➕ Ny påminnelse</div>
+                    <form id="reminderForm">
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <input type="text" class="form-control" id="reminderName" 
+                                   placeholder="Hva skal huskes? (f.eks. Bactrim)" 
+                                   required 
+                                   style="font-size: 16px; padding: 14px; border-radius: 12px; border: 2px solid #e0e0e0;">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="flex: 1;">
+                                    <label style="font-size: 0.8rem; color: #666; margin-bottom: 4px; display: block;">Tidspunkt</label>
+                                    <input type="time" class="form-control" id="reminderTime" 
+                                           required 
+                                           style="font-size: 16px; padding: 14px; border-radius: 12px; border: 2px solid #e0e0e0; width: 100%;">
                                 </div>
-                                <div class="col-md-4">
-                                    <input type="time" class="form-control" id="reminderTime" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <button type="submit" class="btn btn-primary w-100">Legg til</button>
+                                <div style="display: flex; align-items: flex-end;">
+                                    <button type="submit" class="btn btn-primary" 
+                                            style="padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 16px;">
+                                        Legg til
+                                    </button>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
                 
                 <!-- Liste over aktive påminnelser -->
-                <h6 class="mt-4">🔔 Aktive påminnelser</h6>
-                <ul class="list-group" id="reminderList"></ul>
-                <p class="text-muted mt-2 small">💡 Tips: Klikk på en påminnelse for å slette den</p>
+                <div style="font-weight: 600; color: #333; margin-bottom: 12px; font-size: 1rem;">🔔 Aktive påminnelser</div>
+                <div id="reminderList"></div>
             </div>
             
             <!-- Statistikk Tab -->
@@ -1035,30 +1016,42 @@
     <!-- User Selector Modal -->
     <div class="modal fade" id="userSelectorModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header" style="border-bottom: none;">
-                    <h5 class="modal-title w-100 text-center">👤 Velg bruker</h5>
+            <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); padding: 30px 20px; text-align: center;">
+                    <img src="./logo.svg" alt="Dosevakt" style="height: 60px; margin-bottom: 12px; filter: brightness(0) invert(1);">
+                    <h5 style="color: white; margin: 0; font-weight: 600;">Hvem er du?</h5>
                 </div>
-                <div class="modal-body">
-                    <p class="text-center text-muted mb-4">Hvem logger inn?</p>
-                    <div class="d-grid gap-3">
-                        <button class="btn btn-lg btn-primary" onclick="selectUser('TEL')">
-                            👨 TEL
+                <div style="padding: 24px;">
+                    <div id="defaultUsersContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                        <button onclick="selectUser('Tom-Erik')" 
+                                style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <div style="width: 48px; height: 48px; background: #E3F2FD; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👨</div>
+                            <div style="text-align: left; flex: 1;">
+                                <div style="font-weight: 600; font-size: 1.1rem; color: #333;">Tom-Erik</div>
+                                <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
+                            </div>
                         </button>
-                        <button class="btn btn-lg btn-primary" onclick="selectUser('Mari')">
-                            👩 Mari
+                        <button onclick="selectUser('Mari')" 
+                                style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <div style="width: 48px; height: 48px; background: #FCE4EC; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👩</div>
+                            <div style="text-align: left; flex: 1;">
+                                <div style="font-weight: 600; font-size: 1.1rem; color: #333;">Mari</div>
+                                <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
+                            </div>
                         </button>
-                        <hr>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="customUserInput" placeholder="Annet navn...">
-                            <button class="btn btn-outline-secondary" onclick="selectUser(document.getElementById('customUserInput').value)">
+                    </div>
+                    <div id="savedUsersContainer" style="margin-top: 12px;"></div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 8px;">Legg til ny bruker:</div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="customUserInput" placeholder="Navn..." 
+                                   style="flex: 1; padding: 12px 16px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 16px;">
+                            <button onclick="selectUser(document.getElementById('customUserInput').value)" 
+                                    style="padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
                                 OK
                             </button>
                         </div>
                     </div>
-                    <p class="text-muted text-center mt-3 small">
-                        ℹ️ Alle logger vil bli tagget med ditt navn
-                    </p>
                 </div>
             </div>
         </div>
@@ -1067,29 +1060,55 @@
     <!-- Add Medicine to Checklist Modal -->
     <div class="modal fade" id="addMedicineModal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">💊 Legg til ny medisin</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="newMedicineName" class="form-label">Medisinnavn *</label>
-                        <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Ibux" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="newMedicineDose" class="form-label">Dose/mengde</label>
-                        <input type="text" class="form-control" id="newMedicineDose" placeholder="F.eks. 10 ml, 1 tablett">
-                    </div>
-                    <div class="mb-3">
-                        <label for="newMedicineFrequency" class="form-label">Frekvens</label>
-                        <input type="text" class="form-control" id="newMedicineFrequency" placeholder="F.eks. 2x daglig, ved behov">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); padding: 20px; color: white; border-radius: 16px 16px 0 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h5 style="margin: 0; font-weight: 600;">💊 Legg til ny medisin</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="button" class="btn btn-primary" onclick="addNewMedicineToChecklist()">
-                        💾 Lagre
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600;">Medisinnavn *</label>
+                        <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Marevan" required style="font-size: 16px; padding: 12px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600;">Dose/mengde</label>
+                        <input type="text" class="form-control" id="newMedicineDose" placeholder="F.eks. 10 ml, 1 tablett" style="font-size: 16px; padding: 12px;">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600;">Kategori *</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
+                                <input type="radio" name="medicineCategory" value="dag" style="width: 18px; height: 18px;">
+                                <span>🌅 Morgen</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
+                                <input type="radio" name="medicineCategory" value="kveld" style="width: 18px; height: 18px;">
+                                <span>🌙 Kveld</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
+                                <input type="radio" name="medicineCategory" value="both" style="width: 18px; height: 18px;">
+                                <span>🔄 Begge</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
+                                <input type="radio" name="medicineCategory" value="prn" checked style="width: 18px; height: 18px;">
+                                <span>🎯 Ved behov</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600;">Tidspunkt (valgfritt)</label>
+                        <input type="time" class="form-control" id="newMedicineTime" style="font-size: 16px; padding: 12px;">
+                        <small class="text-muted">Legg til klokkeslett hvis medisinen skal tas til fast tid</small>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none; padding: 0 24px 24px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 12px 24px;">Avbryt</button>
+                    <button type="button" class="btn btn-success" onclick="addNewMedicineToChecklist()" style="padding: 12px 24px;">
+                        ✓ Legg til
                     </button>
                 </div>
             </div>
@@ -1176,14 +1195,45 @@
     <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
     
+    <!-- Medicine Info -->
+    <script src="medicine-info.js"></script>
+    
     <!-- App JS -->
     <script src="app.js"></script>
     
     <!-- Dosing Plan JS -->
     <script src="dosing-plan.js"></script>
     
-    <!-- Initialize Firebase after page load -->
+    <!-- Service Worker Registration with auto-update -->
     <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                // Check for updates immediately
+                reg.update();
+                
+                // Check for updates every 60 seconds
+                setInterval(() => reg.update(), 60000);
+                
+                // When new SW is waiting, activate it immediately
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New version available - reload to use it
+                            console.log('New version available, reloading...');
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+            
+            // Reload when controller changes (new SW took over)
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+        }
+        
+        // Initialize Firebase after page load
         window.addEventListener('load', () => {
             if (typeof initializeFirebase === 'function') {
                 initializeFirebase();
@@ -1192,59 +1242,36 @@
     </script>
     
     <!-- Bottom Navigation -->
-    <nav class="navbar navbar-light bg-light fixed-bottom" style="box-shadow: 0 -2px 10px rgba(0,0,0,0.1);">
-        <div class="container-fluid justify-content-around">
-            <button class="nav-link text-center border-0 bg-transparent" 
-                    data-bs-toggle="tab" 
-                    data-bs-target="#checklist" 
-                    type="button" 
-                    style="flex: 1; cursor: pointer;">
-                <i class="bi bi-list-check" style="font-size: 1.5rem;"></i>
-                <div style="font-size: 0.7rem;">Sjekk</div>
+    <nav style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(10px); box-shadow: 0 -1px 20px rgba(0,0,0,0.08); z-index: 2000; padding: 8px 0 max(8px, env(safe-area-inset-bottom));">
+        <div style="display: flex; justify-content: space-around; align-items: center; max-width: 500px; margin: 0 auto;">
+            <button type="button" onclick="document.getElementById('checklist-tab').click()" 
+                    style="flex: 1; background: none; border: none; padding: 6px 0; color: #666; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                <i class="bi bi-list-check" style="font-size: 1.3rem;"></i>
+                <span style="font-size: 0.65rem; font-weight: 500;">Sjekk</span>
             </button>
-            <button class="nav-link text-center border-0 bg-transparent" 
-                    data-bs-toggle="tab" 
-                    data-bs-target="#today" 
-                    type="button" 
-                    style="flex: 1; cursor: pointer;">
-                <i class="bi bi-calendar-day" style="font-size: 1.5rem;"></i>
-                <div style="font-size: 0.7rem;">I dag</div>
+            <button type="button" onclick="document.getElementById('today-tab').click()" 
+                    style="flex: 1; background: none; border: none; padding: 6px 0; color: #666; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                <i class="bi bi-calendar-day" style="font-size: 1.3rem;"></i>
+                <span style="font-size: 0.65rem; font-weight: 500;">I dag</span>
             </button>
-            <button class="nav-link text-center border-0 bg-transparent" 
-                    data-bs-toggle="tab" 
-                    data-bs-target="#log" 
-                    type="button" 
-                    style="flex: 1; cursor: pointer;">
-                <i class="bi bi-plus-circle-fill" style="font-size: 2rem; color: var(--bs-primary);"></i>
-                <div style="font-size: 0.7rem;">Ny</div>
+            <button type="button" onclick="document.getElementById('log-tab').click()" 
+                    style="flex: 1; background: none; border: none; padding: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                <div style="background: linear-gradient(135deg, #4CAF50, #81C784); width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(76,175,80,0.4); margin-top: -20px;">
+                    <i class="bi bi-plus-lg" style="font-size: 1.5rem; color: white;"></i>
+                </div>
             </button>
-            <button class="nav-link text-center border-0 bg-transparent" 
-                    data-bs-toggle="tab" 
-                    data-bs-target="#reminders" 
-                    type="button" 
-                    style="flex: 1; cursor: pointer;">
-                <i class="bi bi-bell" style="font-size: 1.5rem;"></i>
-                <div style="font-size: 0.7rem;">Påminn</div>
+            <button type="button" onclick="document.getElementById('reminders-tab').click()" 
+                    style="flex: 1; background: none; border: none; padding: 6px 0; color: #666; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                <i class="bi bi-bell" style="font-size: 1.3rem;"></i>
+                <span style="font-size: 0.65rem; font-weight: 500;">Påminn</span>
             </button>
-            <button class="nav-link text-center border-0 bg-transparent" 
-                    data-bs-toggle="tab" 
-                    data-bs-target="#stats" 
-                    type="button" 
-                    style="flex: 1; cursor: pointer;">
-                <i class="bi bi-bar-chart" style="font-size: 1.5rem;"></i>
-                <div style="font-size: 0.7rem;">Stats</div>
+            <button type="button" onclick="document.getElementById('history-tab').click()" 
+                    style="flex: 1; background: none; border: none; padding: 6px 0; color: #666; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                <i class="bi bi-clock-history" style="font-size: 1.3rem;"></i>
+                <span style="font-size: 0.65rem; font-weight: 500;">Historikk</span>
             </button>
         </div>
     </nav>
-    
-    <!-- FAB for quick logging -->
-    <button class="btn btn-primary rounded-circle position-fixed shadow" 
-            style="width: 56px; height: 56px; bottom: 90px; right: 20px; z-index: 1050;" 
-            data-bs-toggle="modal" 
-            data-bs-target="#logModal"
-            title="Rask logg">
-        <i class="bi bi-plus-lg" style="font-size: 1.5rem;"></i>
-    </button>
 </body>
 </html>
 
