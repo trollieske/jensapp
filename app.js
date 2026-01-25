@@ -424,10 +424,26 @@ function displayChecklist() {
     }
     
     // Helper to render a medicine item
-    function renderMedicineItem(item, index) {
-        const logsForItem = todayLogs.filter(log => 
-            log.type === 'Medisin' && log.name === item.name
-        );
+    function renderMedicineItem(item, index, categoryPrefix) {
+        // Filter logs for this specific medicine AND category/time
+        // This prevents Bactrim morning from showing evening logs and vice versa
+        const logsForItem = todayLogs.filter(log => {
+            if (log.type !== 'Medisin' || log.name !== item.name) return false;
+            
+            // For medicines with specific times, match by time proximity
+            if (item.times && item.times.length > 0) {
+                const logTime = new Date(log.time);
+                const logHour = logTime.getHours();
+                
+                // Check if log time matches any of the item's scheduled times
+                return item.times.some(time => {
+                    const [hour] = time.split(':').map(Number);
+                    // Within 3 hours of scheduled time
+                    return Math.abs(logHour - hour) <= 3;
+                });
+            }
+            return true; // PRN medicines count all logs
+        });
         const count = logsForItem.length;
         const isLogged = count > 0;
         const loggedClass = isLogged ? 'logged-today' : '';
@@ -894,7 +910,16 @@ function formatDate(dateStr) {
 }
 
 // Quick log functions for checklist
+// Debounce to prevent multiple rapid clicks
+let isLogging = false;
+
 function quickLogMedicineWithInput(index, name, unit) {
+    // Prevent multiple rapid clicks
+    if (isLogging) {
+        showToast('⏳ Vennligst vent...');
+        return;
+    }
+    
     const doseInput = document.getElementById(`dose-${index}`);
     const amount = parseFloat(doseInput.value) || 0;
     
@@ -902,6 +927,8 @@ function quickLogMedicineWithInput(index, name, unit) {
         showToast('⚠️ Vennligst fyll inn mengde');
         return;
     }
+    
+    isLogging = true;
     
     const now = new Date();
     const log = {
@@ -920,10 +947,21 @@ function quickLogMedicineWithInput(index, name, unit) {
         saveLogToFirestore(log)
             .then(() => {
                 showToast(`✓ ${name} (${amount} ${unit}) logget av ${currentUser || 'deg'}!`);
+                // Reset dose input to default after successful log
+                const item = findMedicineByIndex(index);
+                if (item) {
+                    doseInput.value = parseFloat(item.dose) || '';
+                }
             })
             .catch((error) => {
                 console.error('Error:', error);
                 showToast('⚠️ Feil ved lagring');
+            })
+            .finally(() => {
+                // Re-enable after 1 second
+                setTimeout(() => {
+                    isLogging = false;
+                }, 1000);
             });
     } else {
         logs.push(log);
@@ -933,10 +971,33 @@ function quickLogMedicineWithInput(index, name, unit) {
         displayStats();
         displayChecklist();
         showToast(`✓ ${name} (${amount} ${unit}) logget!`);
+        setTimeout(() => {
+            isLogging = false;
+        }, 1000);
     }
 }
 
+// Helper function to find medicine by index
+function findMedicineByIndex(index) {
+    if (index < 100) {
+        return checklistItems.medicines.filter(m => m.category === 'dag')[index];
+    } else if (index < 200) {
+        return checklistItems.medicines.filter(m => m.category === 'kveld')[index - 100];
+    } else if (index < 300) {
+        return checklistItems.medicines.filter(m => m.category === 'spesiell')[index - 200];
+    } else if (index < 1000) {
+        return checklistItems.medicines.filter(m => m.category === 'prn')[index - 300];
+    }
+    return null;
+}
+
 function quickLogSondeWithInput(index, name, unit) {
+    // Prevent multiple rapid clicks
+    if (isLogging) {
+        showToast('⏳ Vennligst vent...');
+        return;
+    }
+    
     const doseInput = document.getElementById(`dose-${index}`);
     const amount = parseFloat(doseInput.value) || 0;
     
@@ -944,6 +1005,8 @@ function quickLogSondeWithInput(index, name, unit) {
         showToast('⚠️ Vennligst fyll inn mengde');
         return;
     }
+    
+    isLogging = true;
     
     const now = new Date();
     const log = {
@@ -962,10 +1025,20 @@ function quickLogSondeWithInput(index, name, unit) {
         saveLogToFirestore(log)
             .then(() => {
                 showToast(`✓ ${name} (${amount} ${unit}) logget av ${currentUser || 'deg'}!`);
+                // Reset dose input
+                const sondeItem = checklistItems.sonde[index - 1000];
+                if (sondeItem) {
+                    doseInput.value = parseFloat(sondeItem.dose) || '';
+                }
             })
             .catch((error) => {
                 console.error('Error:', error);
                 showToast('⚠️ Feil ved lagring');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    isLogging = false;
+                }, 1000);
             });
     } else {
         logs.push(log);
@@ -975,6 +1048,9 @@ function quickLogSondeWithInput(index, name, unit) {
         displayStats();
         displayChecklist();
         showToast(`✓ ${name} (${amount} ${unit}) logget!`);
+        setTimeout(() => {
+            isLogging = false;
+        }, 1000);
     }
 }
 
