@@ -102,6 +102,56 @@ function setupMessaging() {
   });
 }
 
+// Test daily report email
+function sendTestDailyReport() {
+  if (typeof firebase === 'undefined' || !firebase.functions) {
+    showToast('⚠️ Firebase ikke klar');
+    return;
+  }
+  
+  showToast('📧 Sender test-rapport...');
+  
+  const testDailyReport = firebase.functions().httpsCallable('testDailyReport');
+  testDailyReport({})
+    .then((result) => {
+      console.log('Test report result:', result.data);
+      if (result.data.success) {
+        showToast('✅ Rapport sendt! Sjekk e-posten din.');
+      } else {
+        showToast('⚠️ Feil: ' + (result.data.error || 'Ukjent feil'));
+      }
+    })
+    .catch((error) => {
+      console.error('Error sending test report:', error);
+      showToast('⚠️ Feil ved sending: ' + error.message);
+    });
+}
+
+// Test daily report email
+function sendTestDailyReport() {
+  if (typeof firebase === 'undefined' || !firebase.functions) {
+    showToast('⚠️ Firebase ikke klar');
+    return;
+  }
+  
+  showToast('📧 Sender test-rapport...');
+  
+  const testDailyReport = firebase.functions().httpsCallable('testDailyReport');
+  testDailyReport({})
+    .then((result) => {
+      console.log('Test report result:', result.data);
+      if (result.data.success) {
+        showToast('✅ Rapport sendt! Sjekk e-posten din.');
+      } else {
+        showToast('⚠️ Feil: ' + (result.data.error || 'Ukjent feil'));
+      }
+    })
+    .catch((error) => {
+      console.error('Error sending test report:', error);
+      showToast('⚠️ Feil ved sending: ' + error.message);
+    });
+}
+
 // Schedule a reminder using Firebase
 function scheduleFirebaseReminder(name, time) {
   const token = localStorage.getItem('fcmToken');

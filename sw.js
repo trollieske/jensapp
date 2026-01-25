@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dosevakt-v15';
+const CACHE_NAME = 'dosevakt-v16';
 const urlsToCache = [
   './',
   './index.html',
