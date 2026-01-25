@@ -1,136 +1,327 @@
-# 💊 Medisinlogg - Jens
+# 💊 Dosevakt - Medisin & Omsorgslogg for Jens
 
-En enkel og brukervennlig Progressive Web App (PWA) for logging av medisiner, sondemat, avføring, urinering og andre helserelaterte hendelser.
+En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat, og helse for personer med spesielle omsorgsbehov. Designet for familiebruk med multi-bruker støtte og sanntidssynkronisering via Firebase.
+
+## 🌐 Live App
+
+**🔗 URL:** https://jensapp.pages.dev (Cloudflare Pages)
+
+## ✨ Hovedfunksjoner
+
+### 👥 Multi-bruker med sanntidssynkronisering
+- Bytt mellom brukere (TEL, Mari, eller egendefinert)
+- Alle logger viser hvem som registrerte dem
+- Dynamisk brukerliste basert på historikk
+- Data synkroniseres automatisk mellom alle enheter via Firebase Firestore
+
+### 📋 Kategorisert Medisinliste
+- **🌅 Dagtid**: Medisiner som gis på morgenen/middagen
+- **🌙 Kveld**: Kveldsmedisiner
+- **⏰ Spesiell dosering**: Medisiner med spesielle intervaller
+  - Bactrim (kun helg - lørdag/søndag)
+  - Palonosetron (hver 3. dag, vises kun når det er tid)
+- **🎯 Ved behov (PRN)**: Medisiner som gis kun ved behov
+
+### 🔔 Push-varsler med Cloud Functions
+- Scheduled Cloud Functions kjører hvert minutt
+- Sender push notifications til ALLE registrerte enheter
+- Fungerer selv når appen er lukket eller i bakgrunnen
+- Plattformspesifikke instruksjoner for iOS/Android
+
+### 📋 Logging & Historikk
+- Medisin, sondemat, avføring (Bristol Scale), urinering
+- Sanntids oppdatering på alle enheter
+- Søkbar og filtrerbar historikk
+- CSV-eksport for legebesøk
 
 ## 🚀 Kom i gang
 
-### Lokal testing
-1. Åpne `index.html` direkte i en moderne nettleser (Chrome anbefales)
-2. Alternativt, kjør en lokal webserver:
-   ```powershell
-   # Fra jensapp-mappen
-   python -m http.server 8000
-   ```
-   Åpne deretter http://localhost:8000 i nettleseren
+### 📱 Installere som app
 
-### Installere som app på mobil
-1. Åpne siden i Chrome (Android) eller Safari (iOS)
-2. Trykk på menyknappen (⋮ eller ⋯)
-3. Velg "Legg til på startskjerm" eller "Add to Home Screen"
-4. Appen vil nå fungere som en egen app på telefonen
+#### iPhone/iPad:
+1. Åpne https://jensapp.pages.dev i Safari
+2. Trykk **Del-knappen** (↗️) nederst i skjermen
+3. Velg **"Legg til på Hjem-skjerm"**
+4. Åpne appen fra hjemskjermen (viktig for push-varsler!)
+5. Velg bruker og aktiver notifikasjoner
 
-## 📱 Funksjoner
+#### Android:
+1. Åpne https://jensapp.pages.dev i Chrome
+2. Trykk menyknappen (⋮) → "Legg til på startskjerm"
+3. Åpne appen og aktiver notifikasjoner
 
-### ✨ Sjekkliste (NY!)
-- **Rask logging**: Klikk på medisiner for å logge umiddelbart
-- **Fleksibel dosering**: Juster mengde før du logger
-- **Visuell feedback**: Grønn bakgrunn når gitt i dag
-- **Teller**: Se hvor mange ganger en medisin er gitt
-- **Smart dialogs**: Fullstendige valg for avføring og urinering
+### 💻 Lokal utvikling
+```bash
+# Klon repository
+git clone https://github.com/trollieske/jensapp.git
+cd jensapp
 
-### Logging
-- **Medisin**: Velg fra forhåndsdefinert liste eller legg til egendefinert
-- **Sondemat**: Logg mengde og tidspunkt
-- **Avføring**: Med Bristol Stool Scale (Type 1-7), mengde og farge
-- **Urinering**: Mengde, farge og lukt
-- **Annet**: Fritekst for andre hendelser
+# Kjør lokal server
+python -m http.server 8000
+# eller
+npx serve
 
-### Visninger
-- **Sjekkliste**: Rask oversikt og logging (standardvisning)
-- **I dag**: Oversikt over dagens logger
-- **Historikk**: Søkbar og filtrerbar oversikt over alle logger
-- **Påminnelser**: Legg til påminnelser med tidspunkt
-- **Statistikk**: Se antall doser per medisin og type
+# Åpne http://localhost:8000
+```
 
-### Eksport
-- Eksporter alle logger til CSV-fil for videre analyse eller deling med leger
+## 📚 Prosjektstruktur
 
-## 🔒 Personvern
-- All data lagres lokalt på enheten (localStorage)
-- Ingen data sendes til eksterne servere
-- Du har full kontroll over dataene dine
+```
+jensapp/
+├── index.html              # Hoved-HTML med Bootstrap UI
+├── app.js                  # Core app logic & Firebase realtime sync
+├── firebase-config.js      # Firebase initialisering & FCM token handling
+├── dosing-plan.js          # Doseringsplan builder
+├── sw.js                   # Service Worker for PWA & offline support
+├── manifest.json           # PWA manifest
+├── wrangler.jsonc          # Cloudflare Pages config
+├── firebase.json           # Firebase project config
+├── functions/
+│   ├── index.js            # Cloud Functions (scheduled reminders)
+│   ├── package.json        # Node.js dependencies
+│   └── .eslintrc.js        # ESLint config
+└── icons/                  # PWA icons (192x192, 512x512)
+```
 
-## ⚙️ Tekniske detaljer
-- **Frontend**: HTML5, Vanilla JavaScript, Bootstrap 5
-- **Design**: Moderne lyst fargerikt tema med gradient bakgrunn og animasjoner
-- **Lagring**: localStorage (ca. 5-10MB kapasitet)
-- **Offline**: Fungerer uten internett-tilkobling
-- **Notifikasjoner**: Støtter push-varsler (krever tillatelse)
-- **Responsiv**: Fungerer på mobil, nettbrett og desktop
-- **Farger**: Lilla-rosa gradient bakgrunn, hvite kort, fargerike knapper
+## 🛠️ Teknisk arkitektur
 
-## 🔔 Påminnelser
-**Forhåndsdefinerte påminnelser (NY!):**
-- Hurtigvalg for alle daglige medisiner basert på medisineringsplan
-- Bactrim morgen/kveld, Nycoplus, Nexium, Zyprexa, Emend
-- Deksklorfeniramin 3x daglig, Nutrini peptisorb
-- Duplikatsjekk forhindrer samme påminnelse flere ganger
+### Frontend
+- **HTML/CSS/JS**: Vanilla JavaScript, Bootstrap 5
+- **PWA**: Service Worker, offline support, installable
+- **Design**: Gradient bakgrunn, responsive layout, mobile-first
 
-For at påminnelser skal fungere optimalt:
-1. Gi nettleseren tillatelse til å vise notifikasjoner
-2. På Android: Appen fungerer best når den er installert som PWA
-3. På iOS: Begrensninger i Safari kan påvirke push-varsler
+### Backend & Database
+- **Firebase Firestore**: NoSQL database for sanntidssynkronisering
+  - `logs` collection: Alle medisiner/mat/helse-logger
+  - `reminders` collection: Påminnelser med tidspunkt
+  - `fcmTokens` collection: FCM tokens fra registrerte enheter
+- **Firebase Cloud Functions (v2)**:
+  - `checkReminders`: Scheduled function (every 1 minute) som sjekker påminnelser
+  - `saveFcmToken`: Callable function for å registrere FCM tokens
+- **Firebase Cloud Messaging (FCM)**: Push notifications til alle enheter
 
-## 📤 GitHub Pages Deployment (valgfritt)
+### Deployment
+- **Cloudflare Pages**: Static hosting med automatic git deployments
+- **Firebase Blaze Plan**: Cloud Functions (gratis kvote: 2M invocations/måned)
 
-1. Opprett et GitHub repository
-2. Push alle filene til repository
-3. Gå til Settings → Pages
-4. Velg "main" branch og klikk Save
-5. Appen vil være tilgjengelig på `https://dittbrukernavn.github.io/repositorynavn/`
+### Dataflyt
+```
+[Bruker registrerer logg]
+         ↓
+[app.js: saveLogToFirestore()]
+         ↓
+[Firebase Firestore]
+         ↓
+[Realtime Listener på alle enheter]
+         ↓
+[UI oppdateres automatisk]
+```
 
-## 🔥 Firebase-integrasjon (valgfritt)
+### Push Notifications Flyt
+```
+[Bruker aktiverer varsler]
+         ↓
+[FCM token genereres]
+         ↓
+[saveFcmToken Cloud Function]
+         ↓
+[Token lagres i Firestore]
 
-For mer pålitelige push-varsler kan du integrere Firebase Cloud Messaging:
+[Hver minutt:]
+[checkReminders Cloud Function]
+         ↓
+[Sjekker om påminnelse matcher current time]
+         ↓
+[Sender FCM melding til alle tokens]
+         ↓
+[Push notification vises på alle enheter]
+```
 
-1. Gå til [Firebase Console](https://console.firebase.google.com)
-2. Opprett et nytt prosjekt
-3. Legg til en web-app
-4. Kopier Firebase config til `app.js`
-5. Aktiver Cloud Messaging og hent VAPID-nøkkel
-6. Følg instruksjonene i Grok-dokumentet for fullstendig Firebase-integrasjon
+## 🔧 Utvikling & Deployment
+
+### Firebase Setup
+```bash
+# Installer Firebase CLI
+npm install -g firebase-tools
+
+# Login til Firebase
+firebase login
+
+# Initialiser Functions (allerede gjort)
+firebase init functions
+
+# Deploy Cloud Functions
+firebase deploy --only functions
+```
+
+### Cloud Functions Development
+```bash
+cd functions
+npm install
+npm run lint          # Sjekk kodekvalitet
+firebase emulators:start  # Test lokalt
+```
+
+### Cloudflare Pages Deployment
+- **Automatic**: Push til `main` branch deployer automatisk
+- **Manual**: Via Cloudflare Dashboard
+- **Build settings**: Static site (ingen build command nødvendig)
+
+### Testing Push Notifications Locally
+1. Kjør Firebase Emulators
+2. Test FCM token registrering
+3. Test scheduled functions manuelt
+
+## 🔒 Personvern & Sikkerhet
+- **Firebase Firestore**: Data lagres i Google Cloud (Europa-region)
+- **Offline-first**: Firestore caching gir offline støtte
+- **Ingen tredjepartsanalyse**: Ingen Google Analytics, Facebook Pixel, etc.
+- **FCM Tokens**: Kun brukt for push notifications, ingen tracking
+- **GDPR-compliant**: All data kan slettes via Firebase Console
+
+## 📊 Datamodell
+
+### Firestore Collections
+
+#### `logs`
+```json
+{
+  "id": 1737812400000,
+  "type": "Medisin",
+  "name": "Bactrim",
+  "amount": 10,
+  "unit": "ml",
+  "time": "2024-01-25T08:00",
+  "timestamp": 1737812400000,
+  "notes": "Gitt med frokost",
+  "loggedBy": "Mari",
+  "loggedAt": Timestamp
+}
+```
+
+#### `reminders`
+```json
+{
+  "id": 1737812400000,
+  "name": "Bactrim morgen",
+  "time": "08:00",
+  "createdBy": "TEL",
+  "createdAt": Timestamp
+}
+```
+
+#### `fcmTokens`
+```json
+{
+  "token": "dA1B2c3D4e5...",
+  "userId": "Mari",
+  "updatedAt": Timestamp
+}
+```
 
 ## 🆘 Feilsøking
 
+### Push-varsler fungerer ikke
+
+**iPhone/iPad:**
+1. Sjekk at appen er **installert på hjemskjermen** (ikke Safari)
+2. Åpne appen fra hjemskjermen, IKKE Safari
+3. Gå til iOS Innstillinger → Notifikasjoner → Jensapp
+4. Sjekk at "Tillat notifikasjoner" er på
+
+**Android:**
+1. Sjekk at Chrome har notifikasjonstillatelse
+2. Android Innstillinger → Apper → Chrome → Notifikasjoner
+3. Sjekk Firebase Cloud Functions logs i Firebase Console
+
+**Alle plattformer:**
+```bash
+# Sjekk Cloud Functions logs
+firebase functions:log
+
+# Test manuelt at scheduled function kjører
+# Se Firebase Console → Functions → checkReminders → Logs
+```
+
+### Data synkroniserer ikke
+1. Sjekk internettforbindelse
+2. Åpne Developer Console (F12) → Console
+3. Se etter Firestore-feil
+4. Sjekk at Firebase config er korrekt i `firebase-config.js`
+
 ### Appen laster ikke
-- Sjekk at alle filer er i samme mappe
-- Åpne Developer Tools (F12) og sjekk Console for feilmeldinger
+1. Hard refresh: `Ctrl+Shift+R` (Windows) / `Cmd+Shift+R` (Mac)
+2. Clear cache og reload
+3. Sjekk Developer Console for feilmeldinger
 
-### Notifikasjoner fungerer ikke
-- Sjekk at du har gitt tillatelse til notifikasjoner
-- På iOS: Installer appen som PWA fra Safari
+## 💊 Medisinliste
 
-### Data forsvinner
-- localStorage kan slettes hvis nettleserdata ryddes
-- Eksporter regelmessig til CSV for backup
+### Dagtid (🌅)
+- **Bactrim** 10 ml - Kun helg (lørdag/søndag)
+- **Nycoplus Multi Barn** 1 tablett
+- **Nexium** 1-2 poser
+- **Emend** 40 mg
 
-## 📝 Medisinliste
+### Kveld (🌙)
+- **Bactrim** 10 ml - Kun helg (lørdag/søndag)
+- **Zyprexa** 1.25-2.5 mg
 
-Forhåndsdefinerte medisiner:
-- Bactrim (10 ml x 2)
-- Nycoplus Multi Barn (1 tablett x 1 daglig)
-- Nexium (20 mg x 1-2 poser x 1)
-- Zyprexa (2.5 mg tab, 1.25-2.5 mg x 1 kveld)
-- Palonosetron (500 mcg, 390 μg x 1/48 timer)
-- Emend (40 mg x 1, ½ av 80 mg kapsel)
-- Paracetamol (300 mg x 4 ved behov)
-- Movicol (1 pose x 2 ved behov)
-- Deksklorfeniramin (1 mg x 3, ½ tablett Aniramin x 3)
-- Nutrini peptisorb (1300 ml daglig, sondemat)
-- Ibuprofen
+### Spesiell dosering (⏰)
+- **Palonosetron** 500 μg - Hver 3. dag (vises kun når aktuelt)
 
-Du kan enkelt legge til flere medisiner ved å redigere `index.html` (linje 100-113).
+### Ved behov - PRN (🎯)
+- **Paracetamol** 300 mg (maks 4 doser/døgn)
+- **Movicol** 1 pose (avføringsregulerende)
+- **Deksklorfeniramin** 1 mg (antihistamin)
+- **Ibuprofen** 200 mg (betennelsesdempende)
 
-## 🎯 Fremtidige forbedringer
-- Sky-synkronisering mellom enheter (Firebase Firestore)
-- Grafer og visualiseringer
-- Automatisk backup til e-post
-- Deling med leger/sykehus
-- Bilder/vedlegg
-- Flere rapportformater (PDF)
+### Sondemat
+- **Nutrini peptisorb** 1300 ml daglig
 
-## 💙 Støtte
-For spørsmål eller problemer, se Grok-dokumentet for mer detaljert informasjon om hvordan appen er bygget.
+> **Redigere medisinlisten**: Se `app.js` linje 6-30 for å endre medisiner, doser eller kategorier.
+
+## 🛣️ Roadmap
+
+### ✅ Fullført
+- ✅ Multi-bruker med sanntidssynkronisering
+- ✅ Firebase Firestore integration
+- ✅ Cloud Functions for scheduled push notifications
+- ✅ Kategorisert medisinliste (dag/kveld/spesiell/PRN)
+- ✅ Weekend-only og every-3-days scheduling
+- ✅ iOS PWA installation guide
+- ✅ Cloudflare Pages deployment
+- ✅ CSV export
+
+### 📅 Planlagt
+- 📈 Grafer og visualiseringer (Chart.js)
+- 📸 Bilder/vedlegg på logger
+- 📊 Statistikk-dashboard
+- 📝 PDF-rapporter for legebesøk
+- 🔔 Reminder snooze-funksjon
+- 💬 In-app chat mellom brukere
+- 🤖 AI-basert medisininteraksjon warnings
+
+## 👥 Bidragsytere
+- **Tomer Klarsen** - Initial development, Firebase integration, Cloud Functions
+- **Warp AI** - Architecture design, bug fixes, documentation
+
+## 📝 Lisens
+Private project - ikke for kommersiell bruk.
+
+## 📧 Kontakt
+For spørsmål: tomeriklarsen1@gmail.com
 
 ---
+
+<div align="center">
+
 **Laget med ❤️ for Jens og familie**
+
+👨‍⚕️ Medisinsk informasjon kun til informasjonsformål  
+🚨 Kontakt alltid lege ved medisinske spørsmål
+
+[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=black)](https://firebase.google.com)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=flat&logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
+[![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=flat&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+
+</div>
