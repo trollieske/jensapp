@@ -49,6 +49,7 @@ function getTypeIcon(type) {
         'Sondemat': '🍼',
         'Avføring': '💩',
         'vannlating': '💧',
+        'Oppkast': '🤮',
         'Annet': '📝'
     };
     return icons[type] || '📝';
@@ -60,6 +61,7 @@ function getTypeColor(type) {
         'Sondemat': 'linear-gradient(135deg, #2196F3, #64B5F6)',
         'Avføring': 'linear-gradient(135deg, #FF9800, #FFB74D)',
         'vannlating': 'linear-gradient(135deg, #00BCD4, #4DD0E1)',
+        'Oppkast': 'linear-gradient(135deg, #F44336, #E57373)',
         'Annet': 'linear-gradient(135deg, #9C27B0, #BA68C8)'
     };
     return colors[type] || 'linear-gradient(135deg, #607D8B, #90A4AE)';
@@ -123,7 +125,8 @@ function handleTypeChange(e) {
     // Hide all optional fields first
     const allFields = ['nameField', 'amountField', 'unitField', 
                        'bmAmountField', 'bmConsistencyField', 'bmColorField',
-                       'urineAmountField', 'urineColorField', 'urineSmellField'];
+                       'urineAmountField', 'urineColorField', 'urineSmellField',
+                       'vomitAmountField', 'vomitColorField'];
     allFields.forEach(fieldId => {
         document.getElementById(fieldId).classList.add('hidden');
     });
@@ -142,6 +145,9 @@ function handleTypeChange(e) {
         document.getElementById('urineAmountField').classList.remove('hidden');
         document.getElementById('urineColorField').classList.remove('hidden');
         document.getElementById('urineSmellField').classList.remove('hidden');
+    } else if (type === 'Oppkast') {
+        document.getElementById('vomitAmountField').classList.remove('hidden');
+        document.getElementById('vomitColorField').classList.remove('hidden');
     }
 }
 
@@ -174,6 +180,9 @@ function handleLogSubmit(e) {
         log.urineAmount = document.getElementById('urineAmount').value;
         log.urineColor = document.getElementById('urineColor').value;
         log.urineSmell = document.getElementById('urineSmell').value;
+    } else if (type === 'Oppkast') {
+        log.vomitAmount = document.getElementById('vomitAmount').value;
+        log.vomitColor = document.getElementById('vomitColor').value;
     }
     
     // Save to Firestore instead of localStorage
@@ -780,6 +789,8 @@ function getDetails(log) {
         return `Mengde: ${log.bmAmount || '-'}, ${bristolShort}, Farge: ${log.bmColor || '-'}`;
     } else if (log.type === 'vannlating') {
         return `Mengde: ${log.urineAmount || '-'}, Farge: ${log.urineColor || '-'}, Lukt: ${log.urineSmell || '-'}`;
+    } else if (log.type === 'Oppkast') {
+        return `Mengde: ${log.vomitAmount || '-'}, Farge/Innhold: ${log.vomitColor || '-'}`;
     }
     return '-';
 }
@@ -1312,6 +1323,56 @@ function submitQuickvannlating() {
         displayStats();
         displayChecklist();
         showToast('✓ vannlating logget!');
+    }
+}
+
+function quickLogVomit() {
+    const amount = document.getElementById('quickVomitAmount').value;
+    const color = document.getElementById('quickVomitColor').value;
+    const timeInput = document.getElementById('quickVomitTime').value;
+    
+    let logTime = new Date();
+    if (timeInput) {
+        logTime = new Date(timeInput);
+    }
+    
+    const log = {
+        id: Date.now(),
+        type: 'Oppkast',
+        vomitAmount: amount,
+        vomitColor: color,
+        time: logTime.toISOString().slice(0, 16),
+        notes: 'Hurtigregistrering',
+        timestamp: logTime.getTime()
+    };
+    
+    // Close modal first
+    const modalEl = document.getElementById('vomitModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) {
+        modal.hide();
+    }
+    
+    // Save to Firestore
+    if (typeof saveLogToFirestore === 'function') {
+        saveLogToFirestore(log)
+            .then(() => {
+                showToast(`✓ Oppkast logget av ${currentUser || 'deg'}!`);
+                // Reset inputs
+                document.getElementById('quickVomitColor').value = '';
+                document.getElementById('quickVomitTime').value = '';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showToast('⚠️ Feil ved lagring');
+            });
+    } else {
+        logs.push(log);
+        saveData();
+        displayToday();
+        displayHistory();
+        displayStats();
+        showToast('✓ Oppkast logget!');
     }
 }
 

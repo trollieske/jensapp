@@ -666,6 +666,9 @@
                                     <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#vannlatingModal">
                                         💧 Logg vannlating
                                     </button>
+                                    <button class="btn btn-outline-danger btn-lg" data-bs-toggle="modal" data-bs-target="#vomitModal">
+                                        🤮 Logg oppkast
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -697,6 +700,7 @@
                                             <option value="Sondemat">Sondemat</option>
                                             <option value="Avføring">Avføring</option>
                                             <option value="vannlating">vannlating</option>
+                                            <option value="Oppkast">Oppkast</option>
                                             <option value="Annet">Annet</option>
                                         </select>
                                     </div>
@@ -784,6 +788,21 @@
                                     <div class="mb-3 hidden" id="urineSmellField">
                                         <label for="urineSmell" class="form-label">Lukt</label>
                                         <input type="text" class="form-control" id="urineSmell" placeholder="f.eks. Normal, Sterk">
+                                    </div>
+
+                                    <!-- Oppkast-spesifikke felt -->
+                                    <div class="mb-3 hidden" id="vomitAmountField">
+                                        <label for="vomitAmount" class="form-label">Mengde</label>
+                                        <select class="form-select" id="vomitAmount">
+                                            <option value="Liten">Liten (gulp)</option>
+                                            <option value="Middels">Middels</option>
+                                            <option value="Stor">Stor</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3 hidden" id="vomitColorField">
+                                        <label for="vomitColor" class="form-label">Farge/Innhold</label>
+                                        <input type="text" class="form-control" id="vomitColor" placeholder="f.eks. Ufordøyd mat, slim, gult">
                                     </div>
                                     
                                     <div class="mb-3">
@@ -1119,6 +1138,42 @@
                             Lagre
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Vomit Modal -->
+    <div class="modal fade" id="vomitModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🤮 Logg oppkast</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mengde</label>
+                        <select class="form-select" id="quickVomitAmount">
+                            <option value="Liten">Liten (gulp)</option>
+                            <option value="Middels" selected>Middels</option>
+                            <option value="Stor">Stor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Farge/Innhold</label>
+                        <input type="text" class="form-control" id="quickVomitColor" placeholder="f.eks. Ufordøyd mat, slim, gult">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tidspunkt</label>
+                        <input type="datetime-local" class="form-control" id="quickVomitTime">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn btn-danger" onclick="quickLogVomit()">
+                        🤮 Logg oppkast
+                    </button>
                 </div>
             </div>
         </div>
