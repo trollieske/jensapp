@@ -2,8 +2,8 @@
 
 En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat, og helse for personer med spesielle omsorgsbehov. Designet for familiebruk med multi-bruker støtte og sanntidssynkronisering via Firebase.
 
-**Versjon:** v15 (Januar 2026)  
-**Sist oppdatert:** 25. januar 2026
+**Versjon:** v16 (Januar 2026)  
+**Sist oppdatert:** 27. januar 2026
 
 ## 🌐 Live App
 
@@ -43,6 +43,7 @@ En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat,
 - Sender push notifications til ALLE registrerte enheter
 - Fungerer selv når appen er lukket eller i bakgrunnen
 - Plattformspesifikke instruksjoner for iOS/Android
+- **iOS fallback via Pushover**: Hvis web push-token mangler på iOS PWA, sendes varsler via Pushover
 
 ### 📋 Logging & Historikk
 - Medisin, sondemat, avføring (Bristol Scale), urinering
@@ -119,8 +120,11 @@ jensapp/
   - `fcmTokens` collection: FCM tokens fra registrerte enheter
 - **Firebase Cloud Functions (v2)**:
   - `checkReminders`: Scheduled function (every 1 minute) som sjekker påminnelser
-  - `saveFcmToken`: Callable function for å registrere FCM tokens
+  - `saveFcmTokenHttp`: HTTP function for å registrere FCM tokens
+  - `testPush`: Sender test-varsel til alle registrerte tokens + Pushover
+  - `debugPushStatus`: Returnerer tokenCount, siste oppdateringstid og Pushover-konfig status
 - **Firebase Cloud Messaging (FCM)**: Push notifications til alle enheter
+- **Pushover**: Failover-kanal for iOS PWA (bruker API Token + User Key)
 
 ### Deployment
 - **Cloudflare Pages**: Static hosting med automatic git deployments
@@ -145,16 +149,18 @@ jensapp/
          ↓
 [FCM token genereres]
          ↓
-[saveFcmToken Cloud Function]
+[saveFcmTokenHttp Cloud Function]
          ↓
 [Token lagres i Firestore]
 
 [Hver minutt:]
 [checkReminders Cloud Function]
          ↓
-[Sjekker om påminnelse matcher current time]
+[Sjekker om påminnelse matcher current time (Europe/Oslo)]
          ↓
 [Sender FCM melding til alle tokens]
+         ↓
+[iOS PWA fallback via Pushover hvis token mangler]
          ↓
 [Push notification vises på alle enheter]
 ```
@@ -193,6 +199,17 @@ firebase emulators:start  # Test lokalt
 1. Kjør Firebase Emulators
 2. Test FCM token registrering
 3. Test scheduled functions manuelt
+4. Test status og Pushover
+
+#### Endepunkter
+- `saveFcmTokenHttp`: https://savefcmtokenhttp-a2ims7es6a-uc.a.run.app
+- `testPush`: https://testpush-a2ims7es6a-uc.a.run.app
+- `debugPushStatus`: https://us-central1-jensapp-14069.cloudfunctions.net/debugPushStatus
+
+#### Pushover-konfigurasjon
+- User Key: settes i Cloud Functions
+- API Token: settes i Cloud Functions (se `PUSHOVER_API_TOKEN`)
+- iOS-status i appen viser: **“Aktivert via Pushover ✅”** når FCM-token mangler
 
 ## 🔒 Personvern & Sikkerhet
 - **Firebase Firestore**: Data lagres i Google Cloud (Europa-region)
@@ -336,6 +353,12 @@ firebase functions:log
 - **Warp AI** - Architecture design, bug fixes, documentation
 
 ## 📃 Endringslogg
+### v16 (27. januar 2026)
+- **Pushover fallback (iOS)**: Varsler leveres via Pushover når FCM-token mangler på iOS PWA
+- **debugPushStatus**: Nytt status-endepunkt for å se antall tokens og siste oppdateringstid
+- **UI**: Notifikasjonsstatus på iOS viser nå “Aktivert via Pushover ✅”
+- **Scheduled push**: Forbedret `checkReminders` med idempotens (2 min) og APNs time-sensitive
+- **Test endpoints**: Dokumenterte `testPush` og `saveFcmTokenHttp`
 
 ### v15 (25. januar 2026)
 - **Legg til medisin redesignet**: Kategorivalg (Morgen/Kveld/Begge/Ved behov), tidspunkt-input
