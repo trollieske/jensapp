@@ -54,31 +54,49 @@ function setupMessaging() {
     if (permission === 'granted') {
       console.log('Notification permission granted');
       
-      // Get FCM token
-      messaging.getToken({ 
-        vapidKey: 'BLkqloSX7qq4Yrd8vKupIY7J1fJ7CcGVawW_iw783Rqa74YUcIarXq9DIOLpl8OTVVmFuZeJS69xjaWCfWeYfy4' 
-      }).then((currentToken) => {
+      const vapidKey = 'BLkqloSX7qq4Yrd8vKupIY7J1fJ7CcGVawW_iw783Rqa74YUcIarXq9DIOLpl8OTVVmFuZeJS69xjaWCfWeYfy4';
+      
+      const getTokenPromise = ('serviceWorker' in navigator)
+        ? navigator.serviceWorker.register('./sw.js').then((registration) => {
+            return messaging.getToken({
+              vapidKey: vapidKey,
+              serviceWorkerRegistration: registration
+            });
+          })
+        : messaging.getToken({ vapidKey: vapidKey });
+
+      getTokenPromise.then((currentToken) => {
         if (currentToken) {
           console.log('FCM Token:', currentToken);
           // Save token to localStorage for later use
           localStorage.setItem('fcmToken', currentToken);
           
-          // Save token to Firestore via Cloud Function
-          const saveFcmToken = firebase.functions().httpsCallable('saveFcmToken');
-          saveFcmToken({ token: currentToken, userId: currentUser })
+          // Save token to Firestore via HTTP function (public)
+          fetch('https://us-central1-jensapp-14069.cloudfunctions.net/saveFcmTokenHttp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: currentToken, userId: currentUser })
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error('HTTP ' + response.status);
+              return response.json();
+            })
             .then((result) => {
-              console.log('Token saved to Firestore:', result.data);
+              console.log('Token saved to Firestore:', result);
               showToast('✓ Push-varsler aktivert!');
             })
             .catch((error) => {
               console.error('Error saving token:', error);
-              showToast('✓ Push-varsler delvis aktivert (lokal)');
+              showToast('⚠️ Kunne ikke lagre push-token');
             });
         } else {
           console.log('No registration token available');
         }
       }).catch((err) => {
         console.log('An error occurred while retrieving token:', err);
+        showToast('⚠️ Kunne ikke aktivere push-varsler');
       });
     } else {
       console.log('Notification permission denied');
@@ -104,21 +122,27 @@ function setupMessaging() {
 
 // Test daily report email
 function sendTestDailyReport() {
-  if (typeof firebase === 'undefined' || !firebase.functions) {
-    showToast('⚠️ Firebase ikke klar');
-    return;
-  }
-  
   showToast('📧 Sender test-rapport...');
   
-  const testDailyReport = firebase.functions().httpsCallable('testDailyReport');
-  testDailyReport({})
+  fetch('https://us-central1-jensapp-14069.cloudfunctions.net/testDailyReport', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({})
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+      return response.json();
+    })
     .then((result) => {
-      console.log('Test report result:', result.data);
-      if (result.data.success) {
+      console.log('Test report result:', result);
+      if (result.success) {
         showToast('✅ Rapport sendt! Sjekk e-posten din.');
       } else {
-        showToast('⚠️ Feil: ' + (result.data.error || 'Ukjent feil'));
+        showToast('⚠️ Feil: ' + (result.error || 'Ukjent feil'));
       }
     })
     .catch((error) => {
@@ -127,28 +151,70 @@ function sendTestDailyReport() {
     });
 }
 
-// Test daily report email
-function sendTestDailyReport() {
-  if (typeof firebase === 'undefined' || !firebase.functions) {
-    showToast('⚠️ Firebase ikke klar');
-    return;
-  }
+// Test push notification
+function toggleDebugPanel() {
+  const panel = document.getElementById('debugPanel');
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  panel.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+}
+
+function fetchPushStatus() {
+  showToast('🧾 Henter push-status...');
+  fetch('https://us-central1-jensapp-14069.cloudfunctions.net/debugPushStatus', {
+    method: 'GET'
+  })
+    .then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+      return data;
+    })
+    .then((data) => {
+      console.log('Push status:', data);
+      showToast(`🔔 Tokens: ${data.tokenCount} (sist: ${data.latestUpdatedAt || 'ukjent'})`);
+    })
+    .catch((err) => {
+      console.error('Push status error:', err);
+      showToast('⚠️ Push-status: ' + err.message);
+    });
+}
+
+function sendTestPushNotification() {
+  showToast('🔔 Sender test-push...');
   
-  showToast('📧 Sender test-rapport...');
-  
-  const testDailyReport = firebase.functions().httpsCallable('testDailyReport');
-  testDailyReport({})
+  fetch('https://us-central1-jensapp-14069.cloudfunctions.net/testPush', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({})
+  })
+    .then(async (response) => {
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || ('HTTP ' + response.status));
+      }
+
+      return data;
+    })
     .then((result) => {
-      console.log('Test report result:', result.data);
-      if (result.data.success) {
-        showToast('✅ Rapport sendt! Sjekk e-posten din.');
+      console.log('Test push result:', result);
+      if (result.success) {
+        showToast(`✅ Test-push sendt (${result.successCount}/${result.tokenCount})`);
       } else {
-        showToast('⚠️ Feil: ' + (result.data.error || 'Ukjent feil'));
+        showToast('⚠️ ' + (result.error || 'Ukjent feil'));
       }
     })
     .catch((error) => {
-      console.error('Error sending test report:', error);
-      showToast('⚠️ Feil ved sending: ' + error.message);
+      console.error('Error sending test push:', error);
+      showToast('⚠️ Feil ved test-push: ' + error.message);
     });
 }
 
@@ -190,36 +256,15 @@ function scheduleFirebaseReminder(name, time) {
 }
 
 // User Management
+let usersData = {}; // Cache of user data from Firestore
+
 function showUserSelector() {
   const modal = document.getElementById('userSelectorModal');
   if (modal) {
-    // Get all previous users from localStorage
-    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    const customUsers = allUsers.filter(u => u !== 'Tom-Erik' && u !== 'Mari');
-    
-    // Build custom user buttons
-    const savedUsersContainer = document.getElementById('savedUsersContainer');
-    if (savedUsersContainer && customUsers.length > 0) {
-      let html = '';
-      customUsers.forEach(user => {
-        html += `
-          <button onclick="selectUser('${user}')" 
-                  style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; width: 100%; margin-bottom: 12px;">
-            <div style="width: 48px; height: 48px; background: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👤</div>
-            <div style="text-align: left; flex: 1;">
-              <div style="font-weight: 600; font-size: 1.1rem; color: #333;">${user}</div>
-              <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
-            </div>
-            <button onclick="event.stopPropagation(); removeUser('${user}')" 
-                    style="background: none; border: none; color: #999; font-size: 1.2rem; cursor: pointer; padding: 8px;">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </button>`;
-      });
-      savedUsersContainer.innerHTML = html;
-    } else if (savedUsersContainer) {
-      savedUsersContainer.innerHTML = '';
-    }
+    // Load users from Firestore
+    loadUsersFromFirestore().then(() => {
+      renderUserButtons();
+    });
     
     const bsModal = new bootstrap.Modal(modal, {
       backdrop: 'static',
@@ -229,11 +274,218 @@ function showUserSelector() {
   }
 }
 
+function loadUsersFromFirestore() {
+  if (!db) {
+    // Fallback to localStorage if Firestore not ready
+    return Promise.resolve();
+  }
+  
+  return db.collection('users').get().then((snapshot) => {
+    usersData = {};
+    snapshot.forEach((doc) => {
+      usersData[doc.id] = doc.data();
+    });
+  }).catch((error) => {
+    console.error('Error loading users:', error);
+  });
+}
+
+function renderUserButtons() {
+  const defaultContainer = document.getElementById('defaultUsersContainer');
+  const savedContainer = document.getElementById('savedUsersContainer');
+  
+  if (!defaultContainer) return;
+  
+  // Get all users (from Firestore or localStorage fallback)
+  const allUsers = Object.keys(usersData).length > 0 
+    ? Object.keys(usersData) 
+    : JSON.parse(localStorage.getItem('allUsers') || '["Tom-Erik", "Mari"]');
+  
+  let defaultHtml = '';
+  let savedHtml = '';
+  
+  allUsers.forEach(username => {
+    const userData = usersData[username] || {};
+    const email = userData.email || '';
+    const emailBadge = email ? `<span style="font-size: 0.7rem; color: #4CAF50;">📧</span>` : '';
+    const icon = username === 'Tom-Erik' ? '👨' : username === 'Mari' ? '👩' : '👤';
+    const bgColor = username === 'Tom-Erik' ? '#E3F2FD' : username === 'Mari' ? '#FCE4EC' : '#E8F5E9';
+    const isDefault = username === 'Tom-Erik' || username === 'Mari';
+    
+    const buttonHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <button onclick="selectUser('${username}')" 
+                style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; flex: 1; text-align: left;">
+          <div style="width: 48px; height: 48px; background: ${bgColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">${icon}</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 1.1rem; color: #333;">${username} ${emailBadge}</div>
+            <div style="font-size: 0.8rem; color: #888;">${email || 'Trykk for å logge inn'}</div>
+          </div>
+        </button>
+        <button onclick="event.stopPropagation(); editUser('${username}')" 
+                style="background: #f0f0f0; border: none; color: #666; font-size: 1rem; cursor: pointer; padding: 12px; border-radius: 10px;" title="Rediger">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>`;
+    
+    if (isDefault) {
+      defaultHtml += buttonHtml;
+    } else {
+      savedHtml += buttonHtml;
+    }
+  });
+  
+  // Ensure Tom-Erik and Mari are always shown
+  if (!allUsers.includes('Tom-Erik')) {
+    defaultHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <button onclick="selectUser('Tom-Erik')" 
+                style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; flex: 1; text-align: left;">
+          <div style="width: 48px; height: 48px; background: #E3F2FD; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👨</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 1.1rem; color: #333;">Tom-Erik</div>
+            <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
+          </div>
+        </button>
+        <button onclick="event.stopPropagation(); editUser('Tom-Erik')" 
+                style="background: #f0f0f0; border: none; color: #666; font-size: 1rem; cursor: pointer; padding: 12px; border-radius: 10px;" title="Rediger">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>` + defaultHtml;
+  }
+  if (!allUsers.includes('Mari')) {
+    defaultHtml += `
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <button onclick="selectUser('Mari')" 
+                style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; flex: 1; text-align: left;">
+          <div style="width: 48px; height: 48px; background: #FCE4EC; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👩</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 1.1rem; color: #333;">Mari</div>
+            <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
+          </div>
+        </button>
+        <button onclick="event.stopPropagation(); editUser('Mari')" 
+                style="background: #f0f0f0; border: none; color: #666; font-size: 1rem; cursor: pointer; padding: 12px; border-radius: 10px;" title="Rediger">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>`;
+  }
+  
+  defaultContainer.innerHTML = defaultHtml;
+  if (savedContainer) savedContainer.innerHTML = savedHtml;
+}
+
+function showAddUserModal(prefillName = '') {
+  document.getElementById('editingUserId').value = '';
+  document.getElementById('newUserName').value = prefillName || '';
+  document.getElementById('newUserEmail').value = '';
+  document.getElementById('newUserDailyReport').checked = false;
+  document.getElementById('newUserMissedMedAlert').checked = false;
+  document.getElementById('addUserModalTitle').textContent = 'Ny bruker';
+  document.getElementById('customUserInput').value = '';
+  
+  const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
+  modal.show();
+}
+
+function editUser(username) {
+  const userData = usersData[username] || {};
+  
+  document.getElementById('editingUserId').value = username;
+  document.getElementById('newUserName').value = username;
+  document.getElementById('newUserEmail').value = userData.email || '';
+  document.getElementById('newUserDailyReport').checked = userData.dailyReport || false;
+  document.getElementById('newUserMissedMedAlert').checked = userData.missedMedAlert || false;
+  document.getElementById('addUserModalTitle').textContent = 'Rediger ' + username;
+  
+  const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
+  modal.show();
+}
+
+function closeAddUserModal() {
+  const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+  if (modal) modal.hide();
+}
+
+function saveUser() {
+  const editingId = document.getElementById('editingUserId').value;
+  const name = document.getElementById('newUserName').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim();
+  const dailyReport = document.getElementById('newUserDailyReport').checked;
+  const missedMedAlert = document.getElementById('newUserMissedMedAlert').checked;
+  
+  if (!name) {
+    showToast('⚠️ Navn er påkrevd');
+    return;
+  }
+  
+  // Validate email if provided
+  if (email && !email.includes('@')) {
+    showToast('⚠️ Ugyldig e-postadresse');
+    return;
+  }
+  
+  const userData = {
+    name: name,
+    email: email || null,
+    dailyReport: email ? dailyReport : false,
+    missedMedAlert: email ? missedMedAlert : false,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  
+  if (db) {
+    // If editing and name changed, delete old doc
+    const savePromise = editingId && editingId !== name
+      ? db.collection('users').doc(editingId).delete().then(() => 
+          db.collection('users').doc(name).set(userData))
+      : db.collection('users').doc(name).set(userData, { merge: true });
+    
+    savePromise.then(() => {
+      usersData[name] = userData;
+      if (editingId && editingId !== name) {
+        delete usersData[editingId];
+      }
+      
+      closeAddUserModal();
+      renderUserButtons();
+      showToast(`✓ ${editingId ? 'Bruker oppdatert' : 'Bruker lagt til'}`);
+      
+      // If this was a new user from the input field, select them
+      if (!editingId) {
+        selectUser(name);
+      }
+    }).catch((error) => {
+      console.error('Error saving user:', error);
+      showToast('⚠️ Kunne ikke lagre bruker');
+    });
+  } else {
+    // Fallback to localStorage
+    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    if (!allUsers.includes(name)) {
+      allUsers.push(name);
+      localStorage.setItem('allUsers', JSON.stringify(allUsers));
+    }
+    closeAddUserModal();
+    renderUserButtons();
+    if (!editingId) selectUser(name);
+  }
+}
+
 function removeUser(username) {
-  const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-  const filtered = allUsers.filter(u => u !== username);
-  localStorage.setItem('allUsers', JSON.stringify(filtered));
-  showUserSelector(); // Refresh the modal
+  if (confirm(`Vil du fjerne ${username}?`)) {
+    if (db) {
+      db.collection('users').doc(username).delete().then(() => {
+        delete usersData[username];
+        renderUserButtons();
+        showToast(`✓ ${username} fjernet`);
+      });
+    } else {
+      const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+      const filtered = allUsers.filter(u => u !== username);
+      localStorage.setItem('allUsers', JSON.stringify(filtered));
+      renderUserButtons();
+    }
+  }
 }
 
 function selectUser(username) {
@@ -243,7 +495,16 @@ function selectUser(username) {
   currentUser = username;
   localStorage.setItem('currentUser', username);
   
-  // Add to allUsers list if not already there
+  // Ensure user exists in Firestore
+  if (db && !usersData[username]) {
+    db.collection('users').doc(username).set({
+      name: username,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    usersData[username] = { name: username };
+  }
+  
+  // Also keep localStorage in sync
   const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
   if (!allUsers.includes(username)) {
     allUsers.push(username);
@@ -254,7 +515,8 @@ function selectUser(username) {
   
   const modal = document.getElementById('userSelectorModal');
   if (modal) {
-    bootstrap.Modal.getInstance(modal).hide();
+    const instance = bootstrap.Modal.getInstance(modal);
+    if (instance) instance.hide();
   }
   
   showToast(`✓ Logget inn som ${username}`);
@@ -291,7 +553,7 @@ function startRealtimeSync() {
   db.collection('logs').onSnapshot((snapshot) => {
     logs = [];
     snapshot.forEach((doc) => {
-      logs.push({ id: doc.id, ...doc.data() });
+      logs.push({ ...doc.data(), id: doc.id });
     });
     
     // Update all displays
@@ -305,7 +567,7 @@ function startRealtimeSync() {
   db.collection('reminders').onSnapshot((snapshot) => {
     reminders = [];
     snapshot.forEach((doc) => {
-      reminders.push({ id: doc.id, ...doc.data() });
+      reminders.push({ ...doc.data(), id: doc.id });
     });
     
     if (typeof displayReminders === 'function') displayReminders();
@@ -319,6 +581,8 @@ function saveLogToFirestore(log) {
     return Promise.reject('No user selected');
   }
   
+  // Remove client id to avoid clashes
+  delete log.id;
   // Add user info to log
   log.loggedBy = currentUser;
   log.loggedAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -340,6 +604,8 @@ function saveReminderToFirestore(reminder) {
     return Promise.reject('No user selected');
   }
   
+  // Remove client id to avoid clashes
+  delete reminder.id;
   // Add user info
   reminder.createdBy = currentUser;
   reminder.createdAt = firebase.firestore.FieldValue.serverTimestamp();

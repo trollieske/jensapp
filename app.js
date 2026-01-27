@@ -216,7 +216,6 @@ function handleReminderSubmit(e) {
     const time = document.getElementById('reminderTime').value;
     
     const reminder = {
-        id: Date.now(),
         name,
         time
     };
@@ -996,12 +995,7 @@ function scheduleReminders() {
         
         if (delay > 0) {
             setTimeout(() => {
-                // Use Firebase-enhanced notifications if available
-                if (typeof scheduleFirebaseReminder === 'function') {
-                    scheduleFirebaseReminder(reminder.name, reminder.time);
-                } else {
-                    showNotification(reminder.name);
-                }
+                showNotification(`⏰ ${reminder.name}`);
                 // Reschedule for next day
                 scheduleReminders();
             }, delay);
@@ -1010,12 +1004,26 @@ function scheduleReminders() {
 }
 
 function showNotification(message) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Påminnelse - Medisinlogg', {
-            body: message,
-            icon: 'icon.png',
-            badge: 'icon.png'
-        });
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+    }
+
+    const title = 'Påminnelse - Dosevakt';
+    const options = {
+        body: message,
+        icon: '/icon.png',
+        badge: '/icon.png',
+        tag: 'dosevakt-local-reminder',
+        requireInteraction: true
+    };
+
+    // Prefer Service Worker notifications (more reliable)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+            .then((registration) => registration.showNotification(title, options))
+            .catch(() => new Notification(title, options));
+    } else {
+        new Notification(title, options);
     }
 }
 

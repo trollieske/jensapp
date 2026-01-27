@@ -1,3 +1,44 @@
+// Firebase Messaging (push notifications)
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyATm6nPLAWuNcD4tOmDbv6tXhaqe58ScGI",
+  authDomain: "jensapp-14069.firebaseapp.com",
+  projectId: "jensapp-14069",
+  storageBucket: "jensapp-14069.firebasestorage.app",
+  messagingSenderId: "839645778268",
+  appId: "1:839645778268:web:33c67e451cf4ead30f7199",
+  measurementId: "G-BYGVCJGCDM"
+});
+
+const messaging = firebase.messaging();
+
+// Handle background messages
+messaging.onBackgroundMessage((payload) => {
+  console.log('[sw.js] Received background message:', payload);
+
+  const notificationTitle = (payload.notification && payload.notification.title) || 'Påminnelse';
+  const notificationOptions = {
+    body: (payload.notification && payload.notification.body) || 'Tid for medisin',
+    icon: '/icon.png',
+    badge: '/icon.png',
+    tag: 'dosevakt-reminder',
+    requireInteraction: true,
+    data: payload.data || {}
+  };
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow('/')
+  );
+});
+
 const CACHE_NAME = 'dosevakt-v16';
 const urlsToCache = [
   './',

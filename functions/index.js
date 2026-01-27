@@ -1,5 +1,5 @@
 const {onSchedule} = require("firebase-functions/v2/scheduler");
-const {onCall} = require("firebase-functions/v2/https");
+const {onRequest} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const {Resend} = require("resend");
@@ -9,101 +9,127 @@ admin.initializeApp();
 // Define secret for Resend API key
 const resendApiKey = defineSecret("RESEND_API_KEY");
 
+/**
+ * Format a Date to "HH:MM" in Europe/Oslo timezone (handles DST).
+ * @param {Date} date
+ * @return {string}
+ */
+function formatTimeHHMMInOslo(date = new Date()) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Oslo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
 // Cloud Function that runs every minute to check for reminders
 exports.checkReminders = onSchedule(
     {
       schedule: "every 1 minutes",
       timeZone: "Europe/Oslo",
     },
-    async (event) => {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2, "0");
-      const m = String(now.getMinutes()).padStart(2, "0");
-      const currentTime = `${h}:${m}`;
-
-      console.log(`Checking reminders at ${currentTime}`);
+    async () => {
+      const currentTime = formatTimeHHMMInOslo(new Date());
+      console.log(`Checking reminders at ${currentTime} (Europe/Oslo)`);
 
       try {
-        // Get all reminders from Firestore
+        // Only fetch reminders that match this minute
         const remindersSnapshot = await admin.firestore()
             .collection("reminders")
+            .where("time", "==", currentTime)
             .get();
 
-        const promises = [];
+        if (remindersSnapshot.empty) {
+          console.log("No reminders at this time");
+          return null;
+        }
 
-        remindersSnapshot.forEach((doc) => {
-          const reminder = doc.data();
-          const reminderTime = reminder.time; // Format: "HH:MM"
+        const tokensSnapshot = await admin.firestore()
+            .collection("fcmTokens")
+            .get();
 
-          // Check if reminder time matches current time
-          if (reminderTime === currentTime) {
-            const msg = `Sending reminder: ${reminder.name}`;
-            console.log(msg);
-
-            // Get all FCM tokens from users collection
-            const tokenPromise = admin.firestore()
-                .collection("fcmTokens")
-                .get()
-                .then((tokensSnapshot) => {
-                  const sendPromises = [];
-
-                  tokensSnapshot.forEach((tokenDoc) => {
-                    const token = tokenDoc.data().token;
-
-                    const message = {
-                      notification: {
-                        title: "Påminnelse - Jensapp",
-                        body: `⏰ ${reminder.name}`,
-                      },
-                      android: {
-                        notification: {
-                          sound: "default",
-                          priority: "high",
-                        },
-                      },
-                      apns: {
-                        payload: {
-                          aps: {
-                            sound: "default",
-                            badge: 1,
-                          },
-                        },
-                      },
-                      token: token,
-                    };
-
-                    sendPromises.push(
-                        admin.messaging().send(message)
-                            .then((response) => {
-                              const t = token.substring(0, 20);
-                              console.log(`Sent to ${t}...`);
-                              return response;
-                            })
-                            .catch((error) => {
-                              const t = token.substring(0, 20);
-                              console.error(`Error ${t}:`, error);
-                              // If token is invalid, remove it
-                              const invalidToken =
-                                "messaging/invalid-registration-token";
-                              const notRegistered =
-                                "messaging/registration-token-not-registered";
-                              if (error.code === invalidToken ||
-                                  error.code === notRegistered) {
-                                return tokenDoc.ref.delete();
-                              }
-                              return null;
-                            }),
-                    );
-                  });
-
-                  return Promise.all(sendPromises);
-                });
-
-            promises.push(tokenPromise);
+        const tokenDocs = [];
+        tokensSnapshot.forEach((doc) => {
+          const data = doc.data();
+          const token = data && data.token;
+          if (token) {
+            tokenDocs.push({token, ref: doc.ref});
           }
         });
 
-        await Promise.all(promises);
+        if (tokenDocs.length === 0) {
+          console.log("No FCM tokens registered");
+          return null;
+        }
+
+        for (const reminderDoc of remindersSnapshot.docs) {
+          const reminder = reminderDoc.data();
+          const title = "Påminnelse - Dosevakt";
+          const body = `⏰ ${reminder.name} (kl. ${currentTime})`;
+
+          const response = await admin.messaging().sendEachForMulticast({
+            tokens: tokenDocs.map((d) => d.token),
+            notification: {title, body},
+            data: {
+              type: "reminder",
+              name: String(reminder.name || ""),
+              time: String(reminder.time || currentTime),
+            },
+            webpush: {
+              notification: {
+                title,
+                body,
+                icon: "/icon.png",
+                badge: "/icon.png",
+                tag: `dosevakt-reminder-${reminderDoc.id}`,
+                requireInteraction: true,
+              },
+              fcmOptions: {
+                link: "https://jensapp-14069.web.app",
+              },
+            },
+            android: {
+              notification: {
+                sound: "default",
+                priority: "high",
+              },
+            },
+            apns: {
+              payload: {
+                aps: {
+                  sound: "default",
+                  badge: 1,
+                },
+              },
+            },
+          });
+
+          console.log(
+              `Reminder "${reminder.name}" sent: ` +
+              `${response.successCount}/${tokenDocs.length} successes`,
+          );
+
+          // Clean invalid tokens
+          const invalidToken = "messaging/invalid-registration-token";
+          const notRegistered = "messaging/registration-token-not-registered";
+
+          const cleanup = [];
+          response.responses.forEach((r, idx) => {
+            if (!r.success && r.error) {
+              const code = r.error.code;
+              if (code === invalidToken || code === notRegistered) {
+                cleanup.push(tokenDocs[idx].ref.delete());
+              }
+            }
+          });
+
+          if (cleanup.length > 0) {
+            await Promise.allSettled(cleanup);
+            console.log(`Cleaned ${cleanup.length} invalid tokens`);
+          }
+        }
+
         console.log("Reminder check completed");
         return null;
       } catch (error) {
@@ -113,41 +139,134 @@ exports.checkReminders = onSchedule(
     },
 );
 
-// Cloud Function to save FCM token when user registers
-exports.saveFcmToken = onCall(async (request) => {
-  const {token, userId} = request.data;
+// Cloud Function to save FCM token via HTTP (public)
+exports.saveFcmTokenHttp = onRequest(
+    {
+      cors: true,
+      invoker: "public",
+    },
+    async (req, res) => {
+      try {
+        const {token, userId} = req.body || {};
+        if (!token) {
+          res.status(400).json({success: false, error: "Token is required"});
+          return;
+        }
 
-  if (!token) {
-    throw new Error("Token is required");
-  }
+        await admin.firestore()
+            .collection("fcmTokens")
+            .doc(token)
+            .set({
+              token: token,
+              userId: userId || null,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
 
-  try {
-    // Store token with userId (or IP/device identifier)
-    await admin.firestore()
-        .collection("fcmTokens")
-        .doc(token)
-        .set({
-          token: token,
-          userId: userId || null,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        console.log(`FCM token saved: ${token.substring(0, 20)}...`);
+        res.json({success: true});
+      } catch (error) {
+        console.error("Error saving FCM token:", error);
+        res.status(500).json({success: false, error: "Failed to save token"});
+      }
+    },
+);
+
+// Test push notification to all registered devices (public)
+exports.testPush = onRequest(
+    {
+      cors: true,
+      invoker: "public",
+    },
+    async (req, res) => {
+      try {
+        const tokensSnapshot = await admin.firestore()
+            .collection("fcmTokens")
+            .get();
+
+        const tokenDocs = [];
+        tokensSnapshot.forEach((doc) => {
+          const data = doc.data();
+          const token = data && data.token;
+          if (token) {
+            tokenDocs.push({token, ref: doc.ref});
+          }
         });
 
-    console.log(`FCM token saved: ${token.substring(0, 20)}...`);
-    return {success: true};
-  } catch (error) {
-    console.error("Error saving FCM token:", error);
-    throw new Error("Failed to save token");
-  }
-});
+        if (tokenDocs.length === 0) {
+          res.json({success: false, error: "No FCM tokens registered"});
+          return;
+        }
+
+        const osloTime = formatTimeHHMMInOslo(new Date());
+        const title = "Dosevakt test";
+        const body = `Dette er en test av pushvarsler (kl. ${osloTime})`;
+
+        const response = await admin.messaging().sendEachForMulticast({
+          tokens: tokenDocs.map((d) => d.token),
+          notification: {title, body},
+          data: {
+            type: "test",
+            time: osloTime,
+          },
+          webpush: {
+            notification: {
+              title,
+              body,
+              icon: "/icon.png",
+              badge: "/icon.png",
+              tag: "dosevakt-test",
+              requireInteraction: true,
+            },
+            fcmOptions: {
+              link: "https://jensapp-14069.web.app",
+            },
+          },
+        });
+
+        // Clean invalid tokens
+        const invalidToken = "messaging/invalid-registration-token";
+        const notRegistered = "messaging/registration-token-not-registered";
+
+        const cleanup = [];
+        response.responses.forEach((r, idx) => {
+          if (!r.success && r.error) {
+            const code = r.error.code;
+            if (code === invalidToken || code === notRegistered) {
+              cleanup.push(tokenDocs[idx].ref.delete());
+            }
+          }
+        });
+
+        if (cleanup.length > 0) {
+          await Promise.allSettled(cleanup);
+        }
+
+        res.json({
+          success: true,
+          tokenCount: tokenDocs.length,
+          successCount: response.successCount,
+          failureCount: response.failureCount,
+        });
+      } catch (error) {
+        console.error("Error sending test push:", error);
+        res.status(500).json({success: false, error: error.message});
+      }
+    },
+);
 
 // Test function to manually trigger daily report (callable)
-exports.testDailyReport = onCall(
+// Note: Using onRequest instead of onCall for simpler access
+
+exports.testDailyReport = onRequest(
     {
       secrets: [resendApiKey],
+      cors: true, // Allow cross-origin requests
+      invoker: "public", // Allow unauthenticated access
     },
-    async (request) => {
+    async (req, res) => {
       console.log("Manually triggering daily report...");
-      return await generateAndSendReport(resendApiKey.value());
+      const result = await generateAndSendReport(resendApiKey.value());
+      res.json(result);
     },
 );
 
@@ -181,17 +300,20 @@ async function generateAndSendReport(apiKey) {
       `${months[osloNow.getMonth()]} ${osloNow.getFullYear()}`;
 
     // Fetch today's logs from Firestore
+    // Using simple query to avoid composite index requirement
     const logsSnapshot = await admin.firestore()
         .collection("logs")
         .where("timestamp", ">=", todayStart.getTime())
         .where("timestamp", "<=", todayEnd.getTime())
-        .orderBy("timestamp", "asc")
         .get();
 
     const logs = [];
     logsSnapshot.forEach((doc) => {
       logs.push(doc.data());
     });
+
+    // Sort by timestamp in memory
+    logs.sort((a, b) => a.timestamp - b.timestamp);
 
     console.log(`Found ${logs.length} logs for today`);
 
@@ -266,16 +388,38 @@ async function generateAndSendReport(apiKey) {
         sonde, sondeHtml, sondeTotal, bowel, bowelHtml, urine,
     );
 
+    // Get recipients from Firestore users collection
+    const usersSnapshot = await admin.firestore()
+        .collection("users")
+        .where("dailyReport", "==", true)
+        .get();
+
+    const recipients = [];
+    usersSnapshot.forEach((doc) => {
+      const user = doc.data();
+      if (user.email) {
+        recipients.push(user.email);
+      }
+    });
+
+    // Fallback to default if no users configured
+    if (recipients.length === 0) {
+      recipients.push("mari.knutsen@hotmail.com");
+      recipients.push("tomerik@larsendatasupport.no");
+    }
+
+    console.log(`Sending daily report to: ${recipients.join(", ")}`);
+
     // Send email
     const emailResult = await resend.emails.send({
-      from: "Dosevakt <onboarding@resend.dev>",
-      to: ["mari.knutsen@hotmail.com", "tomerik@larsendatasupport.no"],
+      from: "Dosevakt <noreply@larsendatasupport.no>",
+      to: recipients,
       subject: `\ud83d\udccb Dosevakt rapport - ${dateStr}`,
       html: htmlContent,
     });
 
     console.log("Email sent successfully:", emailResult);
-    return {success: true, emailId: emailResult.id};
+    return {success: true, emailId: emailResult.id, recipients: recipients};
   } catch (error) {
     console.error("Error sending daily report:", error);
     return {success: false, error: error.message};
@@ -341,5 +485,129 @@ exports.sendDailyReport = onSchedule(
       console.log("Scheduled daily report triggered at 22:00...");
       await generateAndSendReport(resendApiKey.value());
       return null;
+    },
+);
+
+// Check for missed medicines - runs every minute
+// Sends alert if medicine reminder passed 10 min ago and not logged
+exports.checkMissedMedicines = onSchedule(
+    {
+      schedule: "every 1 minutes",
+      timeZone: "Europe/Oslo",
+      secrets: [resendApiKey],
+    },
+    async () => {
+      // Check for reminders that were 10 minutes ago (Europe/Oslo)
+      const checkTime = formatTimeHHMMInOslo(
+          new Date(Date.now() - 10 * 60 * 1000),
+      );
+
+      console.log(`Checking missed meds for time: ${checkTime} (Europe/Oslo)`);
+
+      try {
+        // Get reminders that match the time 10 minutes ago
+        const remindersSnapshot = await admin.firestore()
+            .collection("reminders")
+            .where("time", "==", checkTime)
+            .get();
+
+        if (remindersSnapshot.empty) {
+          console.log("No reminders at this time");
+          return null;
+        }
+
+        // Get today's medicine logs
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        const logsSnapshot = await admin.firestore()
+            .collection("logs")
+            .where("type", "==", "Medisin")
+            .where("timestamp", ">=", todayStart.getTime())
+            .where("timestamp", "<=", todayEnd.getTime())
+            .get();
+
+        const givenMeds = [];
+        logsSnapshot.forEach((doc) => {
+          givenMeds.push(doc.data().name);
+        });
+
+        // Check each reminder
+        const missedMeds = [];
+        remindersSnapshot.forEach((doc) => {
+          const reminder = doc.data();
+          // Check if this medicine has been logged today
+          if (!givenMeds.includes(reminder.name)) {
+            missedMeds.push({name: reminder.name, time: reminder.time});
+          }
+        });
+
+        if (missedMeds.length === 0) {
+          console.log("All medicines given on time");
+          return null;
+        }
+
+        console.log(`Missed medicines: ${missedMeds.map((m) => m.name).join(", ")}`);
+
+        // Get users who want missed med alerts
+        const usersSnapshot = await admin.firestore()
+            .collection("users")
+            .where("missedMedAlert", "==", true)
+            .get();
+
+        const recipients = [];
+        usersSnapshot.forEach((doc) => {
+          const user = doc.data();
+          if (user.email) {
+            recipients.push(user.email);
+          }
+        });
+
+        if (recipients.length === 0) {
+          console.log("No users subscribed to missed med alerts");
+          return null;
+        }
+
+        // Send alert email
+        const resend = new Resend(resendApiKey.value());
+        const medList = missedMeds.map((m) =>
+          `\u2022 ${m.name} (skulle v\u00e6rt gitt kl. ${m.time})`).join("<br>");
+
+        const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+body{font-family:-apple-system,sans-serif;background:#f5f5f5;margin:0;padding:20px}
+.container{max-width:500px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.header{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:20px;text-align:center}
+.content{padding:24px}
+.alert-box{background:#FFF3E0;border-left:4px solid #FF9800;padding:16px;border-radius:4px;margin:16px 0}
+.footer{background:#f8f9fa;padding:16px;text-align:center;font-size:12px;color:#888}
+</style></head><body><div class="container">
+<div class="header"><h2 style="margin:0">\u26a0\ufe0f Medisin ikke registrert</h2></div>
+<div class="content">
+<p>F\u00f8lgende medisin(er) er ikke registrert som gitt:</p>
+<div class="alert-box">${medList}</div>
+<p style="color:#666;font-size:14px">Det har g\u00e5tt 10 minutter siden p\u00e5minnelsen. Hvis medisinen er gitt, vennligst registrer den i appen.</p>
+<p style="text-align:center;margin-top:24px">
+<a href="https://jensapp-14069.web.app" style="display:inline-block;background:#4CAF50;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">\u00c5pne Dosevakt</a>
+</p>
+</div>
+<div class="footer">Automatisk varsel fra Dosevakt</div>
+</div></body></html>`;
+
+        const emailResult = await resend.emails.send({
+          from: "Dosevakt <noreply@larsendatasupport.no>",
+          to: recipients,
+          subject: `\u26a0\ufe0f Glemt medisin: ${missedMeds.map((m) => m.name).join(", ")}`,
+          html: htmlContent,
+        });
+
+        console.log("Missed med alert sent:", emailResult);
+        return null;
+      } catch (error) {
+        console.error("Error checking missed medicines:", error);
+        return null;
+      }
     },
 );
