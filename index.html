@@ -121,61 +121,6 @@
             box-shadow: var(--shadow-lg);
         }
 
-        /* Debug actions: compact floating button + expandable panel */
-        #debugFab {
-            position: fixed;
-            right: 14px;
-            bottom: calc(78px + env(safe-area-inset-bottom));
-            z-index: 2100;
-            width: 46px;
-            height: 46px;
-            border-radius: 999px;
-            border: none;
-            background: rgba(33, 150, 243, 0.95);
-            color: white;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.22);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-        #debugPanel {
-            position: fixed;
-            right: 14px;
-            bottom: calc(132px + env(safe-area-inset-bottom));
-            z-index: 2100;
-            width: min(360px, calc(100vw - 28px));
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 16px;
-            box-shadow: 0 14px 40px rgba(0,0,0,0.18);
-            padding: 10px;
-            display: none;
-        }
-        #debugPanel.open { display: block; }
-        #debugPanel .debug-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        #debugPanel .debug-title {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #333;
-            margin: 2px 2px 10px;
-        }
-        #debugPanel .btn {
-            padding: 10px 12px;
-            font-size: 0.9rem;
-            border-radius: 12px;
-        }
-        @media (min-width: 768px) {
-            #debugFab, #debugPanel {
-                right: 22px;
-            }
-        }
-        
         .tab-content { 
             margin-top: 20px; 
         }
@@ -564,6 +509,10 @@
                 <button onclick="switchUser()" 
                         style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 16px; font-weight: 500; cursor: pointer;">
                     Bytt
+                </button>
+                <button data-bs-toggle="modal" data-bs-target="#settingsModal"
+                        style="background: none; border: none; font-size: 1.5rem; color: #666; cursor: pointer; padding: 0 0 0 8px;">
+                    <i class="bi bi-gear-fill"></i>
                 </button>
             </div>
         </div>
@@ -983,17 +932,34 @@
             </div>
         </div>
         
-        <!-- Debug floating actions (can be hidden later) -->
-        <button id="debugFab" type="button" onclick="toggleDebugPanel()" title="Verktøy">
-            <i class="bi bi-wrench-adjustable"></i>
-        </button>
-        <div id="debugPanel" aria-hidden="true">
-            <div class="debug-title">Verktøy</div>
-            <div class="debug-row">
-                <button class="btn btn-warning" onclick="sendTestPushNotification()">🔔 Test push</button>
-                <button class="btn btn-outline-primary" onclick="fetchPushStatus()">🧾 Status</button>
-                <button class="btn btn-info" onclick="sendTestDailyReport()">📧 Test e-post</button>
-                <button class="btn btn-secondary" onclick="exportToCSV()">📥 CSV</button>
+        <!-- Settings Modal -->
+        <div class="modal fade" id="settingsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">⚙️ Innstillinger & Verktøy</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-grid gap-2">
+                             <button class="btn btn-secondary" onclick="exportToCSV()">
+                                <i class="bi bi-file-earmark-spreadsheet"></i> Eksporter til CSV
+                            </button>
+                            
+                            <hr>
+                            <h6 class="text-muted mb-2">Systemverktøy</h6>
+                            <button class="btn btn-warning" onclick="sendTestPushNotification()">
+                                <i class="bi bi-bell"></i> Test pushvarsel
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="fetchPushStatus()">
+                                <i class="bi bi-info-circle"></i> Status push-tjeneste
+                            </button>
+                            <button class="btn btn-info" onclick="sendTestDailyReport()">
+                                <i class="bi bi-envelope"></i> Test e-postrapport
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -152,14 +152,6 @@ function sendTestDailyReport() {
 }
 
 // Test push notification
-function toggleDebugPanel() {
-  const panel = document.getElementById('debugPanel');
-  if (!panel) return;
-  const isOpen = panel.classList.contains('open');
-  panel.classList.toggle('open');
-  panel.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
-}
-
 function fetchPushStatus() {
   showToast('🧾 Henter push-status...');
   fetch('https://us-central1-jensapp-14069.cloudfunctions.net/debugPushStatus', {
