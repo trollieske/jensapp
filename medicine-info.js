@@ -1009,18 +1009,18 @@ async function showMedicineInfo(medicineName) {
             console.error('Error fetching medicine info:', err);
             info = null;
         } finally {
-            // Close loading modal and ensure backdrop is removed
+            // Close loading modal properly
             const loadingModal = document.getElementById('medicineLoadingModal');
             if (loadingModal) {
                 const modalInstance = bootstrap.Modal.getInstance(loadingModal);
-                if (modalInstance) modalInstance.hide();
-                loadingModal.remove();
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
                 
-                // Aggressive cleanup of lingering backdrops
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
+                // Wait a tiny bit for bootstrap cleanup before removing from DOM
+                setTimeout(() => {
+                    loadingModal.remove();
+                }, 150);
             }
         }
         
