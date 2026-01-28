@@ -2,8 +2,8 @@
 
 En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat, og helse for personer med spesielle omsorgsbehov. Designet for familiebruk med multi-bruker støtte og sanntidssynkronisering via Firebase.
 
-**Versjon:** v16 (Januar 2026)  
-**Sist oppdatert:** 27. januar 2026
+**Versjon:** v17 (Januar 2026)  
+**Sist oppdatert:** 28. januar 2026
 
 ## 🌐 Live App
 
@@ -353,6 +353,16 @@ firebase functions:log
 - **Warp AI** - Architecture design, bug fixes, documentation
 
 ## 📃 Endringslogg
+### v17 (28. januar 2026)
+- **Strukturell omskriving**: Kodebasen er splittet i moduler (`data.js`, `ui.js`, `utils.js`, `app.js`) for bedre vedlikehold
+- **Designoppdatering**:
+  - Ny hamburgermeny (Bootstrap Offcanvas)
+  - Kompakt header (120px) for mer skjermplass
+  - Bytte til SVG-logo for skarpere visning
+  - Fjernet store/unødvendige elementer fra forsiden
+- **Ytelse**: Fjernet duplikatkode og optimalisert lasting
+- **Bugfiks**: Rettet visning av brukere og logo i menyer
+
 ### v16 (27. januar 2026)
 - **Pushover fallback (iOS)**: Varsler leveres via Pushover når FCM-token mangler på iOS PWA
 - **debugPushStatus**: Nytt status-endepunkt for å se antall tokens og siste oppdateringstid

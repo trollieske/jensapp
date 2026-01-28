@@ -26,342 +26,295 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
+            /* Color Palette - Premium & Modern */
             --bs-primary: #4CAF50;
             --bs-secondary: #2196F3;
-            --bs-body-bg: #F8F9FA;
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --bg-gradient-start: #4CAF50;
-            --bg-gradient-end: #81C784;
-            --accent-blue: #2196F3;
+            --bs-body-bg: #F5F7FA;
+            
+            /* Enhanced Gradients */
+            --primary-gradient: linear-gradient(135deg, #4CAF50 0%, #43A047 100%);
+            --secondary-gradient: linear-gradient(135deg, #2196F3 0%, #1E88E5 100%);
+            --accent-gradient: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            --purple-gradient: linear-gradient(135deg, #9C27B0 0%, #8E24AA 100%);
+            
+            /* Surfaces */
+            --bg-card: #FFFFFF;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            
+            /* Text */
+            --text-primary: #1A1A1A;
+            --text-secondary: #6c757d;
+            
+            /* Borders & Shadows */
+            --border-color: #EAEAEA;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 16px 48px rgba(0,0,0,0.12);
+            --shadow-hover: 0 12px 32px rgba(0,0,0,0.12);
+            
+            /* Accents */
             --accent-green: #4CAF50;
-            --accent-teal: #00BCD4;
+            --accent-blue: #2196F3;
             --accent-orange: #FF9800;
+            --accent-purple: #9C27B0;
+            --accent-teal: #00BCD4;
             --accent-pink: #E91E63;
-            --text-primary: #212121;
-            --text-secondary: #757575;
-            --border-color: #E0E0E0;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
         }
         
         body { 
-            padding-top: 75px;
-            /* Extra space so bottom buttons aren't covered by the fixed bottom nav */
-            padding-bottom: calc(140px + env(safe-area-inset-bottom));
-            background: linear-gradient(to bottom, #FFFFFF, #F8F9FA);
+            padding-top: 140px; /* Adjusted for smaller header */
+            padding-bottom: calc(100px + env(safe-area-inset-bottom));
+            background-color: var(--bs-body-bg);
             color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
             min-height: 100vh;
-            touch-action: manipulation;
-            -webkit-overflow-scrolling: touch;
         }
         
-        /* Header */
+        /* Premium Header */
         .app-header {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+            height: 120px;
+            transition: all 0.3s ease;
         }
-        
-        .header-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 20px;
+
+        .header-inner {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            height: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .header-logo img {
+            height: 80px;
+            width: auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
         }
         
-        .header-logo {
+        /* Log Cards */
+        .log-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        
+        .log-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .menu-btn {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            transition: all 0.2s ease;
         }
         
-        .header-logo img {
-            width: 120px;
-            height: 120px;
-        }
-        
-        .header-user {
-            text-align: center;
-            width: 100%;
-        }
-        
-        /* Desktop layout */
-        @media (min-width: 768px) {
-            .header-content {
-                flex-direction: row;
-                justify-content: space-between;
-            }
-            
-            .header-logo img {
-                width: 180px;
-                height: 180px;
-            }
-            
-            .header-user {
-                text-align: right;
-                width: auto;
-            }
-        }
-        
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: var(--shadow-lg);
+        .menu-btn:active {
+            background-color: rgba(0,0,0,0.05);
+            transform: scale(0.95);
         }
 
-        .tab-content { 
-            margin-top: 20px; 
-        }
-        
-        .hidden { 
-            display: none; 
-        }
-        
-        .table-responsive {
-            max-height: 60vh;
-            overflow-y: auto;
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .form-label {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-        
-        .form-control, .form-select {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 8px;
-            font-size: 16px; /* Prevents zoom on iOS/Android */
-        }
-        
-        .form-control:focus, .form-select:focus {
-            background: var(--bg-card);
-            border-color: var(--accent-blue);
-            color: var(--text-primary);
-            box-shadow: 0 0 0 0.25rem rgba(91, 124, 255, 0.25);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-teal) 100%);
-            border: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-            background: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-blue) 100%);
-        }
-        
-        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info {
-            border-width: 2px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-outline-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        h1 {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        
-        h5 {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-        
-        .nav-tabs {
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .nav-tabs .nav-link {
-            color: var(--text-secondary);
-            border: none;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-tabs .nav-link.active {
-            background: var(--bg-card);
-            color: var(--accent-blue);
-            border-radius: 8px 8px 0 0;
-        }
-        
-        .nav-tabs .nav-link:hover {
-            color: var(--text-primary);
-        }
-        
-        .accordion {
-            --bs-accordion-bg: var(--bg-card);
-            --bs-accordion-border-color: var(--border-color);
-            --bs-accordion-btn-bg: var(--bg-card);
-            --bs-accordion-active-bg: #f8fafc;
-            --bs-accordion-btn-color: var(--text-primary);
-            --bs-accordion-active-color: var(--accent-blue);
-        }
-        
-        .accordion-button:not(.collapsed) {
-            box-shadow: none;
-        }
-        
-        .accordion-item {
-            border-radius: 12px !important;
-            margin-bottom: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            border: 2px solid var(--border-color) !important;
-        }
-        
-        .list-group-item {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-        }
-        
-        .checklist-item {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            padding: 15px;
-        }
-        
-        .checklist-item:hover {
-            background: #f8fafc;
-            transform: translateX(5px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .checklist-item.logged-today {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
-            border-color: var(--accent-green);
-            border-width: 2px;
-        }
-        
-        .checklist-item .badge {
-            min-width: 60px;
-            padding: 8px 12px;
-            font-weight: 600;
-        }
-        
-        .badge {
-            font-weight: 500;
-        }
-        
-        .bg-success {
-            background: var(--accent-green) !important;
-        }
-        
-        .bg-primary {
-            background: var(--accent-blue) !important;
-        }
-        
-        .bg-secondary {
-            background: var(--bg-card) !important;
-        }
-        
-        .modal-content {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: none;
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .modal-header {
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .btn-close {
-            filter: none;
-        }
-        
-        .table {
-            color: var(--text-primary);
-        }
-        
-        .table-striped > tbody > tr:nth-of-type(odd) > * {
-            color: var(--text-primary);
-            background-color: #f9fafb;
-        }
-        
-        .text-muted {
-            color: var(--text-secondary) !important;
+        /* Container & Cards */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
         
         .card {
             background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-sm);
-            border-radius: 12px;
-        }
-        
-        @media (max-width: 576px) {
-            body {
-                padding: 10px;
-            }
-            h1 {
-                font-size: 1.5rem;
-            }
-        }
-        
-        /* Dose input styling */
-        .dose-input-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-top: 8px;
-        }
-        
-        .dose-input {
-            width: 80px;
-            padding: 6px 10px;
-            border-radius: 6px;
             border: 1px solid var(--border-color);
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 0.9rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
         }
         
-        .dose-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
+        /* Buttons */
+        .btn {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
         
-        .btn-sm {
+        .btn-primary:hover, .btn-primary:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+            background: var(--primary-gradient); /* Keep gradient */
+        }
+        
+        /* Dashboard/Home Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .dashboard-card {
+            border: none;
+            border-radius: 24px;
+            padding: 24px 20px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 160px;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .dashboard-card:active {
+            transform: scale(0.98);
+        }
+        
+        .dashboard-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+        
+        .dashboard-card .title {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard-card .subtitle {
+            color: rgba(255,255,255,0.9);
             font-size: 0.85rem;
-            padding: 6px 12px;
+            font-weight: 500;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            margin-top: 32px;
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
         
+        .quick-action-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-btn {
+            flex: 1;
+            min-width: 100px;
+            background: #F8F9FA;
+            border: 1px solid transparent;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .quick-btn:hover {
+            background: #FFFFFF;
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: none;
+            background: var(--bg-card);
+            padding: 12px 12px 0;
+            border-radius: 24px 24px 0 0;
+            gap: 8px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+        }
+        
+        .nav-tabs::-webkit-scrollbar {
+            display: none; /* Hide scrollbar Chrome/Safari */
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 50px; /* Pill shape */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            white-space: nowrap;
+            background: #F5F7FA;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Inputs & Forms */
+        .form-control, .form-select {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            background-color: #FAFAFA;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: #FFFFFF;
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+        }
+
         /* Splash Screen */
         #splashScreen {
             position: fixed;
@@ -369,7 +322,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            background: var(--bg-card);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -380,141 +333,100 @@
         #splashScreen video {
             max-width: 80%;
             max-height: 80%;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
         }
         
         @keyframes fadeOut {
-            to {
-                opacity: 0;
-                visibility: hidden;
-            }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        /* Modals */
+        .modal-content {
+            border: none;
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
         }
         
-        /* Enhanced Button Styles */
-        .btn {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+        .modal-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 24px 24px 16px;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            border-top: none;
+            padding: 0 24px 24px;
+        }
+        
+        .modal-title {
+            font-weight: 700;
+        }
+
+        /* Accordion Premium */
+        .accordion-item {
+            border: none;
+            border-radius: 16px !important;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
+            background: var(--bg-card);
         }
         
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+        .accordion-button {
+            border-radius: 16px !important;
+            font-weight: 600;
+            padding: 16px 20px;
+            background: transparent;
+            box-shadow: none !important;
         }
         
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
+        .accordion-button:not(.collapsed) {
+            background: rgba(76, 175, 80, 0.05);
+            color: var(--bs-primary);
+        }
+
+        /* Lists */
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px;
         }
         
-        .btn:active {
-            transform: scale(0.95);
+        .list-group-item:last-child {
+            border-bottom: none;
         }
-        
-        /* Card Hover Effects */
-        .card {
-            transition: all 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-        }
-        
-        /* Reminder Item Styling */
-        .reminder-item {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .reminder-item:hover {
-            transform: translateX(5px);
-            background: #f8f9fa;
-        }
-        
-        .reminder-edit-btn {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .reminder-item:hover .reminder-edit-btn {
-            opacity: 1;
-        }
-        
-        /* Border radius and animations */
-        .btn, .card, .modal-content {
-            border-radius: 15px;
-        }
-        
-        .btn {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .btn:hover {
-            transform: scale(1.05);
-        }
-        
-        .btn-primary {
-            background-color: var(--bs-primary);
-            border-color: var(--bs-primary);
-        }
-        
-        h1 {
-            font-size: 2rem;
-            font-weight: 500;
-        }
-        
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 500;
-        }
-        
-        /* Mobile responsive */
+
+        /* Mobile Optimization */
         @media (max-width: 576px) {
-            .btn {
-                font-size: 1.2rem;
-                padding: 15px;
-            }
-            .card {
-                font-size: 0.9rem;
-                margin-bottom: 10px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
+            .container { padding: 0 16px; }
+            .dashboard-card { padding: 20px 16px; min-height: 140px; }
+            .dashboard-card .icon { font-size: 2rem; }
+            .dashboard-card .title { font-size: 1rem; }
+            .nav-tabs .nav-link { padding: 10px 14px; font-size: 0.9rem; }
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.3rem; }
         }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .text-muted { color: var(--text-secondary) !important; }
     </style>
 </head>
 <body>
     <!-- Sticky Header -->
-    <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="./favicon.png" alt="Dosevakt" style="height: 36px; width: 36px; border-radius: 8px;">
-                <span style="font-weight: 700; font-size: 1.1rem; color: #587dff;">Dosevakt</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="text-align: right;">
-                    <div style="font-size: 0.6rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Bruker</div>
-                    <div id="currentUserDisplay" style="font-weight: 600; font-size: 0.85rem; color: #333;">Venter...</div>
+    <header class="app-header">
+        <div class="header-inner">
+            <button class="menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+                <i class="bi bi-list" style="font-size: 2.5rem;"></i>
+            </button>
+            <div class="header-logo mx-auto">
+                    <img src="./logo.svg" alt="Dosevakt">
                 </div>
-                <button onclick="switchUser()" 
-                        style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 16px; font-weight: 500; cursor: pointer;">
-                    Bytt
-                </button>
-                <button data-bs-toggle="modal" data-bs-target="#settingsModal"
-                        style="background: none; border: none; font-size: 1.5rem; color: #666; cursor: pointer; padding: 0 0 0 8px;">
-                    <i class="bi bi-gear-fill"></i>
-                </button>
-            </div>
+            <div style="width: 48px;"></div> <!-- Spacer for visual balance -->
         </div>
     </header>
     
@@ -527,8 +439,8 @@
     
     
     <div class="container">
-        <!-- Tabs -->
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <!-- Tabs (Hidden - Controlled via Hamburger Menu) -->
+        <ul class="nav nav-tabs d-none" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button">🏠 Hjem</button>
             </li>
@@ -555,61 +467,52 @@
         <div class="tab-content">
             <!-- Hjem Tab -->
             <div class="tab-pane fade show active" id="home" role="tabpanel">
-                <div style="text-align: center; padding: 24px 20px 16px;">
-                    <img src="./logo-full.png" alt="Dosevakt" style="height: 120px; width: auto; margin-bottom: 16px;">
-                    <h2 style="font-size: 1.4rem; font-weight: 600; color: #333; margin-bottom: 4px;">Hei, <span id="welcomeUserName" style="color: #4CAF50;">der</span>!</h2>
-                    <p style="color: #888; font-size: 0.9rem; margin: 0;">Klar for å ta vare på Jens</p>
+                <div style="text-align: center; padding: 32px 20px 16px;">
+                    <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.5px;">Hei, <span id="welcomeUserName" style="color: var(--bs-primary); background: linear-gradient(120deg, var(--bs-primary), var(--bs-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">der</span>!</h2>
+                    <p style="color: var(--text-secondary); font-size: 1.2rem; margin: 0; font-weight: 500;">Klar for å ta vare på Jens</p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
-                    <button onclick="document.getElementById('checklist-tab').click()" 
-                            style="background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;">💊</div>
-                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">Sjekkliste</div>
-                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Daglige medisiner</div>
+                <div class="dashboard-grid">
+                    <button onclick="document.getElementById('checklist-tab').click()" class="dashboard-card" style="background: var(--primary-gradient);">
+                        <div class="icon">💊</div>
+                        <div class="title">Sjekkliste</div>
+                        <div class="subtitle">Daglige medisiner</div>
                     </button>
-                    <button onclick="document.getElementById('reminders-tab').click()" 
-                            style="background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;">⏰</div>
-                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">Påminnelser</div>
-                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Se varsler</div>
+                    <button onclick="document.getElementById('reminders-tab').click()" class="dashboard-card" style="background: var(--secondary-gradient);">
+                        <div class="icon">⏰</div>
+                        <div class="title">Påminnelser</div>
+                        <div class="subtitle">Se varsler</div>
                     </button>
-                    <button onclick="document.getElementById('today-tab').click()" 
-                            style="background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;">📅</div>
-                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">I dag</div>
-                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Dagens logger</div>
+                    <button onclick="document.getElementById('today-tab').click()" class="dashboard-card" style="background: var(--accent-gradient);">
+                        <div class="icon">📅</div>
+                        <div class="title">I dag</div>
+                        <div class="subtitle">Dagens logger</div>
                     </button>
-                    <button onclick="document.getElementById('history-tab').click()" 
-                            style="background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%); border: none; border-radius: 16px; padding: 20px 16px; cursor: pointer; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;">📊</div>
-                        <div style="color: white; font-weight: 600; font-size: 0.95rem;">Historikk</div>
-                        <div style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-top: 2px;">Alle logger</div>
+                    <button onclick="document.getElementById('history-tab').click()" class="dashboard-card" style="background: var(--purple-gradient);">
+                        <div class="icon">📊</div>
+                        <div class="title">Historikk</div>
+                        <div class="subtitle">Alle logger</div>
                     </button>
                 </div>
                 
-                <div style="margin-top: 20px; background: #f8f9fa; border-radius: 12px; padding: 16px;">
-                    <div style="font-weight: 600; color: #333; margin-bottom: 12px; font-size: 0.9rem;">Hurtigvalg</div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="document.getElementById('checklist-tab').click()" 
-                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
-                            <div style="font-size: 1.5rem;">💊</div>
-                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Medisin</div>
+                <div class="quick-actions">
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 16px; font-size: 1rem;">Hurtigvalg</div>
+                    <div class="quick-action-grid">
+                        <button onclick="document.getElementById('checklist-tab').click()" class="quick-btn">
+                            <div style="font-size: 1.8rem;">💊</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">Medisin</div>
                         </button>
-                        <button data-bs-toggle="modal" data-bs-target="#bowelModal" 
-                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
-                            <div style="font-size: 1.5rem;">💩</div>
-                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Avføring</div>
+                        <button data-bs-toggle="modal" data-bs-target="#bowelModal" class="quick-btn">
+                            <div style="font-size: 1.8rem;">💩</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">Avføring</div>
                         </button>
-                        <button data-bs-toggle="modal" data-bs-target="#vannlatingModal" 
-                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
-                            <div style="font-size: 1.5rem;">💧</div>
-                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Vannlating</div>
+                        <button data-bs-toggle="modal" data-bs-target="#vannlatingModal" class="quick-btn">
+                            <div style="font-size: 1.8rem;">💧</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">Vannlating</div>
                         </button>
-                        <button data-bs-toggle="modal" data-bs-target="#vomitModal" 
-                                style="flex: 1; min-width: 100px; background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center;">
-                            <div style="font-size: 1.5rem;">🤮</div>
-                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">Oppkast</div>
+                        <button data-bs-toggle="modal" data-bs-target="#vomitModal" class="quick-btn">
+                            <div style="font-size: 1.8rem;">🤮</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500;">Oppkast</div>
                         </button>
                     </div>
                 </div>
@@ -617,83 +520,92 @@
             
             <!-- Sjekkliste Tab -->
             <div class="tab-pane fade" id="checklist" role="tabpanel">
-                <h5 class="mt-3">Daglig sjekkliste</h5>
-                <p class="text-muted small">Klikk på knappene for å raskt logge at medisiner/oppgaver er utført</p>
+                <!-- Premium Header -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: var(--primary-gradient);">
+                    <div class="card-body p-4 text-white d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-1 fw-bold">Daglig Sjekkliste</h5>
+                            <p class="mb-0 opacity-75 small">Oversikt over dagens gjøremål</p>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <span style="font-size: 1.5rem;">📝</span>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="accordion" id="checklistAccordion">
-                    <!-- Medisiner -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingMeds">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMeds" aria-expanded="true">
-                                💊 Medisiner
-                            </button>
-                        </h2>
-                        <div id="collapseMeds" class="accordion-collapse collapse show" data-bs-parent="#checklistAccordion">
-                            <div class="accordion-body">
-                                <div class="list-group" id="medicineChecklist"></div>
-                                <button class="btn btn-outline-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addMedicineModal">
-                                    ➕ Legg til ny medisin
-                                </button>
-                            </div>
-                        </div>
+                <!-- Medicine Checklist Container -->
+                <div id="medicineChecklist" class="d-flex flex-column gap-3 pb-3">
+                    <!-- Content injected by app.js -->
+                </div>
+                
+                <!-- Add Medicine Button -->
+                <button class="btn btn-outline-primary w-100 mb-4 rounded-pill fw-bold py-3 border-2 dashed-border" data-bs-toggle="modal" data-bs-target="#addMedicineModal">
+                    <i class="bi bi-plus-lg me-2"></i>Legg til ny medisin
+                </button>
+
+                <!-- Sondemat Header & List -->
+                <div class="d-flex align-items-center mb-3 mt-4">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        <i class="bi bi-droplet-fill"></i>
                     </div>
-                    
-                    <!-- Sondemat -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingSonde">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSonde">
-                                🍼 Sondemat
-                            </button>
-                        </h2>
-                        <div id="collapseSonde" class="accordion-collapse collapse" data-bs-parent="#checklistAccordion">
-                            <div class="accordion-body">
-                                <div class="list-group" id="sondeChecklist"></div>
-                                <button class="btn btn-outline-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addSondematModal">
-                                    ➕ Legg til ny sondemat
-                                </button>
-                            </div>
-                        </div>
+                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 0.8rem; letter-spacing: 0.5px;">Sondemat</h6>
+                </div>
+                
+                <div id="sondeChecklist" class="d-flex flex-column gap-3 pb-3">
+                     <!-- Content injected by app.js -->
+                </div>
+                
+                <button class="btn btn-outline-warning w-100 mb-4 rounded-pill fw-bold py-3 border-2 dashed-border text-dark" data-bs-toggle="modal" data-bs-target="#addSondematModal">
+                    <i class="bi bi-plus-lg me-2"></i>Legg til ny sondemat
+                </button>
+
+                <!-- Toalett / Quick Actions -->
+                <div class="d-flex align-items-center mb-3 mt-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        <i class="bi bi-water"></i>
                     </div>
-                    
-                    <!-- Toalett -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingToilet">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseToilet">
-                                🚽 Toalett
-                            </button>
-                        </h2>
-                        <div id="collapseToilet" class="accordion-collapse collapse" data-bs-parent="#checklistAccordion">
-                            <div class="accordion-body">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#bowelModal">
-                                        💩 Logg avføring
-                                    </button>
-                                    <button class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#vannlatingModal">
-                                        💧 Logg vannlating
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-lg" data-bs-toggle="modal" data-bs-target="#vomitModal">
-                                        🤮 Logg oppkast
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 0.8rem; letter-spacing: 0.5px;">Toalett</h6>
+                </div>
+                
+                <div class="row g-3 mb-5">
+                    <div class="col-4">
+                        <button class="btn btn-white border-0 shadow-sm p-3 rounded-4 w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-2 quick-action-btn transition-transform" data-bs-toggle="modal" data-bs-target="#bowelModal">
+                            <span style="font-size: 2rem;">💩</span>
+                            <span class="fw-bold text-dark small">Avføring</span>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn btn-white border-0 shadow-sm p-3 rounded-4 w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-2 quick-action-btn transition-transform" data-bs-toggle="modal" data-bs-target="#vannlatingModal">
+                            <span style="font-size: 2rem;">💧</span>
+                            <span class="fw-bold text-dark small">Vannlating</span>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                         <button class="btn btn-white border-0 shadow-sm p-3 rounded-4 w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-2 quick-action-btn transition-transform" data-bs-toggle="modal" data-bs-target="#vomitModal">
+                            <span style="font-size: 2rem;">🤮</span>
+                            <span class="fw-bold text-danger small">Oppkast</span>
+                        </button>
                     </div>
                 </div>
             </div>
             
             <!-- Ny Logg Tab -->
             <div class="tab-pane fade" id="log" role="tabpanel">
-                <button type="button" class="btn btn-primary btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#logModal">
-                    ➕ Legg til ny logg
-                </button>
+                <div class="text-center py-5">
+                    <button type="button" class="btn btn-primary btn-lg rounded-pill shadow-lg px-5 py-3" data-bs-toggle="modal" data-bs-target="#logModal">
+                        <span class="fs-4 d-block mb-1">➕</span>
+                        Legg til ny logg
+                    </button>
+                    <p class="text-muted mt-3">Trykk for å registrere hendelser manuelt</p>
+                </div>
                 
                 <!-- Modal for logging -->
                 <div class="modal fade" id="logModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
                         <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Ny Logg</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <div class="modal-header text-white" style="background: var(--primary-gradient);">
+                                <h5 class="modal-title">📝 Ny Logg</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <form id="logForm">
@@ -715,18 +627,7 @@
                                         <label for="name" class="form-label">Navn *</label>
                                         <select class="form-select" id="name">
                                             <option value="">Velg eller skriv</option>
-                                            <option value="Bactrim">Bactrim (10 ml x 2)</option>
-                                            <option value="Nycoplus Multi Barn">Nycoplus Multi Barn (1 tablett x 1 daglig)</option>
-                                            <option value="Nexium">Nexium (20 mg x 1-2 poser x 1)</option>
-                                            <option value="Zyprexa">Zyprexa (2.5 mg tab, 1.25-2.5 mg x 1 kveld)</option>
-                                            <option value="Palonosetron">Palonosetron (500 mcg, 390 μg x 1/48 timer)</option>
-                                            <option value="Emend">Emend (40 mg x 1, ½ av 80 mg kapsel)</option>
-                                            <option value="Paracetamol">Paracetamol (300 mg x 4 ved behov)</option>
-                                            <option value="Movicol">Movicol (1 pose x 2 ved behov)</option>
-                                            <option value="Deksklorfeniramin">Deksklorfeniramin (1 mg x 3, ½ tablett Aniramin x 3)</option>
-                                            <option value="Nutrini peptisorb">Nutrini peptisorb (1300 ml daglig, sondemat)</option>
-                                            <option value="Ibuprofen">Ibuprofen</option>
-                                            <option value="Annet">Annet (skriv inn)</option>
+                                            <!-- Populated dynamically by app.js -->
                                         </select>
                                         <input type="text" class="form-control mt-2 hidden" id="customName" placeholder="Skriv inn navn">
                                     </div>
@@ -830,158 +731,299 @@
             
             <!-- Dagens Logger Tab -->
             <div class="tab-pane fade" id="today" role="tabpanel">
-                <h5 class="mt-3">Dagens logger</h5>
-                <div id="todayTableBody" class="mt-3"></div>
+                <div class="d-flex align-items-center justify-content-between mt-3 mb-3">
+                    <h5 class="mb-0 fw-bold">📅 Dagens logger</h5>
+                    <button class="btn btn-sm btn-primary rounded-pill fw-bold shadow-sm" onclick="document.getElementById('log-tab').click()">
+                        ➕ Ny logg
+                    </button>
+                </div>
+                <div id="todayTableBody" class="d-flex flex-column gap-2"></div>
+                <div class="text-center mt-4 mb-5">
+                    <p class="text-muted small">Viser kun logger fra i dag.<br>Se <strong>Historikk</strong> for eldre data.</p>
+                </div>
             </div>
             
             <!-- Historikk Tab -->
             <div class="tab-pane fade" id="history" role="tabpanel">
-                <div class="mt-3">
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label for="historyDate" class="form-label">Filtrer på dato</label>
-                            <input type="date" id="historyDate" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="search" class="form-label">Søk</label>
-                            <input type="text" id="search" class="form-control" placeholder="Søk i logger...">
+                <div class="d-flex align-items-center justify-content-between mt-4 mb-3">
+                    <h5 class="mb-0 fw-bold text-dark">Historikk</h5>
+                    <button class="btn btn-sm btn-white text-primary fw-bold shadow-sm rounded-pill px-3 border-0" onclick="exportToCSV()">
+                        <i class="bi bi-download me-1"></i> CSV
+                    </button>
+                </div>
+                
+                <div class="card border-0 shadow-sm p-1 mb-4 rounded-4 bg-white overflow-hidden">
+                    <div class="card-body p-2">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="input-group input-group-sm bg-light rounded-pill p-1 border">
+                                    <span class="input-group-text bg-transparent border-0 text-muted ps-3"><i class="bi bi-calendar-event"></i></span>
+                                    <input type="date" id="historyDate" class="form-control bg-transparent border-0 shadow-none text-muted fw-bold" style="font-size: 0.9rem;">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group input-group-sm bg-light rounded-pill p-1 border">
+                                    <span class="input-group-text bg-transparent border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="search" class="form-control bg-transparent border-0 shadow-none text-muted" placeholder="Søk i logger..." style="font-size: 0.9rem;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div id="historyTableBody" class="mt-3"></div>
+                <div id="historyTableBody" class="d-flex flex-column gap-2"></div>
             </div>
             
             <!-- Påminnelser Tab -->
             <div class="tab-pane fade" id="reminders" role="tabpanel">
-                <h5 class="mt-3">Påminnelser</h5>
-                
-                <!-- Notifikasjons-status -->
-                <div class="alert alert-info" role="alert" id="notificationStatus">
-                    <strong>🔔 Notifikasjoner:</strong> <span id="notificationStatusText">Sjekker...</span>
-                    <button class="btn btn-sm btn-primary ms-2" id="enableNotificationsBtn" onclick="requestNotificationPermission()" style="display: none;">
-                        Aktiver notifikasjoner
-                    </button>
-                </div>
-                
-                <!-- iOS Installation guide -->
-                <div class="alert alert-warning" role="alert" id="iosGuide" style="display: none;">
-                    <strong>📱 For iPhone/iPad:</strong><br>
-                    For å få påminnelser må du legge appen til på hjemskjermen:<br>
-                    1. Trykk på <strong>Del-knappen</strong> (↗️) nederst i Safari/Chrome<br>
-                    2. Velg <strong>"Legg til på Hjem-skjerm"</strong><br>
-                    3. Åpne appen fra hjemskjermen<br>
-                    4. Aktivér notifikasjoner når du blir spurt
-                </div>
-                
-                <!-- Legens plan -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <strong>👨‍⚕️ Medisineringsplan fra legen</strong>
-                        <button class="btn btn-sm btn-success" onclick="addDoctorPlan()">
-                            ⚙️ Last inn hele planen
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted small mb-3">
-                            📅 Legens anbefalte tidspunkter basert på medisineringsplanen
-                        </p>
-                        <div class="alert alert-info">
-                            <strong>Vil du laste inn alle påminnelsene fra legen?</strong><br>
-                            Klikk "Last inn hele planen" for å legge til alle medisiner med anbefalte tidspunkter.
+                <!-- Premium Header -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: var(--secondary-gradient);">
+                    <div class="card-body p-4 text-white d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-1 fw-bold">Påminnelser</h5>
+                            <p class="mb-0 opacity-75 small">Administrer varsler og tider</p>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <span style="font-size: 1.5rem;">⏰</span>
                         </div>
                     </div>
                 </div>
                 
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-light text-primary fw-bold bg-white shadow-sm rounded-pill px-3 border-0" onclick="scheduleReminders()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Oppdater
+                    </button>
+                </div>
+                
+                <!-- Notifikasjons-status -->
+                <div class="card border-0 shadow-sm mb-4 rounded-4 bg-light" id="notificationStatus">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white text-primary p-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-bell-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">Varslingsstatus</div>
+                                    <div class="small text-muted" id="notificationStatusText">Sjekker...</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" id="enableNotificationsBtn" onclick="requestNotificationPermission()" style="display: none;">
+                                Aktiver
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- iOS Installation guide -->
+                <div class="card border-0 shadow-sm mb-4 bg-warning bg-opacity-10" id="iosGuide" style="display: none; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex gap-3">
+                            <div class="fs-1">📱</div>
+                            <div>
+                                <h6 class="fw-bold text-dark">Oppsett for iPhone/iPad</h6>
+                                <p class="small text-dark mb-0 opacity-75">
+                                    For å få påminnelser må du legge appen til på hjemskjermen:<br>
+                                    1. Trykk på <strong>Del-knappen</strong> (↗️) i Safari<br>
+                                    2. Velg <strong>"Legg til på Hjem-skjerm"</strong><br>
+                                    3. Åpne appen fra hjemskjermen
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Legens plan -->
+                <button class="btn btn-white w-100 border-0 shadow-sm rounded-4 mb-3 p-3 d-flex align-items-center justify-content-between text-start" onclick="addDoctorPlan()">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-file-medical-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">Legens plan</div>
+                            <div class="small text-muted">Last inn standard tider fra sykehuset</div>
+                        </div>
+                    </div>
+                    <i class="bi bi-cloud-download text-primary fs-5"></i>
+                </button>
+                
                 <!-- Egen doseringsplan -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <strong>⚙️ Lag egen doseringsplan</strong>
-                        <button class="btn btn-sm btn-primary" onclick="showCustomPlanBuilder()">
-                            ➕ Ny plan
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center rounded-top-4">
+                        <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-sliders text-primary"></i> Egen plan
+                        </h6>
+                        <button class="btn btn-sm btn-light text-primary fw-bold rounded-pill border-0 shadow-sm" onclick="showCustomPlanBuilder()">
+                            <i class="bi bi-plus-lg me-1"></i> Ny
                         </button>
                     </div>
-                    <div class="card-body">
-                        <p class="text-muted small mb-3">
-                            🗓️ Tilpass tidspunkter for Maris rutiner og Jens søvnmønster
-                        </p>
+                    <div class="card-body pt-0">
                         <div id="customPlanList">
-                            <div class="alert alert-secondary">
-                                <strong>Ingen egendefinerte planer ennå</strong><br>
-                                Klikk "Ny plan" for å lage en tilpasset doseringsplan.
+                            <div class="text-center py-4 text-muted small bg-light rounded-3 border border-light">
+                                <i class="bi bi-calendar-x fs-4 d-block mb-2 opacity-50"></i>
+                                Ingen egendefinerte planer ennå
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Legg til ny påminnelse -->
-                <div style="background: linear-gradient(135deg, #f0f4ff 0%, #fff 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #e3e8f0;">
-                    <div style="font-weight: 600; color: #333; margin-bottom: 16px; font-size: 1rem;">➕ Ny påminnelse</div>
-                    <form id="reminderForm">
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            <input type="text" class="form-control" id="reminderName" 
-                                   placeholder="Hva skal huskes? (f.eks. Bactrim)" 
-                                   required 
-                                   style="font-size: 16px; padding: 14px; border-radius: 12px; border: 2px solid #e0e0e0;">
-                            <div style="display: flex; gap: 12px;">
-                                <div style="flex: 1;">
-                                    <label style="font-size: 0.8rem; color: #666; margin-bottom: 4px; display: block;">Tidspunkt</label>
-                                    <input type="time" class="form-control" id="reminderTime" 
-                                           required 
-                                           style="font-size: 16px; padding: 14px; border-radius: 12px; border: 2px solid #e0e0e0; width: 100%;">
-                                </div>
-                                <div style="display: flex; align-items: flex-end;">
-                                    <button type="submit" class="btn btn-primary" 
-                                            style="padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 16px;">
-                                        Legg til
-                                    </button>
+                <div class="card border-0 shadow-lg rounded-4 mb-4 overflow-hidden text-white" style="background: var(--primary-gradient);">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-white">
+                            <i class="bi bi-alarm-fill"></i> Ny påminnelse
+                        </h6>
+                        <form id="reminderForm">
+                            <div class="d-flex flex-column gap-3">
+                                <input type="text" class="form-control form-control-lg bg-white bg-opacity-25 border-0 text-white placeholder-white-50 shadow-none" 
+                                       id="reminderName" 
+                                       placeholder="Hva skal huskes?" 
+                                       required>
+                                <div class="row g-3">
+                                    <div class="col-7">
+                                        <div class="form-floating">
+                                            <input type="time" class="form-control bg-white bg-opacity-25 border-0 text-white shadow-none" id="reminderTime" required placeholder="Tid">
+                                            <label for="reminderTime" class="text-white-50">Tidspunkt</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-5 d-flex align-items-stretch">
+                                        <button type="submit" class="btn btn-white text-primary fw-bold w-100 shadow-sm rounded-3" style="border: none;">
+                                            <i class="bi bi-plus-lg"></i> Legg til
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
                 
                 <!-- Liste over aktive påminnelser -->
-                <div style="font-weight: 600; color: #333; margin-bottom: 12px; font-size: 1rem;">🔔 Aktive påminnelser</div>
-                <div id="reminderList"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+                    <h6 class="fw-bold mb-0 text-primary">
+                        <i class="bi bi-bell me-2"></i>Aktive påminnelser
+                    </h6>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3" id="activeRemindersCount">
+                        <!-- Count populated by JS -->
+                    </span>
+                </div>
+                <div id="reminderList" class="d-flex flex-column gap-3"></div>
             </div>
             
             <!-- Statistikk Tab -->
             <div class="tab-pane fade" id="stats" role="tabpanel">
-                <div class="mt-3">
-                    <label for="statsDate" class="form-label">Velg dato</label>
-                    <input type="date" id="statsDate" class="form-control">
+                <!-- Premium Header -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: var(--purple-gradient);">
+                    <div class="card-body p-4 text-white d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-1 fw-bold">Statistikk</h5>
+                            <p class="mb-0 opacity-75 small">Oversikt og trender</p>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <span style="font-size: 1.5rem;">📊</span>
+                        </div>
+                    </div>
                 </div>
-                <div id="statsContent" class="mt-3"></div>
+
+                <!-- Date Filter -->
+                <div class="card border-0 shadow-sm p-2 mb-4 rounded-4 bg-white overflow-hidden">
+                    <div class="card-body p-2">
+                        <div class="input-group input-group-sm bg-light rounded-pill p-1 border">
+                            <span class="input-group-text bg-transparent border-0 text-muted ps-3"><i class="bi bi-calendar-range"></i></span>
+                            <input type="date" id="statsDate" class="form-control bg-transparent border-0 shadow-none text-muted fw-bold" style="font-size: 0.9rem;">
+                        </div>
+                    </div>
                 </div>
+                
+                <div id="statsContent" class="d-flex flex-column gap-3"></div>
             </div>
         </div>
         
         <!-- Settings Modal -->
         <div class="modal fade" id="settingsModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">⚙️ Innstillinger & Verktøy</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #607D8B, #455A64); border-radius: 24px 24px 0 0;">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-gear-fill me-2"></i>Innstillinger</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
+                        <h6 class="fw-bold text-secondary text-uppercase small mb-3">Utseende</h6>
+                        <div class="card border-0 shadow-sm p-3 rounded-4 mb-4 bg-light">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-moon-stars-fill"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Mørk modus</div>
+                                        <div class="small text-muted">Bytt mellom lyst og mørkt tema</div>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="darkModeToggle" style="width: 3em; height: 1.5em; cursor: pointer;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary text-uppercase small mb-3">Data & Eksport</h6>
+                        <button class="btn btn-light border-0 shadow-sm w-100 text-start p-3 rounded-4 mb-3 d-flex align-items-center justify-content-between" onclick="exportToCSV()">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-file-earmark-spreadsheet fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">Eksporter til CSV</div>
+                                    <div class="small text-muted">Last ned alle data til Excel</div>
+                                </div>
+                            </div>
+                            <i class="bi bi-download text-secondary"></i>
+                        </button>
+
+                        <hr class="my-4 opacity-10">
+
+                        <h6 class="fw-bold text-secondary text-uppercase small mb-3">System & Varsler</h6>
                         <div class="d-grid gap-2">
-                             <button class="btn btn-secondary" onclick="exportToCSV()">
-                                <i class="bi bi-file-earmark-spreadsheet"></i> Eksporter til CSV
+                            <button class="btn btn-light border-0 shadow-sm w-100 text-start p-3 rounded-4 d-flex align-items-center justify-content-between" onclick="sendTestPushNotification()">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-bell fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Test Push-varsel</div>
+                                        <div class="small text-muted">Send en testmelding</div>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-secondary"></i>
                             </button>
                             
-                            <hr>
-                            <h6 class="text-muted mb-2">Systemverktøy</h6>
-                            <button class="btn btn-warning" onclick="sendTestPushNotification()">
-                                <i class="bi bi-bell"></i> Test pushvarsel
+                            <button class="btn btn-light border-0 shadow-sm w-100 text-start p-3 rounded-4 d-flex align-items-center justify-content-between" onclick="fetchPushStatus()">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-info-circle fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Status Push-tjeneste</div>
+                                        <div class="small text-muted">Sjekk tilkobling</div>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-secondary"></i>
                             </button>
-                            <button class="btn btn-outline-primary" onclick="fetchPushStatus()">
-                                <i class="bi bi-info-circle"></i> Status push-tjeneste
-                            </button>
-                            <button class="btn btn-info" onclick="sendTestDailyReport()">
-                                <i class="bi bi-envelope"></i> Test e-postrapport
+
+                            <button class="btn btn-light border-0 shadow-sm w-100 text-start p-3 rounded-4 d-flex align-items-center justify-content-between" onclick="sendTestDailyReport()">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-envelope fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Test E-postrapport</div>
+                                        <div class="small text-muted">Send daglig rapport nå</div>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-secondary"></i>
                             </button>
                         </div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                        <button type="button" class="btn btn-secondary w-100 rounded-pill py-2 fw-bold" data-bs-dismiss="modal">Lukk</button>
                     </div>
                 </div>
             </div>
@@ -990,24 +1032,24 @@
     
     <!-- Quick Bowel Movement Modal -->
     <div class="modal fade" id="bowelModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">💩 Logg avføring</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #795548, #5D4037); border-radius: 24px 24px 0 0;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-chat-square-text me-2"></i>Logg avføring</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label">Mengde</label>
-                        <select class="form-select" id="quickBmAmount">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Mengde</label>
+                        <select class="form-select form-select-lg shadow-sm border-0 bg-light" id="quickBmAmount">
                             <option value="Liten">Liten</option>
                             <option value="Middels" selected>Middels</option>
                             <option value="Stor">Stor</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Konsistens (Bristol Stool Scale)</label>
-                        <select class="form-select" id="quickBmConsistency">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Konsistens</label>
+                        <select class="form-select shadow-sm border-0 bg-light" id="quickBmConsistency" style="padding-top: 12px; padding-bottom: 12px;">
                             <option value="Type 1: Separate hard lumps, like nuts (hard to pass)">Type 1: Harde klumper</option>
                             <option value="Type 2: Sausage-shaped but lumpy">Type 2: Pølseformet men klumpete</option>
                             <option value="Type 3: Like a sausage but with cracks on the surface">Type 3: Pølse med sprekker</option>
@@ -1017,14 +1059,16 @@
                             <option value="Type 7: Watery, no solid pieces, entirely liquid">Type 7: Vandig/diaré</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Farge (valgfritt)</label>
-                        <input type="text" class="form-control" id="quickBmColor" placeholder="f.eks. Brun, Grønn">
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Farge (valgfritt)</label>
+                        <input type="text" class="form-control shadow-sm border-0 bg-light" id="quickBmColor" placeholder="f.eks. Brun, Grønn">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="button" class="btn btn-primary" onclick="submitQuickBowelMovement()">Lagre</button>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light text-muted fw-bold px-4 rounded-pill" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn text-white fw-bold px-5 rounded-pill shadow-sm flex-grow-1" style="background: linear-gradient(135deg, #795548, #5D4037);" onclick="submitQuickBowelMovement()">
+                        <i class="bi bi-check-lg me-1"></i> Lagre
+                    </button>
                 </div>
             </div>
         </div>
@@ -1032,24 +1076,24 @@
     
     <!-- Quick vannlating Modal -->
     <div class="modal fade" id="vannlatingModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">💧 Logg vannlating</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #039BE5, #0277BD); border-radius: 24px 24px 0 0;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-droplet-fill me-2"></i>Logg vannlating</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label">Mengde</label>
-                        <select class="form-select" id="quickUrineAmount">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Mengde</label>
+                        <select class="form-select form-select-lg shadow-sm border-0 bg-light" id="quickUrineAmount">
                             <option value="Liten">Liten</option>
                             <option value="Middels" selected>Middels</option>
                             <option value="Stor">Stor</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Farge</label>
-                        <select class="form-select" id="quickUrineColor">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Farge</label>
+                        <select class="form-select shadow-sm border-0 bg-light" id="quickUrineColor" style="padding-top: 12px; padding-bottom: 12px;">
                             <option value="Klar">Klar</option>
                             <option value="Lys gul" selected>Lys gul</option>
                             <option value="Mørk gul">Mørk gul</option>
@@ -1057,14 +1101,16 @@
                             <option value="Annet">Annet</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Lukt (valgfritt)</label>
-                        <input type="text" class="form-control" id="quickUrineSmell" placeholder="f.eks. Normal, Sterk">
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Lukt (valgfritt)</label>
+                        <input type="text" class="form-control shadow-sm border-0 bg-light" id="quickUrineSmell" placeholder="f.eks. Normal, Sterk">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="button" class="btn btn-primary" onclick="submitQuickvannlating()">Lagre</button>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light text-muted fw-bold px-4 rounded-pill" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn text-white fw-bold px-5 rounded-pill shadow-sm flex-grow-1" style="background: linear-gradient(135deg, #039BE5, #0277BD);" onclick="submitQuickvannlating()">
+                        <i class="bi bi-check-lg me-1"></i> Lagre
+                    </button>
                 </div>
             </div>
         </div>
@@ -1072,21 +1118,20 @@
     <!-- User Selector Modal -->
     <div class="modal fade" id="userSelectorModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); padding: 30px 20px; text-align: center;">
+            <div class="modal-content">
+                <div class="modal-header text-white text-center d-block border-0 pb-0" style="background: var(--primary-gradient);">
                     <img src="./logo.svg" alt="Dosevakt" style="height: 60px; margin-bottom: 12px; filter: brightness(0) invert(1);">
-                    <h5 style="color: white; margin: 0; font-weight: 600;">Hvem er du?</h5>
+                    <h5 class="modal-title">Hvem er du?</h5>
                 </div>
-                <div style="padding: 24px;">
-                    <div id="defaultUsersContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
-                    <div id="savedUsersContainer" style="margin-top: 12px;"></div>
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 8px;">Legg til ny bruker:</div>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="customUserInput" placeholder="Navn..." 
-                                   style="flex: 1; padding: 12px 16px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 16px;">
-                            <button onclick="showAddUserModal(document.getElementById('customUserInput').value)" 
-                                    style="padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
+                <div class="modal-body pt-4">
+                    <div id="defaultUsersContainer" class="d-grid gap-2"></div>
+                    <div id="savedUsersContainer" class="d-grid gap-2 mt-2"></div>
+                    
+                    <div class="mt-4 pt-4 border-top">
+                        <label class="form-label small text-muted">Legg til ny bruker:</label>
+                        <div class="input-group">
+                            <input type="text" id="customUserInput" class="form-control" placeholder="Navn...">
+                            <button class="btn text-white" style="background: var(--primary-gradient);" onclick="showAddUserModal(document.getElementById('customUserInput').value)">
                                 OK
                             </button>
                         </div>
@@ -1099,50 +1144,44 @@
     <!-- Add/Edit User Modal -->
     <div class="modal fade" id="addUserModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); padding: 24px 20px; text-align: center;">
-                    <h5 style="color: white; margin: 0; font-weight: 600;">👤 <span id="addUserModalTitle">Ny bruker</span></h5>
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: var(--primary-gradient);">
+                    <h5 class="modal-title">👤 <span id="addUserModalTitle">Ny bruker</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div style="padding: 24px;">
+                <div class="modal-body">
                     <input type="hidden" id="editingUserId">
                     <div class="mb-3">
-                        <label style="font-weight: 600; font-size: 0.9rem; color: #333; margin-bottom: 6px; display: block;">Navn *</label>
-                        <input type="text" id="newUserName" placeholder="Ditt navn" 
-                               style="width: 100%; padding: 12px 16px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 16px;">
+                        <label class="form-label fw-bold">Navn *</label>
+                        <input type="text" id="newUserName" class="form-control" placeholder="Ditt navn">
                     </div>
                     <div class="mb-3">
-                        <label style="font-weight: 600; font-size: 0.9rem; color: #333; margin-bottom: 6px; display: block;">E-post (valgfritt)</label>
-                        <input type="email" id="newUserEmail" placeholder="din@epost.no" 
-                               style="width: 100%; padding: 12px 16px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 16px;">
-                        <small style="color: #888; font-size: 0.8rem;">For å motta daglig rapport og varsler</small>
+                        <label class="form-label fw-bold">E-post (valgfritt)</label>
+                        <input type="email" id="newUserEmail" class="form-control" placeholder="din@epost.no">
+                        <div class="form-text">For å motta daglig rapport og varsler</div>
                     </div>
-                    <div style="background: #f8f9fa; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
-                        <div style="font-weight: 600; font-size: 0.9rem; color: #333; margin-bottom: 12px;">📧 E-postvarsler</div>
-                        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px;">
-                            <input type="checkbox" id="newUserDailyReport" style="width: 20px; height: 20px; accent-color: #4CAF50;">
-                            <div>
-                                <div style="font-weight: 500; color: #333;">Daglig rapport</div>
-                                <div style="font-size: 0.8rem; color: #888;">Motta oppsummering kl. 22:00</div>
-                            </div>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                            <input type="checkbox" id="newUserMissedMedAlert" style="width: 20px; height: 20px; accent-color: #FF9800;">
-                            <div>
-                                <div style="font-weight: 500; color: #333;">Glemt medisin-varsel</div>
-                                <div style="font-size: 0.8rem; color: #888;">Varsles hvis medisin ikke er gitt 10 min etter tidspunkt</div>
-                            </div>
-                        </label>
+                    
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <h6 class="fw-bold mb-3">📧 E-postvarsler</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="newUserDailyReport">
+                            <label class="form-check-label" for="newUserDailyReport">
+                                <div>Daglig rapport</div>
+                                <small class="text-muted">Motta oppsummering kl. 22:00</small>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="newUserMissedMedAlert">
+                            <label class="form-check-label" for="newUserMissedMedAlert">
+                                <div>Glemt medisin-varsel</div>
+                                <small class="text-muted">Varsles hvis medisin ikke er gitt 10 min etter tidspunkt</small>
+                            </label>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="closeAddUserModal()" 
-                                style="flex: 1; padding: 14px; background: #f0f0f0; color: #333; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">
-                            Avbryt
-                        </button>
-                        <button onclick="saveUser()" 
-                                style="flex: 1; padding: 14px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                            Lagre
-                        </button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()">Avbryt</button>
+                    <button type="button" class="btn text-white" style="background: var(--primary-gradient);" onclick="saveUser()">Lagre</button>
                 </div>
             </div>
         </div>
@@ -1150,34 +1189,34 @@
     
     <!-- Quick Vomit Modal -->
     <div class="modal fade" id="vomitModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">🤮 Logg oppkast</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #E53935, #C62828); border-radius: 24px 24px 0 0;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Logg oppkast</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label">Mengde</label>
-                        <select class="form-select" id="quickVomitAmount">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Mengde</label>
+                        <select class="form-select form-select-lg shadow-sm border-0 bg-light" id="quickVomitAmount">
                             <option value="Liten">Liten (gulp)</option>
                             <option value="Middels" selected>Middels</option>
                             <option value="Stor">Stor</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Farge/Innhold</label>
-                        <input type="text" class="form-control" id="quickVomitColor" placeholder="f.eks. Ufordøyd mat, slim, gult">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Farge/Innhold</label>
+                        <input type="text" class="form-control shadow-sm border-0 bg-light" id="quickVomitColor" placeholder="f.eks. Ufordøyd mat, slim, gult">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tidspunkt</label>
-                        <input type="datetime-local" class="form-control" id="quickVomitTime">
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Tidspunkt</label>
+                        <input type="datetime-local" class="form-control shadow-sm border-0 bg-light" id="quickVomitTime">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="button" class="btn btn-danger" onclick="quickLogVomit()">
-                        🤮 Logg oppkast
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light text-muted fw-bold px-4 rounded-pill" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn text-white fw-bold px-5 rounded-pill shadow-sm flex-grow-1" style="background: linear-gradient(135deg, #E53935, #C62828);" onclick="quickLogVomit()">
+                        <i class="bi bi-check-lg me-1"></i> Logg oppkast
                     </button>
                 </div>
             </div>
@@ -1186,54 +1225,52 @@
     
     <!-- Add Medicine to Checklist Modal -->
     <div class="modal fade" id="addMedicineModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content" style="border-radius: 16px;">
-                <div style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); padding: 20px; color: white; border-radius: 16px 16px 0 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h5 style="margin: 0; font-weight: 600;">💊 Legg til ny medisin</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: var(--primary-gradient);">
+                    <h5 class="modal-title">💊 Legg til ny medisin</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" style="padding: 24px;">
+                <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600;">Medisinnavn *</label>
-                        <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Marevan" required style="font-size: 16px; padding: 12px;">
+                        <label class="form-label fw-bold">Medisinnavn *</label>
+                        <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Marevan" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600;">Dose/mengde</label>
-                        <input type="text" class="form-control" id="newMedicineDose" placeholder="F.eks. 10 ml, 1 tablett" style="font-size: 16px; padding: 12px;">
+                        <label class="form-label fw-bold">Dose/mengde</label>
+                        <input type="text" class="form-control" id="newMedicineDose" placeholder="F.eks. 10 ml, 1 tablett">
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600;">Kategori *</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
-                                <input type="radio" name="medicineCategory" value="dag" style="width: 18px; height: 18px;">
+                        <label class="form-label fw-bold">Kategori *</label>
+                        <div class="d-grid gap-2" style="grid-template-columns: 1fr 1fr;">
+                            <label class="btn btn-outline-light text-dark d-flex align-items-center gap-2 text-start border">
+                                <input type="radio" name="medicineCategory" value="dag" class="form-check-input mt-0">
                                 <span>🌅 Morgen</span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
-                                <input type="radio" name="medicineCategory" value="kveld" style="width: 18px; height: 18px;">
+                            <label class="btn btn-outline-light text-dark d-flex align-items-center gap-2 text-start border">
+                                <input type="radio" name="medicineCategory" value="kveld" class="form-check-input mt-0">
                                 <span>🌙 Kveld</span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
-                                <input type="radio" name="medicineCategory" value="both" style="width: 18px; height: 18px;">
+                            <label class="btn btn-outline-light text-dark d-flex align-items-center gap-2 text-start border">
+                                <input type="radio" name="medicineCategory" value="both" class="form-check-input mt-0">
                                 <span>🔄 Begge</span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid transparent;" class="category-option">
-                                <input type="radio" name="medicineCategory" value="prn" checked style="width: 18px; height: 18px;">
+                            <label class="btn btn-outline-light text-dark d-flex align-items-center gap-2 text-start border">
+                                <input type="radio" name="medicineCategory" value="prn" checked class="form-check-input mt-0">
                                 <span>🎯 Ved behov</span>
                             </label>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600;">Tidspunkt (valgfritt)</label>
-                        <input type="time" class="form-control" id="newMedicineTime" style="font-size: 16px; padding: 12px;">
+                        <label class="form-label fw-bold">Tidspunkt (valgfritt)</label>
+                        <input type="time" class="form-control" id="newMedicineTime">
                         <small class="text-muted">Legg til klokkeslett hvis medisinen skal tas til fast tid</small>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: none; padding: 0 24px 24px;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 12px 24px;">Avbryt</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
                     <button type="button" class="btn btn-success" onclick="addNewMedicineToChecklist()" style="padding: 12px 24px;">
                         ✓ Legg til
                     </button>
@@ -1244,29 +1281,29 @@
     
     <!-- Add Sondemat to Checklist Modal -->
     <div class="modal fade" id="addSondematModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #42A5F5, #2196F3);">
                     <h5 class="modal-title">🍼 Legg til ny sondemat</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="newSondematName" class="form-label">Sondematenavn *</label>
+                        <label for="newSondematName" class="form-label fw-bold">Sondematenavn *</label>
                         <input type="text" class="form-control" id="newSondematName" placeholder="F.eks. Fresubin" required>
                     </div>
                     <div class="mb-3">
-                        <label for="newSondematAmount" class="form-label">Mengde</label>
+                        <label for="newSondematAmount" class="form-label fw-bold">Mengde</label>
                         <input type="text" class="form-control" id="newSondematAmount" placeholder="F.eks. 500 ml">
                     </div>
                     <div class="mb-3">
-                        <label for="newSondematFrequency" class="form-label">Frekvens</label>
+                        <label for="newSondematFrequency" class="form-label fw-bold">Frekvens</label>
                         <input type="text" class="form-control" id="newSondematFrequency" placeholder="F.eks. 3x daglig">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="button" class="btn btn-primary" onclick="addNewSondematToChecklist()">
+                    <button type="button" class="btn text-white" style="background: linear-gradient(135deg, #42A5F5, #2196F3);" onclick="addNewSondematToChecklist()">
                         💾 Lagre
                     </button>
                 </div>
@@ -1311,6 +1348,95 @@
         </div>
     </div>
     
+    <!-- Offcanvas Menu -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="border-radius: 0 20px 20px 0; border: none; box-shadow: 5px 0 30px rgba(0,0,0,0.1);">
+        <div class="offcanvas-header" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); color: white; padding: 24px;">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel" style="display: flex; align-items: center; gap: 16px; font-weight: 700; font-size: 1.5rem;">
+                <img src="./logo.svg" alt="Logo" style="height: 40px; filter: brightness(0) invert(1);">
+                Dosevakt
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" style="padding: 0;">
+            <!-- User Profile Section -->
+            <div style="text-align: center; padding: 32px 20px; background: #f8f9fa; border-bottom: 1px solid #eee;">
+                <div style="width: 88px; height: 88px; background: white; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 3rem; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
+                    👤
+                </div>
+                <h4 id="offcanvasUserName" style="margin-bottom: 4px; font-weight: 700; color: #333;">Bruker</h4>
+                <p style="color: #666; font-size: 0.95rem; margin-bottom: 24px;">Innlogget bruker</p>
+                <button onclick="switchUser()" class="btn btn-outline-primary rounded-pill px-4 py-2" data-bs-dismiss="offcanvas" style="font-weight: 600;">
+                    <i class="bi bi-arrow-repeat me-2"></i>Bytt bruker
+                </button>
+            </div>
+
+            <!-- Menu Items -->
+            <div class="list-group list-group-flush p-3 gap-2">
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('home-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #E3F2FD; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #2196F3; font-size: 1.2rem;">
+                        <i class="bi bi-house-door-fill"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Hjem</span>
+                </button>
+                
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('checklist-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #E8F5E9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #4CAF50; font-size: 1.2rem;">
+                        <i class="bi bi-check-square-fill"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Sjekkliste</span>
+                </button>
+
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('log-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #FFF3E0; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #FF9800; font-size: 1.2rem;">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Ny Logg</span>
+                </button>
+                
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('today-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #FFF8E1; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #FFC107; font-size: 1.2rem;">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">I dag</span>
+                </button>
+                
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('history-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #F3E5F5; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #9C27B0; font-size: 1.2rem;">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Historikk</span>
+                </button>
+
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('reminders-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #E0F7FA; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #00BCD4; font-size: 1.2rem;">
+                        <i class="bi bi-bell-fill"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Påminnelser</span>
+                </button>
+
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('stats-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #E8EAF6; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #3F51B5; font-size: 1.2rem;">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Statistikk</span>
+                </button>
+                
+                <div class="border-top my-2"></div>
+
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #F5F5F5; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #616161; font-size: 1.2rem;">
+                        <i class="bi bi-gear-fill"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Innstillinger</span>
+                </button>
+            </div>
+            
+            <div style="margin-top: auto; padding: 24px; text-align: center;">
+                <p style="color: #ccc; font-size: 0.8rem; margin: 0; font-weight: 500;">Dosevakt v1.2.0</p>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Firebase SDK -->
@@ -1321,9 +1447,21 @@
     
     <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
+
+    <!-- App Config -->
+    <script src="config.js"></script>
     
     <!-- Medicine Info -->
     <script src="medicine-info.js"></script>
+    
+    <!-- Utils (Helper functions) -->
+    <script src="utils.js"></script>
+
+    <!-- Data Management -->
+    <script src="data.js"></script>
+
+    <!-- UI Rendering -->
+    <script src="ui.js"></script>
     
     <!-- App JS -->
     <script src="app.js"></script>

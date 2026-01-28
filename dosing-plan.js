@@ -6,22 +6,11 @@ function addDoctorPlan() {
         return;
     }
     
-    const doctorPlan = [
-        { name: 'Bactrim morgen', time: '08:00' },
-        { name: 'Bactrim kveld', time: '20:00' },
-        { name: 'Nycoplus Multi Barn', time: '08:00' },
-        { name: 'Nexium', time: '08:00' },
-        { name: 'Zyprexa', time: '18:00' },
-        { name: 'Emend', time: '08:00' },
-        { name: 'Deksklorfeniramin morgen', time: '08:00' },
-        { name: 'Deksklorfeniramin middag', time: '14:00' },
-        { name: 'Deksklorfeniramin kveld', time: '20:00' },
-        { name: 'Nutrini peptisorb', time: '08:00' }
-    ];
+    const doctorPlan = AppConfig.doctorPlan;
     
     let added = 0;
     doctorPlan.forEach(reminder => {
-        const exists = reminders.some(r => r.name === reminder.name && r.time === reminder.time);
+        const exists = (window.reminders || []).some(r => r.name === reminder.name && r.time === reminder.time);
         if (!exists) {
             addPresetReminder(reminder.name, reminder.time);
             added++;
@@ -46,17 +35,7 @@ function showCustomPlanBuilder() {
 function buildMedicineTimePicker() {
     const container = document.getElementById('medicineTimePicker');
     
-    window.allMedicines = [
-        { name: 'Bactrim', default: '08:00' },
-        { name: 'Nycoplus Multi Barn', default: '08:00' },
-        { name: 'Nexium', default: '08:00' },
-        { name: 'Zyprexa', default: '18:00' },
-        { name: 'Emend', default: '08:00' },
-        { name: 'Paracetamol', default: '10:00' },
-        { name: 'Movicol', default: '08:00' },
-        { name: 'Deksklorfeniramin', default: '08:00' },
-        { name: 'Nutrini peptisorb', default: '08:00' }
-    ];
+    window.allMedicines = AppConfig.allMedicines;
     
     container.innerHTML = window.allMedicines.map((med, index) => `
         <div class="mb-3">
@@ -157,69 +136,87 @@ function saveCustomPlan() {
         return;
     }
     
-    // Save plan to localStorage (could be Firestore in future)
-    const customPlans = JSON.parse(localStorage.getItem('customPlans') || '[]');
     const newPlan = {
-        id: Date.now(),
         name: planName,
-        medicines: selectedMedicines,
-        createdBy: currentUser || 'Unknown',
-        createdAt: new Date().toISOString()
+        medicines: selectedMedicines
     };
     
-    customPlans.push(newPlan);
-    localStorage.setItem('customPlans', JSON.stringify(customPlans));
-    
-    // Close modal
-    bootstrap.Modal.getInstance(document.getElementById('customPlanModal')).hide();
-    
-    // Refresh custom plan list
-    displayCustomPlans();
-    
-    // Ask if user wants to download calendar
-    if (confirm('✅ Plan lagret! Vil du laste ned en kalender (.ics) med denne doseringsplanen?')) {
-        downloadPlanAsCalendar(newPlan);
-    }
-    
-    showToast(`✓ Plan "${planName}" opprettet!`);
+    // Save to Firestore
+    saveCustomPlanToFirestore(newPlan)
+        .then((docId) => {
+            // Close modal
+            const modalEl = document.getElementById('customPlanModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+            
+            showToast(`✓ Plan "${planName}" lagret!`);
+            
+            // Ask if user wants to download calendar
+            newPlan.id = docId;
+            if (confirm('✅ Plan lagret! Vil du laste ned en kalender (.ics) med denne doseringsplanen?')) {
+                downloadPlanAsCalendar(newPlan);
+            }
+        })
+        .catch(error => {
+            console.error("Error saving plan:", error);
+            showToast('❌ Kunne ikke lagre planen');
+        });
 }
 
 // Display custom plans
 function displayCustomPlans() {
     const container = document.getElementById('customPlanList');
-    const customPlans = JSON.parse(localStorage.getItem('customPlans') || '[]');
+    const customPlans = window.customPlans || [];
     
     if (customPlans.length === 0) {
         container.innerHTML = `
-            <div class="alert alert-secondary">
+            <div class="alert alert-secondary text-center p-4">
+                <i class="bi bi-clipboard-plus fs-1 text-muted mb-3 d-block"></i>
                 <strong>Ingen egendefinerte planer ennå</strong><br>
-                Klikk "Ny plan" for å lage en tilpasset doseringsplan.
+                <span class="text-muted small">Klikk "Ny plan" for å lage en tilpasset doseringsplan.</span>
             </div>
         `;
         return;
     }
     
     container.innerHTML = customPlans.map(plan => `
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
+        <div class="log-card mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex gap-3 flex-grow-1">
+                     <div class="d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 42px; height: 42px; flex-shrink: 0;">
+                        <span style="font-size: 1.2rem;">💊</span>
+                    </div>
                     <div>
-                        <h6 class="mb-2">${plan.name}</h6>
-                        <small class="text-muted">
-                            ${plan.medicines.length} medisiner • Opprettet av ${plan.createdBy}
-                        </small>
+                        <div style="font-weight: 600; color: #333;">${plan.name}</div>
+                        <div style="font-size: 0.8rem; color: #888;">
+                            ${plan.medicines.length} medisiner • Opprettet av ${plan.createdBy || 'Ukjent'}
+                        </div>
                     </div>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-success" onclick="activatePlan(${plan.id})" title="Aktiver plan">
-                            ⚡ Aktiver
-                        </button>
-                        <button class="btn btn-sm btn-info" onclick="downloadPlanAsCalendar(${JSON.stringify(plan).replace(/"/g, '&quot;')})" title="Last ned kalender">
-                            📅
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteCustomPlan(${plan.id})" title="Slett plan">
-                            🗑️
-                        </button>
-                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light text-muted border-0" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li>
+                            <a class="dropdown-item py-2" href="#" onclick="activatePlan('${plan.id}')">
+                                <i class="bi bi-lightning-charge text-warning me-2"></i>Aktiver plan
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="#" onclick="downloadPlanAsCalendar(${JSON.stringify(plan).replace(/"/g, '&quot;')})">
+                                <i class="bi bi-calendar-event text-info me-2"></i>Last ned kalender
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-danger" href="#" onclick="deleteCustomPlan('${plan.id}')">
+                                <i class="bi bi-trash me-2"></i>Slett plan
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -228,7 +225,7 @@ function displayCustomPlans() {
 
 // Activate a custom plan (add all reminders)
 function activatePlan(planId) {
-    const customPlans = JSON.parse(localStorage.getItem('customPlans') || '[]');
+    const customPlans = window.customPlans || [];
     const plan = customPlans.find(p => p.id === planId);
     
     if (!plan) {
@@ -258,12 +255,14 @@ function deleteCustomPlan(planId) {
         return;
     }
     
-    let customPlans = JSON.parse(localStorage.getItem('customPlans') || '[]');
-    customPlans = customPlans.filter(p => p.id !== planId);
-    localStorage.setItem('customPlans', JSON.stringify(customPlans));
-    
-    displayCustomPlans();
-    showToast('✓ Plan slettet');
+    deleteCustomPlanFromFirestore(planId)
+        .then(() => {
+            showToast('✓ Plan slettet');
+        })
+        .catch(error => {
+            console.error("Error deleting plan:", error);
+            showToast('❌ Kunne ikke slette planen');
+        });
 }
 
 // Download plan as ICS calendar file

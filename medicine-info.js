@@ -626,15 +626,11 @@ function parseOpenFDAResponse(data, originalName) {
     };
     
     // Cache the result
-    medicineDatabase[originalName] = info;
+    window.medicineDatabase[originalName] = info;
     
-    // Save to localStorage for persistence
-    try {
-        const customMeds = JSON.parse(localStorage.getItem('customMedicineInfo') || '{}');
-        customMeds[originalName] = info;
-        localStorage.setItem('customMedicineInfo', JSON.stringify(customMeds));
-    } catch (e) {
-        console.error('Error caching medicine info:', e);
+    // Save to Firestore for persistence
+    if (typeof saveCustomMedicineToFirestore === 'function') {
+        saveCustomMedicineToFirestore(info);
     }
     
     return info;
@@ -685,25 +681,31 @@ function extractSideEffects(field) {
     return foundEffects.length > 0 ? foundEffects.slice(0, 6) : ['Se pakningsvedlegg'];
 }
 
-// Add info to medicine database dynamically
+// Add info to medicine database dynamically (synced with Firestore)
 function addMedicineToDatabase(name, info) {
     medicineDatabase[name] = info;
-    localStorage.setItem('customMedicineInfo', JSON.stringify(
-        Object.fromEntries(
-            Object.entries(medicineDatabase).filter(([key]) => !['Bactrim', 'Nexium', 'Emend', 'Zyprexa', 'Palonosetron', 'Paracetamol', 'Movicol', 'Deksklorfeniramin', 'Ibuprofen', 'Nutrini peptisorb', 'Nycoplus Multi Barn'].includes(key))
-        )
-    ));
-}
-
-// Load custom medicine info from localStorage
-function loadCustomMedicineInfo() {
-    try {
-        const custom = JSON.parse(localStorage.getItem('customMedicineInfo') || '{}');
-        Object.assign(medicineDatabase, custom);
-    } catch (e) {
-        console.error('Error loading custom medicine info:', e);
+    
+    // Save to Firestore
+    if (typeof saveCustomMedicineToFirestore === 'function') {
+        saveCustomMedicineToFirestore(info)
+            .then(() => console.log('Custom medicine info saved to Firestore'))
+            .catch(err => console.error('Error saving custom medicine:', err));
     }
 }
 
+// Merge custom medicines from Firestore (called by firebase-config.js)
+window.mergeCustomMedicines = function(customMedicines) {
+    if (!customMedicines) return;
+    
+    console.log('Merging custom medicines from Firestore:', Object.keys(customMedicines).length);
+    Object.assign(medicineDatabase, customMedicines);
+};
+
+// Legacy function (kept for compatibility but does nothing with localStorage)
+function loadCustomMedicineInfo() {
+    // No-op: data is loaded via Firestore sync
+    console.log('Custom medicine info loading via Firestore sync...');
+}
+
 // Initialize
-loadCustomMedicineInfo();
+// loadCustomMedicineInfo(); // No need to call, sync handles it

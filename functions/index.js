@@ -9,6 +9,56 @@ admin.initializeApp();
 // Define secret for Resend API key
 const resendApiKey = defineSecret("RESEND_API_KEY");
 
+// Pushover Configuration (using Secrets)
+const pushoverUserKey = defineSecret("PUSHOVER_USER_KEY");
+const pushoverApiToken = defineSecret("PUSHOVER_API_TOKEN");
+
+/**
+ * Send notification via Pushover
+ * @param {string} title
+ * @param {string} message
+ * @param {number} priority (-2 to 2)
+ * @param {string} sound
+ * @return {Promise<boolean>}
+ */
+async function sendPushoverNotification(title, message, priority = 0, sound = "pushover") {
+  const token = pushoverApiToken.value();
+  const user = pushoverUserKey.value();
+
+  if (!token || !user) {
+    console.log("Pushover secrets not available, skipping notification");
+    return false;
+  }
+
+  try {
+    const response = await fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: token,
+        user: user,
+        message: message,
+        title: title,
+        priority: priority,
+        sound: sound,
+      }),
+    });
+    const data = await response.json();
+    if (data.status === 1) {
+      console.log("Pushover notification sent successfully");
+      return true;
+    } else {
+      console.error("Pushover API error:", data);
+      return false;
+    }
+  } catch (error) {
+    console.error("Error sending Pushover notification:", error);
+    return false;
+  }
+}
+
 /**
  * Format a Date to "HH:MM" in Europe/Oslo timezone (handles DST).
  * @param {Date} date
@@ -28,6 +78,7 @@ exports.checkReminders = onSchedule(
     {
       schedule: "every 1 minutes",
       timeZone: "Europe/Oslo",
+      secrets: [pushoverApiToken, pushoverUserKey],
     },
     async () => {
       const currentTime = formatTimeHHMMInOslo(new Date());
@@ -53,80 +104,121 @@ exports.checkReminders = onSchedule(
         tokensSnapshot.forEach((doc) => {
           const data = doc.data();
           const token = data && data.token;
-          if (token) {
-            tokenDocs.push({token, ref: doc.ref});
+          // Only send to tokens that have a registered user to avoid ghost devices
+          // and ensure we are reaching actual family members/carers
+          if (token && data.userId) {
+            tokenDocs.push({token, ref: doc.ref, userId: data.userId});
           }
         });
 
+        // We continue even if no FCM tokens, to support Pushover
         if (tokenDocs.length === 0) {
-          console.log("No FCM tokens registered");
-          return null;
+          console.log("No active FCM tokens registered (continuing for Pushover)");
         }
 
         for (const reminderDoc of remindersSnapshot.docs) {
           const reminder = reminderDoc.data();
+
+          // Idempotency check: Skip if sent less than 2 minutes ago
+          // (Handles potential Cloud Function retries)
+          if (reminder.lastSent) {
+            const lastSentDate = reminder.lastSent.toDate();
+            const timeDiff = Date.now() - lastSentDate.getTime();
+            if (timeDiff < 2 * 60 * 1000) { // Less than 2 minutes
+              console.log(`Skipping reminder ${reminder.name} (already sent recently)`);
+              continue;
+            }
+          }
+
           const title = "Påminnelse - Dosevakt";
           const body = `⏰ ${reminder.name} (kl. ${currentTime})`;
 
-          const response = await admin.messaging().sendEachForMulticast({
-            tokens: tokenDocs.map((d) => d.token),
-            notification: {title, body},
-            data: {
-              type: "reminder",
-              name: String(reminder.name || ""),
-              time: String(reminder.time || currentTime),
-            },
-            webpush: {
-              notification: {
-                title,
-                body,
-                icon: "/icon.png",
-                badge: "/icon.png",
-                tag: `dosevakt-reminder-${reminderDoc.id}`,
-                requireInteraction: true,
+          let fcmSuccess = false;
+
+          if (tokenDocs.length > 0) {
+            const response = await admin.messaging().sendEachForMulticast({
+              tokens: tokenDocs.map((d) => d.token),
+              notification: {title, body},
+              data: {
+                type: "reminder",
+                name: String(reminder.name || ""),
+                time: String(reminder.time || currentTime),
               },
-              fcmOptions: {
-                link: "https://jensapp-14069.web.app",
-              },
-            },
-            android: {
-              notification: {
-                sound: "default",
-                priority: "high",
-              },
-            },
-            apns: {
-              payload: {
-                aps: {
-                  sound: "default",
-                  badge: 1,
+              webpush: {
+                headers: {
+                  "Urgency": "high",
+                  "TTL": "86400",
+                },
+                notification: {
+                  title,
+                  body,
+                  icon: "/icon.png",
+                  badge: "/icon.png",
+                  tag: `dosevakt-reminder-${reminderDoc.id}`,
+                  requireInteraction: true,
+                },
+                fcmOptions: {
+                  link: "https://jensapp-14069.web.app",
                 },
               },
-            },
-          });
+              android: {
+                notification: {
+                  sound: "default",
+                  priority: "high",
+                },
+              },
+              apns: {
+                payload: {
+                  aps: {
+                    "sound": "default",
+                    "badge": 1,
+                    "interruption-level": "time-sensitive",
+                  },
+                },
+              },
+            });
 
-          console.log(
-              `Reminder "${reminder.name}" sent: ` +
-              `${response.successCount}/${tokenDocs.length} successes`,
+            console.log(
+                `Reminder "${reminder.name}" sent to FCM: ` +
+                `${response.successCount}/${tokenDocs.length} successes`,
+            );
+
+            if (response.successCount > 0) {
+              fcmSuccess = true;
+            }
+
+            // Clean invalid tokens
+            const invalidToken = "messaging/invalid-registration-token";
+            const notRegistered = "messaging/registration-token-not-registered";
+
+            const cleanup = [];
+            response.responses.forEach((r, idx) => {
+              if (!r.success && r.error) {
+                const code = r.error.code;
+                if (code === invalidToken || code === notRegistered) {
+                  cleanup.push(tokenDocs[idx].ref.delete());
+                }
+              }
+            });
+
+            if (cleanup.length > 0) {
+              await Promise.allSettled(cleanup);
+              console.log(`Cleaned ${cleanup.length} invalid tokens`);
+            }
+          }
+
+          // Send via Pushover
+          const pushoverSuccess = await sendPushoverNotification(
+              title,
+              body,
+              1, // High priority
           );
 
-          // Clean invalid tokens
-          const invalidToken = "messaging/invalid-registration-token";
-          const notRegistered = "messaging/registration-token-not-registered";
-
-          const cleanup = [];
-          response.responses.forEach((r, idx) => {
-            if (!r.success && r.error) {
-              const code = r.error.code;
-              if (code === invalidToken || code === notRegistered) {
-                cleanup.push(tokenDocs[idx].ref.delete());
-              }
-            }
-          });
-
-          if (cleanup.length > 0) {
-            await Promise.allSettled(cleanup);
-            console.log(`Cleaned ${cleanup.length} invalid tokens`);
+          // Update lastSent timestamp if sent via either channel
+          if (fcmSuccess || pushoverSuccess) {
+            await reminderDoc.ref.update({
+              lastSent: admin.firestore.FieldValue.serverTimestamp(),
+            });
           }
         }
 
@@ -176,6 +268,7 @@ exports.testPush = onRequest(
     {
       cors: true,
       invoker: "public",
+      secrets: [pushoverApiToken, pushoverUserKey],
     },
     async (req, res) => {
       try {
@@ -193,62 +286,127 @@ exports.testPush = onRequest(
         });
 
         if (tokenDocs.length === 0) {
-          res.json({success: false, error: "No FCM tokens registered"});
-          return;
+          console.log("No FCM tokens registered (continuing for Pushover)");
         }
 
         const osloTime = formatTimeHHMMInOslo(new Date());
         const title = "Dosevakt test";
         const body = `Dette er en test av pushvarsler (kl. ${osloTime})`;
 
-        const response = await admin.messaging().sendEachForMulticast({
-          tokens: tokenDocs.map((d) => d.token),
-          notification: {title, body},
-          data: {
-            type: "test",
-            time: osloTime,
-          },
-          webpush: {
-            notification: {
-              title,
-              body,
-              icon: "/icon.png",
-              badge: "/icon.png",
-              tag: "dosevakt-test",
-              requireInteraction: true,
-            },
-            fcmOptions: {
-              link: "https://jensapp-14069.web.app",
-            },
-          },
-        });
+        let fcmResult = {successCount: 0, failureCount: 0};
 
-        // Clean invalid tokens
-        const invalidToken = "messaging/invalid-registration-token";
-        const notRegistered = "messaging/registration-token-not-registered";
+        if (tokenDocs.length > 0) {
+          const response = await admin.messaging().sendEachForMulticast({
+            tokens: tokenDocs.map((d) => d.token),
+            notification: {title, body},
+            data: {
+              type: "test",
+              time: osloTime,
+            },
+            webpush: {
+              headers: {
+                "Urgency": "high",
+                "TTL": "86400",
+              },
+              notification: {
+                title,
+                body,
+                icon: "/icon.png",
+                badge: "/icon.png",
+                tag: "dosevakt-test",
+                requireInteraction: true,
+              },
+              fcmOptions: {
+                link: "https://jensapp-14069.web.app",
+              },
+            },
+            android: {
+              notification: {
+                sound: "default",
+                priority: "high",
+              },
+            },
+            apns: {
+              payload: {
+                aps: {
+                  "sound": "default",
+                  "badge": 1,
+                  "interruption-level": "time-sensitive",
+                },
+              },
+            },
+          });
 
-        const cleanup = [];
-        response.responses.forEach((r, idx) => {
-          if (!r.success && r.error) {
-            const code = r.error.code;
-            if (code === invalidToken || code === notRegistered) {
-              cleanup.push(tokenDocs[idx].ref.delete());
+          fcmResult = response;
+
+          // Clean invalid tokens
+          const invalidToken = "messaging/invalid-registration-token";
+          const notRegistered = "messaging/registration-token-not-registered";
+
+          const cleanup = [];
+          response.responses.forEach((r, idx) => {
+            if (!r.success && r.error) {
+              const code = r.error.code;
+              if (code === invalidToken || code === notRegistered) {
+                cleanup.push(tokenDocs[idx].ref.delete());
+              }
             }
-          }
-        });
+          });
 
-        if (cleanup.length > 0) {
-          await Promise.allSettled(cleanup);
+          if (cleanup.length > 0) {
+            await Promise.allSettled(cleanup);
+          }
         }
+
+        // Test Pushover
+        const pushoverSuccess = await sendPushoverNotification(title, body, 0);
 
         res.json({
           success: true,
           tokenCount: tokenDocs.length,
-          successCount: response.successCount,
-          failureCount: response.failureCount,
+          fcm: {
+            successCount: fcmResult.successCount,
+            failureCount: fcmResult.failureCount,
+          },
+          pushover: {
+            success: pushoverSuccess,
+          },
         });
       } catch (error) {
         console.error("Error sending test push:", error);
+        res.status(500).json({success: false, error: error.message});
+      }
+    },
+);
+
+// Debug push status (public)
+exports.debugPushStatus = onRequest(
+    {
+      cors: true,
+      invoker: "public",
+    },
+    async (req, res) => {
+      try {
+        const snapshot = await admin.firestore().collection("fcmTokens").get();
+        let latest = null;
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const ts = data && data.updatedAt && data.updatedAt.toDate ?
+            data.updatedAt.toDate().getTime() :
+            null;
+          if (ts !== null) {
+            if (!latest || ts > latest.ts) {
+              latest = {ts, iso: new Date(ts).toISOString()};
+            }
+          }
+        });
+        res.json({
+          success: true,
+          tokenCount: snapshot.size,
+          latestUpdatedAt: latest ? latest.iso : null,
+          pushoverConfigured: !!(PUSHOVER_API_TOKEN && PUSHOVER_USER_KEY),
+        });
+      } catch (error) {
         res.status(500).json({success: false, error: error.message});
       }
     },
