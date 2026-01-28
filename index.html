@@ -502,8 +502,10 @@
                 <i class="bi bi-list" style="font-size: 2.5rem;"></i>
             </button>
             <div class="header-logo mx-auto">
+                <a href="#" onclick="document.getElementById('home-tab').click(); return false;">
                     <img src="./logo.svg" alt="Dosevakt">
-                </div>
+                </a>
+            </div>
             <div style="width: 48px;"></div> <!-- Spacer for visual balance -->
         </div>
     </header>
@@ -945,26 +947,29 @@
                 </div>
                 
                 <!-- Legg til ny påminnelse -->
-                <div class="card border-0 shadow-lg rounded-4 mb-4 overflow-hidden text-white" style="background: var(--primary-gradient);">
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden bg-white">
                     <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-white">
-                            <i class="bi bi-alarm-fill"></i> Ny påminnelse
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <i class="bi bi-alarm-fill"></i>
+                            </div>
+                            Ny påminnelse
                         </h6>
                         <form id="reminderForm">
                             <div class="d-flex flex-column gap-3">
-                                <input type="text" class="form-control form-control-lg bg-white bg-opacity-25 border-0 text-white placeholder-white-50 shadow-none" 
+                                <input type="text" class="form-control form-control-lg bg-light border-0 text-dark shadow-none" 
                                        id="reminderName" 
                                        placeholder="Hva skal huskes?" 
                                        required>
                                 <div class="row g-3">
                                     <div class="col-7">
                                         <div class="form-floating">
-                                            <input type="time" class="form-control bg-white bg-opacity-25 border-0 text-white shadow-none" id="reminderTime" required placeholder="Tid">
-                                            <label for="reminderTime" class="text-white-50">Tidspunkt</label>
+                                            <input type="time" class="form-control bg-light border-0 text-dark shadow-none" id="reminderTime" required placeholder="Tid">
+                                            <label for="reminderTime" class="text-secondary">Tidspunkt</label>
                                         </div>
                                     </div>
                                     <div class="col-5 d-flex align-items-stretch">
-                                        <button type="submit" class="btn btn-white text-primary fw-bold w-100 shadow-sm rounded-3" style="border: none;">
+                                        <button type="submit" class="btn btn-primary fw-bold w-100 shadow-sm rounded-3" style="border: none;">
                                             <i class="bi bi-plus-lg"></i> Legg til
                                         </button>
                                     </div>
@@ -1310,10 +1315,11 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Medisinnavn *</label>
-                        <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Marevan" required>
-                    </div>
+                    <div class="mb-3 position-relative">
+                  <label class="form-label fw-bold">Medisinnavn *</label>
+                  <input type="text" class="form-control" id="newMedicineName" placeholder="F.eks. Marevan" required autocomplete="off">
+                  <div id="medicineSuggestions" class="list-group position-absolute w-100 shadow" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1050; top: 100%;"></div>
+                </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Dose/mengde</label>
                         <input type="text" class="form-control" id="newMedicineDose" placeholder="F.eks. 10 ml, 1 tablett">
@@ -1524,33 +1530,33 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     
     <!-- Firebase Config -->
-    <script src="firebase-config.js"></script>
+    <script src="firebase-config.js?v=18"></script>
 
     <!-- App Config -->
-    <script src="config.js"></script>
+    <script src="config.js?v=18"></script>
     
     <!-- Medicine Info -->
-    <script src="medicine-info.js"></script>
+    <script src="medicine-info.js?v=18"></script>
     
     <!-- Utils (Helper functions) -->
-    <script src="utils.js"></script>
+    <script src="utils.js?v=18"></script>
 
     <!-- Data Management -->
-    <script src="data.js"></script>
+    <script src="data.js?v=18"></script>
 
     <!-- UI Rendering -->
-    <script src="ui.js"></script>
+    <script src="ui.js?v=18"></script>
     
     <!-- App JS -->
-    <script src="app.js"></script>
+    <script src="app.js?v=18"></script>
     
     <!-- Dosing Plan JS -->
-    <script src="dosing-plan.js"></script>
+    <script src="dosing-plan.js?v=18"></script>
     
     <!-- Service Worker Registration with auto-update -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=18').then(reg => {
                 // Check for updates immediately
                 reg.update();
                 

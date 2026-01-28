@@ -1,5 +1,6 @@
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onRequest} = require("firebase-functions/v2/https");
+const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const {Resend} = require("resend");
@@ -766,6 +767,109 @@ body{font-family:-apple-system,sans-serif;background:#f5f5f5;margin:0;padding:20
       } catch (error) {
         console.error("Error checking missed medicines:", error);
         return null;
+      }
+    },
+);
+
+// Trigger when a new log is added to check if checklist is complete
+exports.checkChecklistCompletion = onDocumentCreated(
+    {
+      document: "logs/{logId}",
+      secrets: [pushoverApiToken, pushoverUserKey],
+      region: "europe-west1",
+    },
+    async (event) => {
+      const log = event.data ? event.data.data() : null;
+      if (!log || log.type !== "Medisin") return;
+
+      console.log(`Checking checklist completion after log: ${log.name}`);
+
+      const now = new Date();
+      // Oslo timezone adjustment
+      const osloOffset = 1; // CET = UTC+1
+      const osloNow = new Date(now.getTime() + osloOffset * 60 * 60 * 1000);
+      const dateStr = osloNow.toISOString().split("T")[0]; // YYYY-MM-DD
+
+      try {
+        // 1. Check if notification already sent today
+        const statsRef = admin.firestore().collection("dailyStats").doc(dateStr);
+        const statsSnap = await statsRef.get();
+        if (statsSnap.exists && statsSnap.data().checklistCompleted) {
+          console.log("Checklist completion notification already sent today.");
+          return;
+        }
+
+        // 2. Get checklist definition
+        const checklistSnap = await admin.firestore().collection("checklist").doc("global").get();
+        if (!checklistSnap.exists) {
+          console.log("No global checklist definition found.");
+          return;
+        }
+        const checklist = checklistSnap.data();
+        const medicines = checklist.medicines || [];
+
+        // 3. Get today's logs
+        const todayStart = new Date(osloNow);
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date(osloNow);
+        todayEnd.setHours(23, 59, 59, 999);
+
+        const logsSnapshot = await admin.firestore()
+            .collection("logs")
+            .where("type", "==", "Medisin")
+            .where("timestamp", ">=", todayStart.getTime())
+            .where("timestamp", "<=", todayEnd.getTime())
+            .get();
+
+        const loggedItems = new Set();
+        logsSnapshot.forEach((doc) => {
+          const data = doc.data();
+          // Use name + category if available, otherwise just name (legacy fallback)
+          if (data.category) {
+            loggedItems.add(`${data.name}|${data.category}`);
+          } else {
+            loggedItems.add(data.name);
+          }
+        });
+
+        // 4. Check if all required medicines are logged
+        const missing = [];
+        
+        // Helper to check if item is logged
+        const isLogged = (name, category) => {
+            if (loggedItems.has(`${name}|${category}`)) return true;
+            if (loggedItems.has(name)) return true; // Legacy fallback
+            return false;
+        };
+
+        medicines.forEach((med) => {
+          if (med.category === "prn") return; // Skip PRN
+          
+          // Logic to skip weekend-only meds if not weekend could go here
+          // but we lack that data in the checklist definition currently.
+          // Assuming all non-PRN are required.
+
+          if (!isLogged(med.name, med.category)) {
+            missing.push(`${med.name} (${med.category})`);
+          }
+        });
+
+        if (missing.length === 0) {
+          console.log("Checklist complete! Sending notification.");
+          
+          await sendPushoverNotification(
+              "✅ Sjekkliste fullført!",
+              "Alle dagens medisiner er gitt.",
+              0,
+          );
+          
+          // Mark as sent
+          await statsRef.set({checklistCompleted: true}, {merge: true});
+        } else {
+          console.log(`Checklist incomplete. Missing: ${missing.join(", ")}`);
+        }
+      } catch (error) {
+        console.error("Error checking checklist completion:", error);
       }
     },
 );

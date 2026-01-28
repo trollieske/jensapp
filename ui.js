@@ -293,6 +293,11 @@ function displayChecklist() {
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-light text-info rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                                    style="width: 36px; height: 36px;" 
+                                    onclick="showMedicineInfo('${item.name}')">
+                                <i class="bi bi-info-circle-fill fs-5"></i>
+                            </button>
                             <input type="number" class="form-control form-control-sm border-0 bg-light text-center fw-bold" 
                                    id="dose-${itemIndex}" value="${parseFloat(item.dose) || ''}" 
                                    style="width: 60px;" placeholder="Mengde">
@@ -428,6 +433,11 @@ function quickLogMedicineWithInput(index, name, unit) {
         showToast('⚠️ Vennligst fyll inn mengde');
         return;
     }
+    
+    // Find medicine to get category
+    const item = findMedicineByIndex(index);
+    const category = item ? item.category : 'ukjent';
+    
     isLogging = true;
     const now = new Date();
     const log = {
@@ -436,6 +446,7 @@ function quickLogMedicineWithInput(index, name, unit) {
         name: name,
         amount: amount,
         unit: unit,
+        category: category, // Added category
         time: now.toISOString().slice(0, 16),
         notes: 'Logget via sjekkliste',
         timestamp: now.getTime()
@@ -444,7 +455,6 @@ function quickLogMedicineWithInput(index, name, unit) {
         saveLogToFirestore(log)
             .then(() => {
                 showToast(`✓ ${name} (${amount} ${unit}) logget av ${currentUser || 'deg'}!`);
-                const item = findMedicineByIndex(index);
                 if (item) {
                     doseInput.value = parseFloat(item.dose) || '';
                 }
