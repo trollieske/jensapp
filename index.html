@@ -414,6 +414,84 @@
         /* Utility */
         .hidden { display: none !important; }
         .text-muted { color: var(--text-secondary) !important; }
+
+        /* Dark Mode Overrides */
+        body.dark-mode {
+            --bs-body-bg: #121212;
+            --bg-card: #1E1E1E;
+            --bg-glass: rgba(30, 30, 30, 0.95);
+            --text-primary: #E0E0E0;
+            --text-secondary: #B0B0B0;
+            --border-color: #333333;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.3);
+            --shadow-lg: 0 16px 48px rgba(0,0,0,0.4);
+            --shadow-hover: 0 12px 32px rgba(0,0,0,0.4);
+        }
+
+        body.dark-mode .app-header {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        body.dark-mode .nav-tabs .nav-link {
+            background: #2C2C2C;
+            color: #B0B0B0;
+        }
+
+        body.dark-mode .nav-tabs .nav-link.active {
+            color: white;
+        }
+
+        body.dark-mode .card, 
+        body.dark-mode .dashboard-card,
+        body.dark-mode .quick-actions,
+        body.dark-mode .list-group-item,
+        body.dark-mode .offcanvas {
+            background: var(--bg-card);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background-color: #2C2C2C;
+            border-color: #444;
+            color: #E0E0E0;
+        }
+
+        body.dark-mode .modal-content {
+            background-color: #1E1E1E;
+            border-color: #333;
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .text-dark {
+            color: #E0E0E0 !important;
+        }
+
+        body.dark-mode .text-muted {
+            color: #9aa0a6 !important;
+        }
+
+        body.dark-mode .bg-light {
+            background-color: #2C2C2C !important;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+        }
+
+        body.dark-mode .header-logo img {
+            filter: brightness(0) invert(1);
+        }
+        
+        body.dark-mode .offcanvas-header {
+             border-bottom: 1px solid #333;
+        }
+        
+        body.dark-mode .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
     </style>
 </head>
 <body>

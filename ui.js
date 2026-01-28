@@ -833,4 +833,35 @@ function deleteMedicineFromChecklist(medicineName, category) {
     }
 }
 
+// Dark Mode Handling
+function initDarkMode() {
+    const toggle = document.getElementById('darkModeToggle');
+    if (!toggle) return;
+
+    // Check saved preference
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
+    // Apply initial state
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        toggle.checked = true;
+    }
+
+    // Add event listener
+    toggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'true');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'false');
+        }
+    });
+}
+
+// Initialize Dark Mode
+document.addEventListener('DOMContentLoaded', initDarkMode);
+// Try immediately as well since script is at end of body
+initDarkMode();
+
 
