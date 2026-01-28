@@ -42,6 +42,7 @@ function initializeApp() {
     setDefaultDateTime();
     scheduleReminders();
     checkNotificationStatus();
+    checkWhatsNew();
 }
 
 function setupEventListeners() {
@@ -688,4 +689,20 @@ function addNewSondematToChecklist() {
 
 // Service Worker registration removed to avoid conflicts with firebase-messaging-sw.js
 // and to prevent caching issues. Push notifications are handled in data.js.
+
+function checkWhatsNew() {
+    const currentVersion = '1.2.0-timer-feature';
+    const lastSeenVersion = localStorage.getItem('whatsNewVersion');
+
+    if (currentVersion !== lastSeenVersion) {
+        setTimeout(() => {
+            const modalEl = document.getElementById('whatsNewModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                localStorage.setItem('whatsNewVersion', currentVersion);
+            }
+        }, 1500);
+    }
+}
 
