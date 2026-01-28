@@ -405,7 +405,7 @@ exports.debugPushStatus = onRequest(
           success: true,
           tokenCount: snapshot.size,
           latestUpdatedAt: latest ? latest.iso : null,
-          pushoverConfigured: !!(PUSHOVER_API_TOKEN && PUSHOVER_USER_KEY),
+          pushoverConfigured: !!(pushoverApiToken.value() && pushoverUserKey.value()),
         });
       } catch (error) {
         res.status(500).json({success: false, error: error.message});
@@ -834,17 +834,17 @@ exports.checkChecklistCompletion = onDocumentCreated(
 
         // 4. Check if all required medicines are logged
         const missing = [];
-        
+
         // Helper to check if item is logged
         const isLogged = (name, category) => {
-            if (loggedItems.has(`${name}|${category}`)) return true;
-            if (loggedItems.has(name)) return true; // Legacy fallback
-            return false;
+          if (loggedItems.has(`${name}|${category}`)) return true;
+          if (loggedItems.has(name)) return true; // Legacy fallback
+          return false;
         };
 
         medicines.forEach((med) => {
           if (med.category === "prn") return; // Skip PRN
-          
+
           // Logic to skip weekend-only meds if not weekend could go here
           // but we lack that data in the checklist definition currently.
           // Assuming all non-PRN are required.
@@ -856,13 +856,13 @@ exports.checkChecklistCompletion = onDocumentCreated(
 
         if (missing.length === 0) {
           console.log("Checklist complete! Sending notification.");
-          
+
           await sendPushoverNotification(
               "✅ Sjekkliste fullført!",
               "Alle dagens medisiner er gitt.",
               0,
           );
-          
+
           // Mark as sent
           await statsRef.set({checklistCompleted: true}, {merge: true});
         } else {
