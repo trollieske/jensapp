@@ -407,9 +407,14 @@ function setupMessaging() {
             console.log('Notification permission granted');
             
             const vapidKey = 'BLkqloSX7qq4Yrd8vKupIY7J1fJ7CcGVawW_iw783Rqa74YUcIarXq9DIOLpl8OTVVmFuZeJS69xjaWCfWeYfy4';
+            const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(location.hostname);
+
+            if (isLocalHost) {
+                return;
+            }
             
             const getTokenPromise = ('serviceWorker' in navigator)
-                ? navigator.serviceWorker.register('./sw.js').then((registration) => {
+                ? navigator.serviceWorker.register('./firebase-messaging-sw.js?v=19').then((registration) => {
                         return messaging.getToken({
                             vapidKey: vapidKey,
                             serviceWorkerRegistration: registration
@@ -439,7 +444,8 @@ function setupMessaging() {
                         })
                         .then((result) => {
                             console.log('Token saved to Firestore:', result);
-                            showToast('✓ Push-varsler aktivert!');
+                            // Silent success
+                            // showToast('✓ Push-varsler aktivert!');
                         })
                         .catch((error) => {
                             console.error('Error saving token:', error);

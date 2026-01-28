@@ -3,9 +3,9 @@
   "short_name": "Dosevakt",
   "description": "Smart medisinlogging for Jens - Hold oversikt over medisin, sondemat og helse",
   "start_url": "./",
-  "display": "fullscreen",
-  "background_color": "#F8F9FA",
-  "theme_color": "#4CAF50",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "orientation": "portrait",
   "icons": [
     {

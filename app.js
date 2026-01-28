@@ -428,15 +428,18 @@ function requestNotificationPermission() {
     } else if (Notification.permission === 'granted') {
         const hasToken = window.fcmToken;
         if (hasToken) {
-            showToast('✅ Notifikasjoner allerede aktivert');
+            // Silent check - no toast on startup
+            // showToast('✅ Notifikasjoner allerede aktivert');
         } else {
             const enable = (typeof enablePushNotifications === 'function')
                 ? enablePushNotifications()
                 : Promise.resolve(null);
             enable.then(() => {
-                showToast('✓ Push-varsler aktivert!');
+                // Silent check
+                // showToast('✓ Push-varsler aktivert!');
                 checkNotificationStatus();
             }).catch(() => {
+                // Keep error toast
                 showToast('⚠️ Kunne ikke hente push-token');
                 checkNotificationStatus();
             });
@@ -683,10 +686,6 @@ function addNewSondematToChecklist() {
     showToast(`✅ ${name} lagt til i sjekklisten!`);
 }
 
-// Service Worker registration
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then(registration => console.log('Service Worker registered'))
-        .catch(error => console.log('Service Worker registration failed:', error));
-}
+// Service Worker registration removed to avoid conflicts with firebase-messaging-sw.js
+// and to prevent caching issues. Push notifications are handled in data.js.
 

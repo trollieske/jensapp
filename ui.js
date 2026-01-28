@@ -283,24 +283,27 @@ function displayChecklist() {
             html += `
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                     <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-3 flex-grow-1">
-                            <div class="bg-${cat.color} bg-opacity-10 text-${cat.color} rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                <span class="fw-bold">${item.dose ? item.dose : '💊'}</span>
+                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 0;">
+                            <div class="bg-${cat.color} bg-opacity-10 text-${cat.color} d-flex align-items-center justify-content-center flex-shrink-0" 
+                                 style="min-width: 42px; height: 42px; padding: 0 8px; border-radius: 12px;">
+                                <span class="fw-bold small" style="white-space: nowrap;">${item.dose ? item.dose : '💊'}</span>
                             </div>
-                            <div>
-                                <div class="fw-bold text-dark">${item.name}</div>
-                                <div class="small text-muted">${item.description || item.times.join(', ')}</div>
+                            <div class="w-100 pe-2">
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                    <span class="fw-bold text-dark text-break lh-sm">${item.name}</span>
+                                    <button class="btn btn-link text-info p-0 ms-1 d-inline-flex align-items-center" 
+                                            style="text-decoration: none;"
+                                            onclick="showMedicineInfo('${item.name}')">
+                                        <i class="bi bi-info-circle-fill fs-6"></i>
+                                    </button>
+                                </div>
+                                <div class="small text-muted text-break lh-sm mt-1">${item.description || item.times.join(', ')}</div>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-sm btn-light text-info rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
-                                    style="width: 36px; height: 36px;" 
-                                    onclick="showMedicineInfo('${item.name}')">
-                                <i class="bi bi-info-circle-fill fs-5"></i>
-                            </button>
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
                             <input type="number" class="form-control form-control-sm border-0 bg-light text-center fw-bold" 
                                    id="dose-${itemIndex}" value="${parseFloat(item.dose) || ''}" 
-                                   style="width: 60px;" placeholder="Mengde">
+                                   style="width: 55px; height: 36px;" placeholder="#">
                             <button class="btn btn-primary btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
                                     style="width: 36px; height: 36px;" 
                                     onclick="quickLogMedicineWithInput(${itemIndex}, '${item.name}', '${item.unit || 'ml'}')">
@@ -308,6 +311,7 @@ function displayChecklist() {
                             </button>
                             ${item.isCustom ? `
                             <button class="btn btn-light btn-sm rounded-circle text-danger ms-1" 
+                                    style="width: 32px; height: 32px;"
                                     onclick="deleteMedicineFromChecklist('${item.name}', '${item.category}')">
                                 <i class="bi bi-x"></i>
                             </button>` : ''}
@@ -340,13 +344,13 @@ function displayChecklist() {
             html += `
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                     <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-3 flex-grow-1">
-                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 0;">
+                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
                                 <i class="bi bi-droplet-half"></i>
                             </div>
-                            <div>
-                                <div class="fw-bold text-dark">${item.name}</div>
-                                <div class="small text-muted">${item.description || ''}</div>
+                            <div class="overflow-hidden w-100 pe-2">
+                                <div class="fw-bold text-dark text-break lh-sm">${item.name}</div>
+                                <div class="small text-muted text-break lh-sm mt-1">${item.description || ''}</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">

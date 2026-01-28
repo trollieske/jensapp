@@ -6,7 +6,7 @@ function showToast(message) {
     const toast = document.createElement('div');
     toast.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 130px;
         right: 20px;
         background: #28a745;
         color: white;

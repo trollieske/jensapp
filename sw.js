@@ -39,7 +39,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'dosevakt-v17';
+const CACHE_NAME = 'dosevakt-v19';
 const urlsToCache = [
   './',
   './index.html',
@@ -58,9 +58,9 @@ const urlsToCache = [
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'
 ];
 
-// Install service worker - skip waiting to activate immediately
+// Install service worker
 self.addEventListener('install', event => {
-  self.skipWaiting();
+  // Removed skipWaiting to prevent aggressive takeover
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -72,8 +72,27 @@ self.addEventListener('install', event => {
 
 // Fetch resources - NETWORK FIRST for HTML/JS, cache fallback for offline
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   const url = new URL(event.request.url);
-  
+  const ignoredHosts = [
+    'firestore.googleapis.com',
+    'firebaseio.com',
+    'firebase.googleapis.com',
+    'firebaseinstallations.googleapis.com',
+    'securetoken.googleapis.com',
+    'identitytoolkit.googleapis.com',
+    'googleapis.com',
+    'gstatic.com',
+    'firebaseapp.com'
+  ];
+
+  if (ignoredHosts.some(host => url.hostname.includes(host))) {
+    return;
+  }
+
   // Network-first for same-origin requests (your app files)
   if (url.origin === location.origin) {
     event.respondWith(
@@ -115,23 +134,19 @@ self.addEventListener('fetch', event => {
   }
 });
 
-// Activate service worker - claim clients immediately and clean old caches
+// Activate service worker - clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
-    Promise.all([
-      // Claim all clients immediately
-      self.clients.claim(),
-      // Clean up old caches
-      caches.keys().then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-            if (cacheName !== CACHE_NAME) {
-              console.log('Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-    ])
+    // Removed clients.claim() to prevent aggressive page refresh
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
