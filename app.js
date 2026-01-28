@@ -691,18 +691,40 @@ function addNewSondematToChecklist() {
 // and to prevent caching issues. Push notifications are handled in data.js.
 
 function checkWhatsNew() {
-    const currentVersion = '1.2.0-timer-feature';
+    const currentVersion = '1.2.0-timer-v2';
     const lastSeenVersion = localStorage.getItem('whatsNewVersion');
 
+    console.log('Checking What\'s New:', { currentVersion, lastSeenVersion });
+
     if (currentVersion !== lastSeenVersion) {
-        setTimeout(() => {
+        // Retry logic to ensure Bootstrap is loaded
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        const tryShowModal = () => {
             const modalEl = document.getElementById('whatsNewModal');
+            
             if (modalEl && typeof bootstrap !== 'undefined') {
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
-                localStorage.setItem('whatsNewVersion', currentVersion);
+                try {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    localStorage.setItem('whatsNewVersion', currentVersion);
+                    console.log('What\'s New modal shown');
+                } catch (e) {
+                    console.error('Error showing modal:', e);
+                }
+            } else {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    setTimeout(tryShowModal, 200); // Retry every 200ms
+                } else {
+                    console.warn('Could not show What\'s New modal - Bootstrap or element missing');
+                }
             }
-        }, 1500);
+        };
+        
+        // Start trying after a short delay
+        setTimeout(tryShowModal, 500);
     }
 }
 
