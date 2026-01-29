@@ -1,9 +1,18 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v29  
+**Siste versjon:** v30  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v30 (29. januar 2026) - Større og Tøffere Header
+
+### 💥 Visuell Impact
+- **Større Logo**: Økt logostørrelse fra 120px til 160px for bedre lesbarhet. Logoen bryter nå litt ut av rammen for en dynamisk look.
+- **Kraftigere Animasjon**: Logoen starter mindre og lengre opp, og lander med en tydeligere "boing"-effekt (elastisk bevegelse).
+- **Justert Timing**: Økt animasjonstiden til 1.2 sekunder for mer tyngde i bevegelsen.
 
 ---
 
