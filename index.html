@@ -522,6 +522,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="spltools-tab" data-bs-toggle="tab" data-bs-target="#spltools" type="button">SplTools</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="meddb-tab" data-bs-toggle="tab" data-bs-target="#meddb" type="button">Medisindatabase</button>
+            </li>
         </ul>
         
         <div class="tab-content">
@@ -534,9 +537,14 @@
                 
                 <div class="dashboard-grid">
                     <button onclick="document.getElementById('checklist-tab').click()" class="dashboard-card" style="background: var(--primary-gradient);">
+                        <div class="icon">📝</div>
+                        <div class="title">Medisinplanlegger</div>
+                        <div class="subtitle">Daglig plan & sjekkliste</div>
+                    </button>
+                    <button onclick="document.getElementById('meddb-tab').click()" class="dashboard-card" style="background: linear-gradient(135deg, #009688 0%, #00796B 100%);">
                         <div class="icon">💊</div>
-                        <div class="title">Sjekkliste</div>
-                        <div class="subtitle">Daglige medisiner</div>
+                        <div class="title">Medisindatabase</div>
+                        <div class="subtitle">Søk opp medisiner</div>
                     </button>
                     <button onclick="document.getElementById('reminders-tab').click()" class="dashboard-card" style="background: var(--secondary-gradient);">
                         <div class="icon">⏰</div>
@@ -656,6 +664,75 @@
                             <span class="fw-bold text-danger small">Oppkast</span>
                         </button>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Medisindatabase Tab -->
+            <div class="tab-pane fade" id="meddb" role="tabpanel">
+                <!-- Header -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #009688 0%, #00796B 100%);">
+                    <div class="card-body p-4 text-white d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-1 fw-bold">Medisindatabase</h5>
+                            <p class="mb-0 opacity-75 small">Søk opp informasjon om medisiner</p>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <span style="font-size: 1.5rem;">💊</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <label for="medSearchInput" class="form-label fw-bold">Søk etter medisin</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" id="medSearchInput" placeholder="F.eks. Paracet, Ibux...">
+                        <button class="btn btn-primary px-4" type="button" onclick="showMedicineInfo(document.getElementById('medSearchInput').value)">
+                            <i class="bi bi-search me-2"></i>Søk
+                        </button>
+                    </div>
+                    <div class="form-text mt-2">Søker i lokal database og OpenFDA (med AI-oversettelse).</div>
+                </div>
+
+                <!-- Common Medicines List -->
+                <h6 class="fw-bold mb-3 px-2">Vanlige medisiner</h6>
+                <div class="list-group rounded-4 shadow-sm border-0 mb-4">
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 border-0 border-bottom" onclick="showMedicineInfo('Paracet')">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-capsule"></i>
+                            </div>
+                            <span class="fw-bold">Paracet</span>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </button>
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 border-0 border-bottom" onclick="showMedicineInfo('Ibux')">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-capsule"></i>
+                            </div>
+                            <span class="fw-bold">Ibux</span>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </button>
+                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 border-0 border-bottom" onclick="showMedicineInfo('Zyrtec')">
+                         <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-capsule"></i>
+                            </div>
+                            <span class="fw-bold">Zyrtec</span>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </button>
+                     <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 border-0" onclick="showMedicineInfo('Vitamin C')">
+                         <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-flower1"></i>
+                            </div>
+                            <span class="fw-bold">Vitamin C</span>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </button>
                 </div>
             </div>
             
@@ -1863,6 +1940,13 @@
                     <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Sjekkliste</span>
                 </button>
 
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('meddb-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #E0F2F1; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #009688; font-size: 1.2rem;">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Medisindatabase</span>
+                </button>
+
                 <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('log-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
                     <div style="width: 40px; height: 40px; background: #FFF3E0; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #FF9800; font-size: 1.2rem;">
                         <i class="bi bi-plus-circle-fill"></i>
@@ -1896,6 +1980,13 @@
                         <i class="bi bi-activity"></i>
                     </div>
                     <span style="font-weight: 600; color: #333; font-size: 1.05rem;">SplTools</span>
+                </button>
+
+                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('spltools-tab').click(); setTimeout(() => document.getElementById('scan-tab').click(), 200); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
+                    <div style="width: 40px; height: 40px; background: #E8F5E9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #2E7D32; font-size: 1.2rem;">
+                        <i class="bi bi-upc-scan"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Medisinscanner</span>
                 </button>
 
                 <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('timers-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">

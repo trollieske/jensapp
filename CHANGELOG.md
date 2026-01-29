@@ -1,9 +1,26 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v18  
+**Siste versjon:** v19  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v19 (29. januar 2026) - AI-oppslag og Skanner
+
+### 🧠 AI-drevet Medisinoppslag
+- **Google Generative AI**: Byttet fra regelbasert oversettelse til full AI-oversettelse via Google Gemini.
+- **Bedre kvalitet**: Fikset problemer med blanding av norsk og engelsk i OpenFDA-data.
+- **Cache-validering**: Implementert logikk for å tvinge frem nye oversettelser ved behov (f.eks. C-vitamin).
+
+### 📱 Medisinscanner
+- **Nytt menyvalg**: "Medisinscanner" er nå tilgjengelig direkte fra hovedmenyen.
+- **Hurtigtilgang**: Åpner skanneren umiddelbart uten å måtte navigere gjennom SplTools.
+
+### 🛠️ Forbedringer
+- **Deploy-fiks**: Løst problemer med sletting av `analyzeWithGemini` under deploy.
+- **Parallellisering**: Raskere oversettelse ved å kjøre forespørsler parallelt.
 
 ---
 

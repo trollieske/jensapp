@@ -1,13 +1,15 @@
 const {onSchedule} = require("firebase-functions/v2/scheduler");
-const {onRequest} = require("firebase-functions/v2/https");
+const {onRequest, onCall, HttpsError} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const {Resend} = require("resend");
+const {GoogleGenerativeAI} = require("@google/generative-ai");
 
 admin.initializeApp();
 
 // Define secret for Resend API key
 const resendApiKey = defineSecret("RESEND_API_KEY");
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 // Pushover Configuration (using Secrets)
 const pushoverUserKey = defineSecret("PUSHOVER_USER_KEY");
@@ -230,6 +232,53 @@ exports.checkReminders = onSchedule(
         console.error("Error checking reminders:", error);
         return null;
       }
+    },
+);
+
+// Restored AI Analysis function (Callable)
+exports.analyzeWithGemini = onCall(
+    {
+      secrets: [geminiApiKey],
+    },
+    async (request) => {
+      const prompt = request.data.prompt;
+      if (!prompt) {
+        throw new HttpsError("invalid-argument", "The function must be called with a \"prompt\" argument.");
+      }
+
+      // Initialize Gemini
+      const apiKey = geminiApiKey.value();
+      if (!apiKey) {
+        throw new HttpsError("failed-precondition", "Gemini API key not configured.");
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const modelsToTry = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-flash-latest",
+        "gemini-pro-latest",
+        "gemini-1.5-pro",
+      ];
+
+      for (const modelName of modelsToTry) {
+        try {
+          const model = genAI.getGenerativeModel({model: modelName});
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          return {text: response.text()};
+        } catch (error) {
+          console.warn(`Model ${modelName} failed in analyzeWithGemini:`, error.message);
+          if (error.message.includes("404") || error.message.includes("not found")) {
+            continue;
+          }
+          // If we tried all models and failed, or encountered a non-404 error that we shouldn't retry
+          if (modelName === modelsToTry[modelsToTry.length - 1]) {
+            throw new HttpsError("internal", "Failed to generate content via Gemini.", error.message);
+          }
+        }
+      }
+      throw new HttpsError("internal", "All Gemini models failed.");
     },
 );
 
@@ -768,6 +817,87 @@ body{font-family:-apple-system,sans-serif;background:#f5f5f5;margin:0;padding:20
       } catch (error) {
         console.error("Error checking missed medicines:", error);
         return null;
+      }
+    },
+);
+
+// AI Translation function
+exports.translateWithAI = onRequest(
+    {
+      cors: true,
+      invoker: "public",
+      secrets: [geminiApiKey],
+    },
+    async (req, res) => {
+      try {
+        const {text, context} = req.body;
+
+        if (!text) {
+          res.status(400).json({success: false, error: "Text is required"});
+          return;
+        }
+
+        const apiKey = geminiApiKey.value();
+        if (!apiKey) {
+          console.error("Gemini API key missing");
+          res.status(500).json({success: false, error: "Configuration error"});
+          return;
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const modelsToTry = [
+          "gemini-2.5-flash",
+          "gemini-2.0-flash",
+          "gemini-flash-latest",
+          "gemini-pro-latest",
+          "gemini-1.5-flash",
+          "gemini-1.5-flash-001",
+          "gemini-1.5-pro",
+          "gemini-1.5-pro-001",
+          "gemini-pro",
+          "gemini-1.0-pro",
+        ];
+        let translatedText = null;
+        let lastError = null;
+
+        const prompt = `Translate the following text to Norwegian. 
+        Context: This is ${context || "medical information"} from the FDA.
+        Goal: Provide a natural, grammatically correct translation that is easy to understand for a Norwegian patient.
+        - Translate "Indication" as "Indikasjon" or "Brukes mot".
+        - Keep specific medical terms in parentheses if the translation is uncommon.
+        - Fix any broken sentences or mixed languages (e.g. "Key værenefits").
+        - Output ONLY the translated text, no markdown code blocks or explanations.
+        
+        Text to translate:
+        "${text}"`;
+
+        for (const modelName of modelsToTry) {
+          try {
+            console.log(`Trying model: ${modelName}`);
+            const model = genAI.getGenerativeModel({model: modelName});
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            translatedText = response.text().trim();
+            break; // Success!
+          } catch (error) {
+            console.warn(`Model ${modelName} failed:`, error.message);
+            lastError = error;
+            if (error.message.includes("404") || error.message.includes("not found")) {
+              continue; // Try next model
+            }
+            // If it's another error (e.g. auth), stop trying
+            break;
+          }
+        }
+
+        if (!translatedText) {
+          throw lastError || new Error("All models failed");
+        }
+
+        res.json({success: true, translatedText});
+      } catch (error) {
+        console.error("Error translating with AI:", error);
+        res.status(500).json({success: false, error: error.message});
       }
     },
 );

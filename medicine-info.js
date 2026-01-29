@@ -1038,7 +1038,38 @@ async function showMedicineInfo(medicineName) {
                 storage: 'Se pakningsvedlegg for oppbevaringsinformasjon.',
                 source: 'Ingen ekstern kilde funnet'
             };
+        } else {
+             // Cache the result
+             addMedicineToDatabase(medicineName, info);
         }
+    } else {
+         // Existing logic: Check if we need to upgrade to AI translation
+         // Only upgrade if source is "OpenFDA" (rule-based) and NOT "OpenFDA / AI-oversatt"
+         // Also verify it's not a manually entered medicine (source 'Felleskatalogen' or similar)
+         if (info.source && info.source.includes('OpenFDA') && !info.source.includes('AI-oversatt')) {
+             console.log(`Updating cached info for ${medicineName} to use AI translation...`);
+             
+             // Show loading briefly
+             showLoadingModal(medicineName);
+             
+             try {
+                const updatedInfo = await fetchMedicineInfoExternal(medicineName);
+                if (updatedInfo) {
+                    info = updatedInfo;
+                    addMedicineToDatabase(medicineName, info);
+                }
+             } catch (err) {
+                 console.warn('Failed to update with AI translation:', err);
+             } finally {
+                 // Close loading modal
+                const loadingModal = document.getElementById('medicineLoadingModal');
+                if (loadingModal) {
+                    const modalInstance = bootstrap.Modal.getInstance(loadingModal);
+                    if (modalInstance) modalInstance.hide();
+                    setTimeout(() => loadingModal.remove(), 150);
+                }
+             }
+         }
     }
     
     // Show the info modal
@@ -1478,18 +1509,77 @@ const medicalTranslations = {
     'may': 'kan',
     'can': 'kan',
     'will': 'vil',
-    'should': 'bør'
+    'should': 'bør',
+
+    // Grammar and common phrases (Longer phrases will be matched first due to sorting)
+    'the skin\'s': 'hudens',
+    'the body\'s': 'kroppens',
+    'the skin': 'huden',
+    'the body': 'kroppen',
+    'that': 'som',
+    'with': 'med',
+    'and': 'og',
+    'a': 'en',
+    'an': 'et',
+
+    // Cosmetic / Skincare terms (FDA often returns these for supplements/creams)
+    'key benefits': 'nøkkelfordeler',
+    'benefits': 'fordeler',
+    'potent': 'kraftig',
+    'antioxidant': 'antioksidant',
+    'strengthens': 'styrker',
+    'skin\'s': 'hudens',
+    'natural defenses': 'naturlige forsvar',
+    'brightening': 'glødgivende',
+    'minimizing': 'minimerer',
+    'appearance': 'synlighet',
+    'fine lines': 'fine linjer',
+    'wrinkles': 'rynker',
+    'visible': 'synlige',
+    'signs of aging': 'tegn på aldring',
+    'complexion': 'hudtone',
+    'radiance': 'glød',
+    'texture': 'tekstur',
+    'smooth': 'glatt',
+    'firmness': 'fasthet',
+    'elasticity': 'elastisitet',
+    'hydrating': 'fuktighetsgivende',
+    'moisturizing': 'fuktighetsgivende',
+    'daily use': 'daglig bruk',
+    'apply': 'påfør',
+    'amount': 'mengde',
+    'gently': 'forsiktig',
+    'massage': 'masser',
+    'until absorbed': 'til det er absorbert',
+    'external use only': 'kun til utvortes bruk',
+    'avoid contact with eyes': 'unngå kontakt med øyne',
+    'rinse thoroughly': 'skyll grundig',
+    'if irritation occurs': 'hvis irritasjon oppstår',
+    'active ingredients': 'aktive ingredienser',
+    'inactive ingredients': 'andre ingredienser',
+    'purpose': 'bruksområde',
+    'warning': 'advarsel',
+    'directions': 'bruksanvisning'
 };
 
-// Translate text from English to Norwegian (simple word replacement)
+// Translate text from English to Norwegian (improved with word boundaries)
 function translateToNorwegian(text) {
     if (!text) return text;
     
-    let translated = text.toLowerCase();
+    let translated = text;
     
-    // Replace known medical terms
-    for (const [eng, nor] of Object.entries(medicalTranslations)) {
-        const regex = new RegExp(eng, 'gi');
+    // Sort keys by length (longest first) to match phrases before words
+    // Cache this sort if performance becomes an issue, but for <1000 items it's fine
+    const sortedKeys = Object.keys(medicalTranslations).sort((a, b) => b.length - a.length);
+    
+    for (const eng of sortedKeys) {
+        const nor = medicalTranslations[eng];
+        // Escape regex special characters
+        const escapedEng = eng.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // Use word boundaries (\b) to avoid replacing parts of words
+        // e.g. "be" won't match inside "benefits"
+        const regex = new RegExp(`\\b${escapedEng}\\b`, 'gi');
         translated = translated.replace(regex, nor);
     }
     
@@ -1568,8 +1658,40 @@ async function fetchMedicineInfoExternal(medicineName) {
     }
 }
 
+// Translate with AI (Google Gemini via Cloud Function)
+async function translateWithAI(text, context) {
+    if (!text) return null;
+    
+    // Use the specific Cloud Function URL
+    // Note: In production, this should be the full URL or a relative path if rewrites are set up.
+    // Using full URL to be safe across environments.
+    // const FUNCTION_URL = 'https://us-central1-jensapp-14069.cloudfunctions.net/translateWithAI';
+    const FUNCTION_URL = 'https://translatewithai-a2ims7es6a-uc.a.run.app';
+    
+    try {
+        const response = await fetch(FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, context })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.success && data.translatedText) {
+            return data.translatedText;
+        }
+        throw new Error(data.error || 'Unknown error');
+    } catch (e) {
+        console.warn('AI translation failed, falling back to regex:', e);
+        return translateToNorwegian(text); // Fallback to rule-based
+    }
+}
+
 // Parse OpenFDA response and convert to our format
-function parseOpenFDAResponse(data, originalName) {
+async function parseOpenFDAResponse(data, originalName) {
     if (!data.results || data.results.length === 0) {
         return null;
     }
@@ -1577,18 +1699,36 @@ function parseOpenFDAResponse(data, originalName) {
     const drug = data.results[0];
     const openfda = drug.openfda || {};
     
+    // Prepare mechanism text (fallback logic)
+    let mechanismSource = drug.mechanism_of_action;
+    if (!mechanismSource || mechanismSource.length === 0) {
+        mechanismSource = drug.clinical_pharmacology;
+    }
+
+    // Prepare warning source
+    const warningSource = drug.warnings_and_cautions || drug.warnings;
+
+    // Execute translations in parallel for speed
+    const [indication, mechanism, warnings, interaction, storage] = await Promise.all([
+        extractAndTranslate(drug.indications_and_usage, 'Brukes til behandling av ulike tilstander.', 'medical indication'),
+        extractAndTranslate(mechanismSource, 'Virkningsmekanisme ikke tilgjengelig.', 'medical mechanism'),
+        extractAndTranslate(warningSource, 'Følg legens anbefalinger.', 'medical warnings'),
+        extractAndTranslate(drug.drug_interactions, 'Informer lege om andre medisiner du bruker.', 'drug interactions'),
+        extractAndTranslate(drug.storage_and_handling, 'Oppbevares ved romtemperatur.', 'storage instructions')
+    ]);
+    
     // Extract and translate information
     const info = {
         name: originalName,
         activeIngredient: openfda.generic_name ? openfda.generic_name[0] : 'Ukjent',
-        category: openfda.pharm_class_epc ? translateToNorwegian(openfda.pharm_class_epc[0]) : 'Legemiddel',
-        indication: extractAndTranslate(drug.indications_and_usage, 'Brukes til behandling av ulike tilstander.'),
-        mechanism: extractAndTranslate(drug.mechanism_of_action, extractAndTranslate(drug.clinical_pharmacology, 'Virkningsmekanisme ikke tilgjengelig.')),
-        sideEffects: extractSideEffects(drug.adverse_reactions || drug.warnings),
-        warnings: extractAndTranslate(drug.warnings_and_cautions || drug.warnings, 'Følg legens anbefalinger.'),
-        interaction: extractAndTranslate(drug.drug_interactions, 'Informer lege om andre medisiner du bruker.'),
-        storage: extractAndTranslate(drug.storage_and_handling, 'Oppbevares ved romtemperatur.'),
-        source: 'OpenFDA / Oversatt til norsk'
+        category: openfda.pharm_class_epc ? translateToNorwegian(openfda.pharm_class_epc[0]) : 'Legemiddel', // Keep sync for simple categories
+        indication: indication,
+        mechanism: mechanism,
+        sideEffects: extractSideEffects(drug.adverse_reactions || drug.warnings), // Keep sync for keyword extraction
+        warnings: warnings,
+        interaction: interaction,
+        storage: storage,
+        source: 'OpenFDA / AI-oversatt'
     };
     
     // Cache the result
@@ -1603,7 +1743,7 @@ function parseOpenFDAResponse(data, originalName) {
 }
 
 // Extract text from FDA array field and translate
-function extractAndTranslate(field, fallback) {
+async function extractAndTranslate(field, fallback, context = 'medical text') {
     if (!field || field.length === 0) return fallback;
     
     let text = Array.isArray(field) ? field[0] : field;
@@ -1612,13 +1752,14 @@ function extractAndTranslate(field, fallback) {
     text = text.replace(/<[^>]*>/g, ' ');
     text = text.replace(/\s+/g, ' ').trim();
     
-    // Limit length
-    if (text.length > 500) {
-        text = text.substring(0, 497) + '...';
+    // Limit length to avoid excessive token usage / latency
+    if (text.length > 800) {
+        text = text.substring(0, 797) + '...';
     }
     
-    // Translate common terms
-    return translateToNorwegian(text);
+    // Use AI translation
+    const translated = await translateWithAI(text, context);
+    return translated || fallback;
 }
 
 // Extract side effects as array

@@ -2,7 +2,7 @@
 
 En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat, og helse for personer med spesielle omsorgsbehov. Designet for familiebruk med multi-bruker støtte og sanntidssynkronisering via Firebase.
 
-**Versjon:** v18 (Januar 2026)  
+**Versjon:** v19 (Januar 2026)  
 **Sist oppdatert:** 29. januar 2026
 
 ## 🌐 Live App
@@ -29,8 +29,13 @@ En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat,
 ### 💊 Medisininfo-system
 - **Lokal database**: Norsk informasjon om alle Jens sine medisiner
 - **OpenFDA-integrasjon**: Automatisk oppslag for ukjente medisiner
-- **Oversettelse**: 200+ medisinske termer oversettes automatisk til norsk
+- **AI-Oversettelse**: Google Gemini AI oversetter komplekse medisinske tekster til lesbart norsk
 - **Trykk ⓘ-knappen** på en medisin for å se bruksområde, virkningsmekanisme, bivirkninger, advarsler, interaksjoner og oppbevaring
+
+### 📱 Verktøy & Skanner
+- **Medisinscanner**: Skann strekkoder på medisinpakker for raskt oppslag
+- **Dosekalkulator**: Beregn doser basert på vekt og styrke
+- **Vitaler**: Loggfør blodtrykk, puls og temperatur
 
 ### ➕ Legg til nye medisiner
 - Legg til egendefinerte medisiner i sjekklisten
