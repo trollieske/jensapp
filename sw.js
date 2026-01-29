@@ -39,7 +39,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'dosevakt-v25';
+const CACHE_NAME = 'dosevakt-v26';
 const urlsToCache = [
   './',
   './index.html',

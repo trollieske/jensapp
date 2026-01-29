@@ -1,9 +1,17 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v25  
+**Siste versjon:** v26  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v26 (29. januar 2026) - Raskere Splash Screen
+
+### ⚡ Ytelse
+- **Ingen ventetid**: Fjernet 0.5s fade-out animasjon på splash-screen.
+- **Instant action**: Appen hopper nå direkte til hovedskjermen umiddelbart etter at videoen er ferdig.
 
 ---
 

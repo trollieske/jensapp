@@ -484,12 +484,8 @@
             
             if (splash && video) {
                 const hideSplash = () => {
-                    splash.style.transition = 'opacity 0.5s ease-out';
-                    splash.style.opacity = '0';
-                    setTimeout(() => {
-                        splash.style.display = 'none'; // Keep DOM clean but don't remove if we want to replay? No, remove is better.
-                        splash.remove();
-                    }, 500);
+                    splash.style.display = 'none';
+                    splash.remove();
                 };
 
                 video.addEventListener('ended', hideSplash);
@@ -2098,31 +2094,31 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     
     <!-- Firebase Config -->
-    <script src="firebase-config.js?v=25"></script>
+    <script src="firebase-config.js?v=26"></script>
 
     <!-- App Config -->
-    <script src="config.js?v=25"></script>
+    <script src="config.js?v=26"></script>
     
     <!-- Medicine Info -->
-    <script src="medicine-info.js?v=25"></script>
+    <script src="medicine-info.js?v=26"></script>
     
     <!-- Utils (Helper functions) -->
-    <script src="utils.js?v=25"></script>
+    <script src="utils.js?v=26"></script>
 
     <!-- Data Management -->
-    <script src="data.js?v=25"></script>
+    <script src="data.js?v=26"></script>
 
     <!-- UI Rendering -->
-    <script src="ui.js?v=25"></script>
+    <script src="ui.js?v=26"></script>
     
     <!-- App JS -->
-    <script src="app.js?v=25"></script>
+    <script src="app.js?v=26"></script>
     
     <!-- Dosing Plan JS -->
-    <script src="dosing-plan.js?v=25"></script>
+    <script src="dosing-plan.js?v=26"></script>
     
     <!-- Timers JS -->
-    <script src="timers.js?v=25"></script>
+    <script src="timers.js?v=26"></script>
     
     <!-- QuaggaJS for Barcode Scanning -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
@@ -2131,7 +2127,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <!-- SplTools JS -->
-    <script src="spl-tools.js?v=25"></script>
+    <script src="spl-tools.js?v=26"></script>
     
     <!-- Service Worker Cleanup -->
     <script>
