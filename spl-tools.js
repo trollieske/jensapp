@@ -7,41 +7,57 @@ class SplTools {
     constructor() {
         // API Stubs / Services
         this.api = {
-            // Mock Felleskatalogen/FDA lookup
+            // Real Lookup via Open Food Facts (with fallback)
             lookupMedicine: async (query) => {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        const mockDb = [
-                            { name: 'Paracet 500mg', type: 'Smertestillende', ean: '7046260001854' },
-                            { name: 'Ibux 400mg', type: 'Betennelsesdempende', ean: '7046260001908' },
-                            { name: 'Nexium 20mg', type: 'Syrehemmende', ean: '1234567890123' },
-                            { name: 'Zyrtec 10mg', type: 'Allergimedisin', ean: '3216549870123' },
-                            { name: 'Metoprolol 50mg', type: 'Blodtrykk', ean: '9876543210123' },
-                            { name: 'C-Vitaminer', type: 'Kosttilskudd', ean: '7038310001234' }
-                        ];
-                        
-                        // Check if query is barcode (numeric)
-                        const isBarcode = /^\d+$/.test(query);
-                        
-                        let match;
-                        if (isBarcode) {
-                            match = mockDb.find(m => m.ean === query);
-                            // If no exact match but looks like a barcode, return a generic result
-                            if (!match) {
-                                 match = { name: `Ukjent Produkt (EAN: ${query})`, type: 'Ukjent', ean: query };
-                            }
-                        } else {
-                            match = mockDb.find(m => m.name.toLowerCase().includes(query.toLowerCase()));
-                        }
-                        
-                        // Fallback for random/demo if no match and not a barcode
-                        if (!match && !isBarcode) {
-                            match = mockDb[Math.floor(Math.random() * mockDb.length)];
-                        }
+                // Check if query is barcode (numeric)
+                const isBarcode = /^\d+$/.test(query);
+                
+                if (!isBarcode) {
+                    // Simple local search for non-barcode queries
+                    const mockDb = [
+                        { name: 'Paracet 500mg', type: 'Smertestillende', ean: '7046260001854' },
+                        { name: 'Ibux 400mg', type: 'Betennelsesdempende', ean: '7046260001908' },
+                        { name: 'Nexium 20mg', type: 'Syrehemmende', ean: '1234567890123' },
+                        { name: 'Zyrtec 10mg', type: 'Allergimedisin', ean: '3216549870123' }
+                    ];
+                    return mockDb.find(m => m.name.toLowerCase().includes(query.toLowerCase()));
+                }
 
-                        resolve(match);
-                    }, 800);
-                });
+                // Try Open Food Facts API for EANs
+                try {
+                    const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
+                    const data = await response.json();
+
+                    if (data.status === 1) {
+                        const p = data.product;
+                        return {
+                            name: p.product_name_no || p.product_name || `Produkt ${query}`,
+                            type: p.categories ? p.categories.split(',')[0] : 'Ukjent',
+                            ean: query,
+                            source: 'OpenFoodFacts'
+                        };
+                    }
+                } catch (e) {
+                    console.warn("Open Food Facts lookup failed", e);
+                }
+
+                // Fallback for specific demo items if API fails or not found (and network is down)
+                const fallbackDb = [
+                     { name: 'Paracet 500mg', type: 'Smertestillende', ean: '7046260001854' },
+                     { name: 'Ibux 400mg', type: 'Betennelsesdempende', ean: '7046260001908' },
+                     { name: 'C-Vitaminer', type: 'Kosttilskudd', ean: '7038310001234' }
+                ];
+                
+                const match = fallbackDb.find(m => m.ean === query);
+                if (match) return match;
+
+                // Return generic if nothing found
+                return { 
+                    name: `Ukjent vare (${query})`, 
+                    type: 'Ukjent', 
+                    ean: query,
+                    isUnknown: true 
+                };
             },
 
             // Mock Interaction Service
@@ -548,40 +564,48 @@ class SplTools {
     }
 
     captureImage() {
-        // Manual trigger button action - FALLBACK / DEMO
-        console.log("Manual capture triggered");
-        
-        // Show user this is a simulation
-        const resultContainer = document.getElementById('scan-result');
-        const matchName = document.getElementById('scan-match-name');
-        
-        // Cycle through mock EANs to ensure variety
-        const mockEans = [
-            '7038310001234', // C-Vitaminer
-            '7046260001908', // Ibux
-            '7046260001854', // Paracet
-            '1234567890123', // Nexium
-            '9999999999999'  // Ukjent
-        ];
-        
-        // Use a static counter to cycle
-        if (typeof this.demoCounter === 'undefined') this.demoCounter = 0;
-        const ean = mockEans[this.demoCounter % mockEans.length];
-        this.demoCounter++;
-        
-        // Show toast/alert about demo mode
+        // Real Capture Logic
         const container = this.videoElement.parentElement;
-        const existingToast = container.querySelector('.demo-toast');
-        if (existingToast) existingToast.remove();
-        
-        const toast = document.createElement('div');
-        toast.className = 'demo-toast position-absolute top-50 start-50 translate-middle badge bg-warning text-dark shadow-lg p-3 rounded-pill';
-        toast.style.zIndex = 100;
-        toast.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>Simulert skann (Demo)';
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
+        const activeVideo = container.querySelector('video');
 
-        this.handleScanResult(ean);
+        if (!activeVideo || (activeVideo.paused && !activeVideo.srcObject && !activeVideo.src)) {
+            alert("Kamera er ikke aktivt.");
+            return;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = activeVideo.videoWidth || 640;
+        canvas.height = activeVideo.videoHeight || 480;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
+
+        const dataURL = canvas.toDataURL("image/png");
+        
+        // Visual feedback
+        activeVideo.style.opacity = "0.5";
+        
+        Quagga.decodeSingle({
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader", "upc_reader", "code_128_reader"]
+            },
+            locate: true,
+            src: dataURL
+        }, (result) => {
+            // Restore video
+            activeVideo.style.opacity = "1";
+
+            if (result && result.codeResult && result.codeResult.code) {
+                console.log("Single decode success:", result.codeResult.code);
+                this.handleScanResult(result.codeResult.code);
+            } else {
+                console.log("No barcode found in snapshot");
+                // Ask user if they want to enter manually
+                const manual = prompt("Fant ingen strekkode i bildet. Vil du skrive inn EAN manuelt?", "");
+                if (manual) {
+                    this.handleScanResult(manual);
+                }
+            }
+        });
     }
 
     addScannedMed() {
