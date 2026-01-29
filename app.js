@@ -691,7 +691,7 @@ function addNewSondematToChecklist() {
 // and to prevent caching issues. Push notifications are handled in data.js.
 
 function checkWhatsNew() {
-    const currentVersion = '1.2.0-timer-v2';
+    const currentVersion = '1.3.0-spltools';
     const lastSeenVersion = localStorage.getItem('whatsNewVersion');
 
     console.log('Checking What\'s New:', { currentVersion, lastSeenVersion });

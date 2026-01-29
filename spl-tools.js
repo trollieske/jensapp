@@ -583,6 +583,10 @@ class SplTools {
             return;
         }
 
+        // Show loading indicator
+        const loader = document.getElementById('scan-loading');
+        if (loader) loader.classList.remove('d-none');
+
         const canvas = document.createElement("canvas");
         canvas.width = activeVideo.videoWidth || 640;
         canvas.height = activeVideo.videoHeight || 480;
@@ -601,8 +605,9 @@ class SplTools {
             locate: true,
             src: dataURL
         }, (result) => {
-            // Restore video
+            // Restore video and hide loader
             activeVideo.style.opacity = "1";
+            if (loader) loader.classList.add('d-none');
 
             if (result && result.codeResult && result.codeResult.code) {
                 console.log("Single decode success:", result.codeResult.code);
@@ -610,10 +615,12 @@ class SplTools {
             } else {
                 console.log("No barcode found in snapshot");
                 // Ask user if they want to enter manually
-                const manual = prompt("Fant ingen strekkode i bildet. Vil du skrive inn EAN manuelt?", "");
-                if (manual) {
-                    this.handleScanResult(manual);
-                }
+                setTimeout(() => {
+                    const manual = prompt("Fant ingen strekkode i bildet. Vil du skrive inn EAN manuelt?", "");
+                    if (manual) {
+                        this.handleScanResult(manual);
+                    }
+                }, 100);
             }
         });
     }
