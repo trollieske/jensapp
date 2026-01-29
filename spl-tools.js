@@ -457,37 +457,39 @@ class SplTools {
      * 5. Kamerafunksjon (QuaggaJS Barcode Scanner)
      */
     initScan() {
-        this.videoElement = document.getElementById('camera-stream');
-        if (this.videoElement && !this.cameraActive) {
-            this.startScanner();
-        }
+        // Only start if not active
+        if (this.cameraActive) return;
+        this.startScanner();
     }
 
     startScanner() {
         if (!window.Quagga) {
             console.error("QuaggaJS not loaded");
-            this.startCameraLegacy();
             return;
         }
 
-        const container = this.videoElement.parentElement;
+        const container = document.getElementById('scanner-container');
+        if (!container) return;
         
-        // Quagga requires the target to be relative/absolute for canvas overlay
-        if (getComputedStyle(container).position === 'static') {
-            container.style.position = 'relative';
-        }
+        // Cleanup any existing videos/canvases
+        const existingVideo = container.querySelector('video');
+        if (existingVideo) existingVideo.remove();
+        const existingCanvas = container.querySelector('canvas');
+        if (existingCanvas) existingCanvas.remove();
 
         Quagga.init({
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
-                target: container,
+                target: container, // Use container directly
                 constraints: {
-                    facingMode: "environment"
+                    facingMode: "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 }
             },
             decoder: {
-                readers: ["ean_reader", "ean_8_reader"] // Common for meds
+                readers: ["ean_reader", "ean_8_reader"]
             },
             locate: true
         }, (err) => {
@@ -500,45 +502,16 @@ class SplTools {
             Quagga.start();
             this.cameraActive = true;
             
-            // FIX: Ensure the new video element created by Quagga is visible, fills the container, and works on iOS
-            // Quagga appends a new video element which often lacks size styles and 'playsinline'
+            // Ensure playsinline for iOS (even though CSS handles size)
             setTimeout(() => {
-                const qVideo = container.querySelector('video:not(#camera-stream)');
-                if (qVideo) {
-                    // Critical for iOS:
-                    qVideo.setAttribute('playsinline', 'true');
-                    qVideo.setAttribute('autoplay', 'true');
-                    qVideo.setAttribute('muted', 'true');
-                    
-                    // Style to fill container
-                    qVideo.style.width = '100%';
-                    qVideo.style.height = '100%';
-                    qVideo.style.objectFit = 'cover';
-                    qVideo.style.position = 'absolute';
-                    qVideo.style.top = '0';
-                    qVideo.style.left = '0';
-                    qVideo.style.zIndex = '5'; // Above background, below overlay
-                    
-                    // Force play if paused
-                    if (qVideo.paused) {
-                        qVideo.play().catch(e => console.log("Force play error:", e));
-                    }
+                const video = container.querySelector('video');
+                if (video) {
+                    video.setAttribute('playsinline', 'true');
+                    video.setAttribute('autoplay', 'true');
+                    video.setAttribute('muted', 'true');
+                    if (video.paused) video.play().catch(e => console.warn(e));
                 }
-                
-                const qCanvas = container.querySelector('canvas');
-                if (qCanvas) {
-                    qCanvas.style.width = '100%';
-                    qCanvas.style.height = '100%';
-                    qCanvas.style.objectFit = 'cover';
-                    qCanvas.style.position = 'absolute';
-                    qCanvas.style.top = '0';
-                    qCanvas.style.left = '0';
-                    qCanvas.style.zIndex = '6'; // Above video
-                }
-
-                // Hide original video element since Quagga adds its own
-                if (this.videoElement) this.videoElement.style.display = 'none';
-            }, 100); // Small delay to ensure DOM is updated
+            }, 500);
         });
 
         Quagga.onDetected((data) => {

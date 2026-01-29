@@ -1243,22 +1243,36 @@
 
                     <!-- Skann -->
                     <div class="tab-pane fade" id="spl-scan" role="tabpanel">
-                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="min-height: 400px; background: #000;">
-                            <video id="camera-stream" autoplay playsinline class="w-100 h-100" style="object-fit: cover; opacity: 0.8;"></video>
+                        <style>
+                            /* Force Quagga video to fill container */
+                            #scanner-container video, 
+                            #scanner-container canvas,
+                            #scanner-container .drawingBuffer {
+                                width: 100% !important;
+                                height: 100% !important;
+                                object-fit: cover !important;
+                                position: absolute !important;
+                                top: 0 !important;
+                                left: 0 !important;
+                            }
+                        </style>
+                        <div id="scanner-container" class="card border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="min-height: 400px; background: #000;">
+                            <!-- Placeholder for Quagga -->
                             
                             <!-- Overlay -->
-                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-between p-4" style="z-index: 10;">
+                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-between p-4" style="z-index: 10; pointer-events: none;">
                                 <div class="w-100 text-center text-white mt-4">
                                     <div class="border border-2 border-white rounded-3 mx-auto" style="width: 250px; height: 150px; box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);"></div>
                                     <p class="mt-3 text-shadow">Plasser medisineske i ruten</p>
                                 </div>
                                 
                                 <button class="btn btn-light rounded-circle shadow-lg d-flex align-items-center justify-content-center mb-4" 
-                                        style="width: 70px; height: 70px; border: 4px solid rgba(255,255,255,0.5);"
+                                        style="width: 70px; height: 70px; border: 4px solid rgba(255,255,255,0.5); pointer-events: auto;"
                                         onclick="window.splTools.captureImage()">
                                     <div class="bg-dark rounded-circle" style="width: 50px; height: 50px;"></div>
                                 </button>
                             </div>
+
 
                             <!-- Result Card -->
                             <div id="scan-result" class="position-absolute bottom-0 start-0 w-100 p-3 hidden" style="z-index: 20;">
@@ -1936,6 +1950,9 @@
     
     <!-- QuaggaJS for Barcode Scanning -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
+    <!-- Tesseract.js for Text Recognition -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <!-- SplTools JS -->
     <script src="spl-tools.js?v=21"></script>
