@@ -1,9 +1,18 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v26  
+**Siste versjon:** v27  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v27 (29. januar 2026) - Splash Screen Perfeksjonering
+
+### ⚡ Ytelse & Design
+- **Aggressiv Cut-off**: Splash screen lukkes nå 0.2 sekunder *før* videoen er ferdig for å unngå "frys" på slutten.
+- **Hvit Bakgrunn**: Endret bakgrunnsfarge fra sort til hvit for en renere look uten "black borders".
+- **Sikkerhetsnett**: Redusert maks visningstid til 4 sekunder.
 
 ---
 
