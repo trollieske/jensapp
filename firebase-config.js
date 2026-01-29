@@ -73,14 +73,14 @@ function initializeFirebase() {
                     if (modal) modal.hide();
                 }
 
-                // Trigger Home Logo Animation
-                const logoContainer = document.getElementById('welcome-logo-container');
-                if (logoContainer) {
+                // Trigger Header Logo Animation
+                const headerLogo = document.getElementById('app-header-logo');
+                if (headerLogo) {
                     // Small delay to ensure view is ready/visible
                     setTimeout(() => {
-                        logoContainer.style.opacity = '1';
-                        logoContainer.style.transform = 'scale(1)';
-                    }, 300);
+                        headerLogo.style.opacity = '1';
+                        headerLogo.style.transform = 'translateY(0) scale(1)';
+                    }, 500);
                 }
             } else {
             // User is signed out

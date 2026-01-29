@@ -1,9 +1,18 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v28  
+**Siste versjon:** v29  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v29 (29. januar 2026) - Header Logo Pop
+
+### 🎨 Visuell Oppdatering
+- **Header Animasjon**: Flyttet logo-animasjonen til toppbanneret.
+- **Kraftig "Pop"**: Logoen i headeren "popper" nå frem med en spenstig bevegelse (scale + translateY) når appen er klar.
+- **Ryddigere Hjem**: Fjernet den ekstra logoen fra hovedinnholdet for et renere uttrykk.
 
 ---
 
