@@ -1,9 +1,17 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v23  
+**Siste versjon:** v24  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v24 (29. januar 2026) - Splash Screen Comeback
+
+### 🎬 Visuell Oppgradering
+- **Splash Screen**: Gjeninnført `dosevakt.mp4` som oppstartsskjerm. Gir en profesjonell og smooth velkomst.
+- **Auto-hide**: Videoen spiller automatisk (dempet) og forsvinner sømløst når den er ferdig, eller etter maks 5 sekunder.
 
 ---
 
