@@ -15,7 +15,9 @@
 - **Cache-validering**: Implementert logikk for å tvinge frem nye oversettelser ved behov (f.eks. C-vitamin).
 
 ### 📱 Medisinscanner
-- **Nytt menyvalg**: "Medisinscanner" er nå tilgjengelig direkte fra hovedmenyen.
+- **Hjem-skjerm**: "Medisinscanner" har nå fått en prominent plass på Hjem-skjermen for rask tilgang.
+- **Nytt menyvalg**: Også tilgjengelig som hurtigvalg i Medisinplanlegger.
+- **Cache-fix**: Tvunget oppdatering av app-filer for å sikre at alle får siste versjon.
 - **Hurtigtilgang**: Åpner skanneren umiddelbart uten å måtte navigere gjennom SplTools.
 
 ### 🛠️ Forbedringer

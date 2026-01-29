@@ -541,6 +541,11 @@
                         <div class="title">Medisinplanlegger</div>
                         <div class="subtitle">Daglig plan & sjekkliste</div>
                     </button>
+                    <button onclick="document.getElementById('spltools-tab').click(); setTimeout(() => document.getElementById('scan-tab').click(), 200);" class="dashboard-card" style="background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%);">
+                        <div class="icon">📱</div>
+                        <div class="title">Skanner</div>
+                        <div class="subtitle">Skann strekkode</div>
+                    </button>
                     <button onclick="document.getElementById('meddb-tab').click()" class="dashboard-card" style="background: linear-gradient(135deg, #009688 0%, #00796B 100%);">
                         <div class="icon">💊</div>
                         <div class="title">Medisindatabase</div>
@@ -2034,10 +2039,10 @@
     <script src="app.js?v=20"></script>
     
     <!-- Dosing Plan JS -->
-    <script src="dosing-plan.js?v=20"></script>
+    <script src="dosing-plan.js?v=22"></script>
     
     <!-- Timers JS -->
-    <script src="timers.js?v=20"></script>
+    <script src="timers.js?v=22"></script>
     
     <!-- QuaggaJS for Barcode Scanning -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
@@ -2046,7 +2051,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <!-- SplTools JS -->
-    <script src="spl-tools.js?v=21"></script>
+    <script src="spl-tools.js?v=22"></script>
     
     <!-- Service Worker Cleanup -->
     <script>
