@@ -500,6 +500,30 @@ class SplTools {
             Quagga.start();
             this.cameraActive = true;
             
+            // FIX: Ensure the new video element created by Quagga is visible and fills the container
+            // Quagga appends a new video element which often lacks size styles
+            const qVideo = container.querySelector('video:not(#camera-stream)');
+            if (qVideo) {
+                qVideo.style.width = '100%';
+                qVideo.style.height = '100%';
+                qVideo.style.objectFit = 'cover';
+                qVideo.style.position = 'absolute';
+                qVideo.style.top = '0';
+                qVideo.style.left = '0';
+                qVideo.style.zIndex = '5'; // Above background, below overlay
+            }
+            
+            const qCanvas = container.querySelector('canvas');
+            if (qCanvas) {
+                qCanvas.style.width = '100%';
+                qCanvas.style.height = '100%';
+                qCanvas.style.objectFit = 'cover';
+                qCanvas.style.position = 'absolute';
+                qCanvas.style.top = '0';
+                qCanvas.style.left = '0';
+                qCanvas.style.zIndex = '6'; // Above video
+            }
+
             // Hide original video element since Quagga adds its own
             this.videoElement.style.display = 'none';
         });
