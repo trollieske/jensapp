@@ -1,9 +1,17 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v24  
+**Siste versjon:** v25  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v25 (29. januar 2026) - Splash Screen Justering
+
+### 📱 Mobil-optimalisering
+- **Video-skalering**: Endret fra `cover` til `contain` på splash-screen videoen. Dette hindrer at videoen blir zoomet inn og kuttet på mobilskjermer (iPhone etc.).
+- **Bakgrunn**: Videoen vises nå i sin helhet med sort bakgrunn (letterboxing) der det er nødvendig.
 
 ---
 
