@@ -7,7 +7,7 @@ class SplTools {
     constructor() {
         // API Stubs / Services
         this.api = {
-            // Real Lookup via Open Food Facts (with fallback)
+            // Real Lookup via Open Food Facts (with fallback and improved translation)
             lookupMedicine: async (query) => {
                 // Check if query is barcode (numeric)
                 const isBarcode = /^\d+$/.test(query);
@@ -30,9 +30,35 @@ class SplTools {
 
                     if (data.status === 1) {
                         const p = data.product;
+                        
+                        // Extract name (Prioritize Norwegian)
+                        const name = p.product_name_no || p.product_name_nb || p.product_name_nn || p.product_name || `Produkt ${query}`;
+                        
+                        // Extract and translate category/type
+                        let type = 'Ukjent';
+                        
+                        // 1. Try explicit Norwegian tags
+                        if (p.categories_tags && Array.isArray(p.categories_tags)) {
+                            const noTag = p.categories_tags.find(t => t.startsWith('no:') || t.startsWith('nb:') || t.startsWith('nn:'));
+                            if (noTag) {
+                                type = noTag.split(':')[1];
+                            } else {
+                                // Fallback to first tag (usually English) and translate
+                                const enTag = p.categories_tags[0];
+                                if (enTag) {
+                                    type = enTag.split(':')[1] || enTag;
+                                }
+                            }
+                        } else if (p.categories) {
+                            type = p.categories.split(',')[0];
+                        }
+                        
+                        // Clean and translate
+                        type = this.translateText(type);
+
                         return {
-                            name: p.product_name_no || p.product_name || `Produkt ${query}`,
-                            type: p.categories ? p.categories.split(',')[0] : 'Ukjent',
+                            name: name,
+                            type: this.capitalize(type),
                             ean: query,
                             source: 'OpenFoodFacts'
                         };
@@ -263,6 +289,67 @@ class SplTools {
 
     capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    translateText(text) {
+        if (!text) return 'Ukjent';
+        
+        text = text.toLowerCase().trim().replace(/-/g, ' ');
+        
+        const dictionary = {
+            // Medisiner / Helse
+            'medicines': 'medisiner',
+            'dietary supplements': 'kosttilskudd',
+            'supplements': 'kosttilskudd',
+            'vitamins': 'vitaminer',
+            'painkillers': 'smertestillende',
+            'analgesics': 'smertestillende',
+            'anti inflammatory': 'betennelsesdempende',
+            'antihistamines': 'allergimedisin',
+            'first aid': 'førstehjelp',
+            'hygiene': 'hygiene',
+            'pharmacy': 'apotekvarer',
+            
+            // Mat / Drikke (Vanlig i OpenFoodFacts)
+            'beverages': 'drikke',
+            'snacks': 'snacks',
+            'dairies': 'meieriprodukter',
+            'meats': 'kjøttvarer',
+            'groceries': 'dagligvarer',
+            'fresh foods': 'ferskvarer',
+            'canned foods': 'hermetikk',
+            'plant based foods': 'plantebasert',
+            'fruits': 'frukt',
+            'vegetables': 'grønnsaker',
+            'seafood': 'sjømat',
+            'frozen foods': 'frysevarer',
+            'breakfasts': 'frokostvarer',
+            'cereals': 'frokostblanding',
+            'biscuits': 'kjeks',
+            'cakes': 'kaker',
+            'chocolates': 'sjokolade',
+            'salty snacks': 'salt snacks',
+            'sweet snacks': 'søt snacks',
+            'condiments': 'smakstilsetning',
+            'sauces': 'sauser',
+            'fats': 'fettkilder',
+            'oils': 'oljer',
+            
+            // Generiske termer
+            'unknown': 'ukjent',
+            'items': 'varer',
+            'products': 'produkter'
+        };
+
+        // Direct lookup
+        if (dictionary[text]) return dictionary[text];
+        
+        // Partial match lookup (e.g. "sugary snacks" -> "snacks")
+        for (const [eng, nor] of Object.entries(dictionary)) {
+            if (text.includes(eng)) return nor;
+        }
+
+        return text; // Return original if no translation found
     }
 
     /**
