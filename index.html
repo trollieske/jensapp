@@ -515,9 +515,6 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="timers-tab" data-bs-toggle="tab" data-bs-target="#timers" type="button">Timere</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai" type="button">AI Hjelp</button>
-            </li>
         </ul>
         
         <div class="tab-content">
@@ -1024,40 +1021,6 @@
                 <button class="btn btn-primary w-100 rounded-pill fw-bold py-3 shadow-sm" style="background: var(--accent-gradient); border: none;" data-bs-toggle="modal" data-bs-target="#addTimerModal">
                     <i class="bi bi-plus-lg me-2"></i>Start ny timer
                 </button>
-            </div>
-
-            <!-- AI Smarthjelper Tab -->
-            <div class="tab-pane fade" id="ai" role="tabpanel">
-                <!-- Header -->
-                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #673AB7 0%, #512DA8 100%);">
-                    <div class="card-body p-4 text-white d-flex align-items-center justify-content-between">
-                        <div>
-                            <h5 class="mb-1 fw-bold">AI Smarthjelper</h5>
-                            <p class="mb-0 opacity-75 small">Analyse og råd</p>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                            <span style="font-size: 1.5rem;">🤖</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- AI Content -->
-                <div class="d-grid gap-3">
-                    <div class="card border-0 shadow-sm bg-white rounded-4 p-4 text-center">
-                        <i class="bi bi-stars text-primary mb-3" style="font-size: 2.5rem; color: #673AB7 !important;"></i>
-                        <h6 class="fw-bold mb-2">Få innsikt i medisineringen</h6>
-                        <p class="text-secondary small mb-4">
-                            AI-assistenten analyserer de siste 30 dagene med logger for å finne mønstre og gi råd om adherence.
-                        </p>
-                        <button id="btnAiAnalysis" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm" style="background: linear-gradient(135deg, #673AB7 0%, #512DA8 100%); border: none;" onclick="runAiAnalysis()">
-                            <i class="bi bi-magic me-2"></i>Kjør AI-analyse
-                        </button>
-                    </div>
-                    
-                    <div id="aiAnalysisResult" style="display: none;">
-                        <!-- Results injected here -->
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -1651,13 +1614,6 @@
                     </div>
                     <span style="font-weight: 600; color: #333; font-size: 1.05rem;">Statistikk</span>
                 </button>
-
-                <button class="list-group-item list-group-item-action border-0 rounded-4 px-3 py-3 d-flex align-items-center" onclick="document.getElementById('ai-tab').click(); bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasNavbar')).hide()">
-                    <div style="width: 40px; height: 40px; background: #EDE7F6; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: #673AB7; font-size: 1.2rem;">
-                        <i class="bi bi-stars"></i>
-                    </div>
-                    <span style="font-weight: 600; color: #333; font-size: 1.05rem;">AI Smarthjelper</span>
-                </button>
                 
                 <div class="border-top my-2"></div>
 
@@ -1709,9 +1665,6 @@
     
     <!-- Timers JS -->
     <script src="timers.js?v=20"></script>
-    
-    <!-- AI Service -->
-    <script src="ai-service.js?v=20"></script>
     
     <!-- Service Worker Cleanup -->
     <script>

@@ -1,9 +1,29 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v15  
-**Sist oppdatert:** 25. januar 2026  
+**Siste versjon:** v18  
+**Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v18 (29. januar 2026) - Stabilitet og Pushover-fiks
+
+### 🚀 Gjenoppretting og Stabilitet
+- **Rollback av AI-funksjoner**: Deaktivert ustabile AI-funksjoner for å sikre kjernefunksjonalitet.
+- **Fokus på stabilitet**: Gjeninnført velprøvd logikk for medisinliste og logging.
+
+### 🔔 Varsling (Pushover & FCM)
+- **Robust Pushover-integrasjon**: 
+  - Fikset kritiske feil med ugyldige tokens (whitespace trimming implementert).
+  - Oppdatert `sendPushoverNotification` til å returnere detaljerte feilmeldinger for enklere feilsøking.
+  - Sikret at hemmeligheter (`PUSHOVER_API_TOKEN`, `PUSHOVER_USER_KEY`) hentes korrekt fra Firebase Secrets.
+- **Dynamisk testing**: Oppdatert `testPush` cloud function til å støtte dynamisk tittel og melding for testing.
+
+### 🛠️ Tekniske forbedringer
+- **Linting**: Ryddet opp i JSDoc og kodesstil i `functions/index.js`.
+- **PowerShell-kompatibilitet**: Tilpasset test-skript for Windows-miljø (Invoke-RestMethod).
+- **Feilhåndtering**: Bedre logging av varslingsstatus i backend.
 
 ---
 

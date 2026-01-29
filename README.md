@@ -2,8 +2,8 @@
 
 En moderne Progressive Web App (PWA) for sanntidslogging av medisiner, sondemat, og helse for personer med spesielle omsorgsbehov. Designet for familiebruk med multi-bruker støtte og sanntidssynkronisering via Firebase.
 
-**Versjon:** v17 (Januar 2026)  
-**Sist oppdatert:** 28. januar 2026
+**Versjon:** v18 (Januar 2026)  
+**Sist oppdatert:** 29. januar 2026
 
 ## 🌐 Live App
 
