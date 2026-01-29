@@ -1,9 +1,18 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v27  
+**Siste versjon:** v28  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v28 (29. januar 2026) - Fra Splash Screen til Animert Hjem
+
+### 🎬 Visuell Endring
+- **Fjernet Splash Screen**: Videoen er fjernet igjen for å redusere "rot" og ventetid.
+- **Animert Logo**: Lagt til en lekker animasjon på logoen på hjemskjermen.
+- **Smart visning**: Logo-animasjonen trigges først når brukeren er logget inn og hjemskjermen faktisk er synlig (ingen animasjon bak login-boksen).
 
 ---
 

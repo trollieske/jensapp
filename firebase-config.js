@@ -68,11 +68,21 @@ function initializeFirebase() {
 
             // Hide login modal if open
             const modalEl = document.getElementById('loginModal');
-            if (modalEl) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            }
-        } else {
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+
+                // Trigger Home Logo Animation
+                const logoContainer = document.getElementById('welcome-logo-container');
+                if (logoContainer) {
+                    // Small delay to ensure view is ready/visible
+                    setTimeout(() => {
+                        logoContainer.style.opacity = '1';
+                        logoContainer.style.transform = 'scale(1)';
+                    }, 300);
+                }
+            } else {
             // User is signed out
             console.log('User signed out');
             window.currentUser = null;
