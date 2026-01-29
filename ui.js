@@ -634,129 +634,27 @@ function quickLogVomit() {
 
 // --- User Management UI Functions (Existing) ---
 function showUserSelector() {
-    const modal = document.getElementById('userSelectorModal');
-    if (modal) {
-        if (typeof loadUsersFromFirestore === 'function') {
-            loadUsersFromFirestore().then(() => {
-                renderUserButtons();
-            });
-        } else {
-            renderUserButtons();
-        }
-        const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
-        bsModal.show();
+    if (typeof showLoginModal === 'function') {
+        showLoginModal();
+    } else {
+        console.error('showLoginModal not found');
     }
 }
 
 function renderUserButtons() {
-    const defaultContainer = document.getElementById('defaultUsersContainer');
-    const savedContainer = document.getElementById('savedUsersContainer');
-    if (!defaultContainer) return;
-    const allUsers = Object.keys(window.usersData || {}).length > 0 ? Object.keys(window.usersData) : ['Tom-Erik', 'Mari'];
-    let defaultHtml = '';
-    let savedHtml = '';
-    allUsers.forEach(username => {
-        const userData = window.usersData[username] || {};
-        const email = userData.email || '';
-        const emailBadge = email ? `<span style="font-size: 0.7rem; color: #4CAF50;">📧</span>` : '';
-        const icon = username === 'Tom-Erik' ? '👨' : username === 'Mari' ? '👩' : '👤';
-        const bgColor = username === 'Tom-Erik' ? '#E3F2FD' : username === 'Mari' ? '#FCE4EC' : '#E8F5E9';
-        const isDefault = username === 'Tom-Erik' || username === 'Mari';
-        const buttonHtml = `
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                <button onclick="selectUser('${username}')" 
-                        style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; flex: 1; text-align: left;">
-                    <div style="width: 48px; height: 48px; background: ${bgColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">${icon}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 1.1rem; color: #333;">${username} ${emailBadge}</div>
-                        <div style="font-size: 0.8rem; color: #888;">${email || 'Trykk for å logge inn'}</div>
-                    </div>
-                </button>
-                <button onclick="event.stopPropagation(); editUser('${username}')" 
-                        style="background: #f0f0f0; border: none; color: #666; font-size: 1rem; cursor: pointer; padding: 12px; border-radius: 10px;" title="Rediger">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </div>`;
-        if (isDefault) defaultHtml += buttonHtml;
-        else savedHtml += buttonHtml;
-    });
-    if (!allUsers.includes('Tom-Erik')) {
-        defaultHtml = `
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                <button onclick="selectUser('Tom-Erik')" 
-                        style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; flex: 1; text-align: left;">
-                    <div style="width: 48px; height: 48px; background: #E3F2FD; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👨</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 1.1rem; color: #333;">Tom-Erik</div>
-                        <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
-                    </div>
-                </button>
-                <button onclick="event.stopPropagation(); editUser('Tom-Erik')" 
-                        style="background: #f0f0f0; border: none; color: #666; font-size: 1.1rem; cursor: pointer; padding: 12px; border-radius: 10px;" title="Rediger">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </div>` + defaultHtml;
-    }
-    if (!allUsers.includes('Mari')) {
-        defaultHtml += `
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                <button onclick="selectUser('Mari')" 
-                        style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; cursor: pointer; flex: 1; text-align: left;">
-                    <div style="width: 48px; height: 48px; background: #FCE4EC; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👩</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 1.1rem; color: #333;">Mari</div>
-                        <div style="font-size: 0.8rem; color: #888;">Trykk for å logge inn</div>
-                    </div>
-                </button>
-                <button onclick="event.stopPropagation(); editUser('Mari')" 
-                        style="background: #f0f0f0; border: none; color: #666; font-size: 1rem; cursor: pointer; padding: 12px; border-radius: 10px;" title="Rediger">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </div>`;
-    }
-    defaultContainer.innerHTML = defaultHtml;
-    if (savedContainer) savedContainer.innerHTML = savedHtml;
+    // Deprecated
 }
 
 function showAddUserModal(prefillName = '') {
-    document.getElementById('editingUserId').value = '';
-    document.getElementById('newUserName').value = prefillName || '';
-    document.getElementById('newUserEmail').value = '';
-    document.getElementById('newUserDailyReport').checked = false;
-    document.getElementById('newUserMissedMedAlert').checked = false;
-    const title = document.getElementById('addUserModalTitle');
-    if (title) title.textContent = 'Ny bruker';
-    const customInput = document.getElementById('customUserInput');
-    if (customInput) customInput.value = '';
-    const modalEl = document.getElementById('addUserModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
+    // Deprecated
 }
 
 function editUser(username) {
-    const userData = window.usersData[username] || {};
-    document.getElementById('editingUserId').value = username;
-    document.getElementById('newUserName').value = username;
-    document.getElementById('newUserEmail').value = userData.email || '';
-    document.getElementById('newUserDailyReport').checked = userData.dailyReport || false;
-    document.getElementById('newUserMissedMedAlert').checked = userData.missedMedAlert || false;
-    const title = document.getElementById('addUserModalTitle');
-    if (title) title.textContent = 'Rediger ' + username;
-    const modalEl = document.getElementById('addUserModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
+    // Deprecated
 }
 
 function closeAddUserModal() {
-    const modalEl = document.getElementById('addUserModal');
-    if (modalEl) {
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
-    }
+    // Deprecated
 }
 
 function updateUserDisplay() {
@@ -877,5 +775,17 @@ function initDarkMode() {
 document.addEventListener('DOMContentLoaded', initDarkMode);
 // Try immediately as well since script is at end of body
 initDarkMode();
+
+// Auth Modal
+function showLoginModal() {
+    const modalEl = document.getElementById('loginModal');
+    if (modalEl) {
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl);
+        }
+        modal.show();
+    }
+}
 
 

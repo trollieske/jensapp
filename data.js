@@ -272,47 +272,29 @@ function removeUser(username) {
 }
 
 function selectUser(username) {
-    if (!username || username.trim() === '') return;
-    
-    username = username.trim();
-    window.currentUser = username;
-    localStorage.setItem('currentUser', username);
-    
-    // Ensure user exists in Firestore
-    if (db && !window.usersData[username]) {
-        db.collection('users').doc(username).set({
-            name: username,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        window.usersData[username] = { name: username };
-    }
-    
-    updateUserDisplay();
-    
-    const modal = document.getElementById('userSelectorModal');
-    if (modal) {
-        const instance = bootstrap.Modal.getInstance(modal);
-        if (instance) instance.hide();
-    }
-    
-    showToast(`✓ Logget inn som ${username}`);
-    startRealtimeSync();
-    
-    // Apply theme if saved
-    if (window.usersData[username] && window.usersData[username].theme) {
-        applyTheme(window.usersData[username].theme);
-    }
+    console.warn('selectUser is deprecated. Use Firebase Auth.');
 }
 
 function restoreUserSession() {
-    // Session persistence removed
+    // Handled by Firebase Auth listener
     return false;
 }
 
 function switchUser() {
-    window.currentUser = null;
-    // localStorage usage removed
-    showUserSelector();
+    if (auth) {
+        auth.signOut().then(() => {
+            console.log('User signed out');
+            window.location.reload();
+        }).catch((error) => {
+            console.error('Sign out error:', error);
+            showToast('⚠️ Feil ved utlogging');
+        });
+    } else {
+        window.currentUser = null;
+        if (typeof showLoginModal === 'function') {
+            showLoginModal();
+        }
+    }
 }
 
 function updateUserDisplay() {

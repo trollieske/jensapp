@@ -13,9 +13,11 @@ const firebaseConfig = {
 let app;
 let messaging;
 let db;
+let auth;
 
 // Current user (TEL or Mari or custom)
-window.currentUser = null; // Initialized in initializeFirebase via restoreUserSession
+window.currentUser = null;
+window.currentUserId = null; // Added for Auth UID
 
 // Global data arrays (synced with Firestore)
 window.logs = [];
@@ -31,6 +33,7 @@ function initializeFirebase() {
     app = firebase.initializeApp(firebaseConfig);
     messaging = firebase.messaging();
     db = firebase.firestore();
+    auth = firebase.auth();
     
     // Enable offline persistence
     db.enablePersistence()
@@ -42,26 +45,81 @@ function initializeFirebase() {
         }
       });
     
-    console.log('Firebase initialized with Firestore');
+    console.log('Firebase initialized with Firestore & Auth');
+
+    // Auth State Listener
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in
+            console.log('User signed in:', user.email);
+            window.currentUser = user.displayName || user.email.split('@')[0];
+            window.currentUserId = user.uid;
+            
+            // Sync user data to Firestore
+            db.collection('users').doc(user.uid).set({
+                name: window.currentUser,
+                email: user.email,
+                photoURL: user.photoURL || null,
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            if (typeof updateUserDisplay === 'function') updateUserDisplay();
+            if (typeof startRealtimeSync === 'function') startRealtimeSync();
+
+            // Hide login modal if open
+            const modalEl = document.getElementById('loginModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+        } else {
+            // User is signed out
+            console.log('User signed out');
+            window.currentUser = null;
+            window.currentUserId = null;
+            
+            if (typeof updateUserDisplay === 'function') updateUserDisplay();
+            
+            // Show login modal
+            if (typeof showLoginModal === 'function') {
+                showLoginModal();
+            }
+        }
+    });
     
     // Only setup messaging if permission is already granted to avoid prompt on load
     if (Notification.permission === 'granted' && typeof setupMessaging === 'function') {
       setupMessaging();
     }
-    
-    // Restore user session if available
-    if (typeof restoreUserSession === 'function') {
-        restoreUserSession();
-    }
-
-    // Show user selector if no user selected
-    if (!window.currentUser && typeof showUserSelector === 'function') {
-      showUserSelector();
-    } else {
-      if (typeof updateUserDisplay === 'function') updateUserDisplay();
-      if (typeof startRealtimeSync === 'function') startRealtimeSync();
-    }
   } else {
     console.error('Firebase not loaded');
   }
+}
+
+// Auth Functions
+function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch((error) => {
+        console.error('Login failed:', error);
+        alert('Innlogging feilet: ' + error.message);
+    });
+}
+
+function loginWithEmail(email, password) {
+    return auth.signInWithEmailAndPassword(email, password);
+}
+
+function registerWithEmail(email, password, name) {
+    return auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            return userCredential.user.updateProfile({
+                displayName: name
+            });
+        });
+}
+
+function logout() {
+    auth.signOut().then(() => {
+        window.location.reload();
+    });
 }

@@ -1,9 +1,28 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v19  
+**Siste versjon:** v23  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v23 (29. januar 2026) - Sikker Pålogging og Datasikkerhet
+
+### 🔐 Sikker Pålogging (oAuth)
+- **Google Innlogging**: Logg inn sikkert med din Google-konto.
+- **E-post/Passord**: Mulighet for å registrere seg med e-post og passord.
+- **Brukervennlig**: Automatisk gjenkjenning av innlogget bruker.
+- **Dataintegritet**: Historiske data er bevart og tilgjengelig for alle innloggede brukere.
+
+### 🛡️ Datasikkerhet
+- **Firestore Rules**: Implementert strenge sikkerhetsregler.
+- **Tilgangskontroll**: Kun autentiserte brukere har lese- og skrivetilgang til databasen.
+- **Personvern**: Beskytter sensitive helsedata mot uautorisert tilgang.
+
+### 🛠️ Tekniske Oppdateringer
+- **Versjonshåndtering**: Oppdatert alle filer til v23 for å sikre at alle brukere får siste versjon.
+- **Service Worker**: Oppdatert cache-strategi for umiddelbar oppdatering.
 
 ---
 

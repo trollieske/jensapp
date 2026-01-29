@@ -1612,27 +1612,71 @@
             </div>
         </div>
     </div>
-    <!-- User Selector Modal -->
-    <div class="modal fade" id="userSelectorModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header text-white text-center d-block border-0 pb-0" style="background: var(--primary-gradient);">
-                    <img src="./logo.svg" alt="Dosevakt" style="height: 60px; margin-bottom: 12px; filter: brightness(0) invert(1);">
-                    <h5 class="modal-title">Hvem er du?</h5>
-                </div>
-                <div class="modal-body pt-4">
-                    <div id="defaultUsersContainer" class="d-grid gap-2"></div>
-                    <div id="savedUsersContainer" class="d-grid gap-2 mt-2"></div>
-                    
-                    <div class="mt-4 pt-4 border-top">
-                        <label class="form-label small text-muted">Legg til ny bruker:</label>
-                        <div class="input-group">
-                            <input type="text" id="customUserInput" class="form-control" placeholder="Navn...">
-                            <button class="btn text-white" style="background: var(--primary-gradient);" onclick="showAddUserModal(document.getElementById('customUserInput').value)">
-                                OK
-                            </button>
-                        </div>
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-0 text-white p-4" style="background: var(--primary-gradient);">
+                    <div class="text-center w-100">
+                        <img src="./logo.svg" alt="Dosevakt" style="height: 50px; margin-bottom: 10px; filter: brightness(0) invert(1);">
+                        <h5 class="modal-title fw-bold">Velkommen</h5>
+                        <p class="mb-0 opacity-75 small">Logg inn for å bruke Dosevakt</p>
                     </div>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <button class="btn btn-white w-100 py-3 rounded-4 shadow-sm fw-bold mb-3 d-flex align-items-center justify-content-center gap-2" 
+                            onclick="loginWithGoogle()">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="24" height="24" alt="Google">
+                        Logg inn med Google
+                    </button>
+                    
+                    <div class="d-flex align-items-center my-3">
+                        <hr class="flex-grow-1">
+                        <span class="mx-2 text-muted small">ELLER</span>
+                        <hr class="flex-grow-1">
+                    </div>
+
+                    <form onsubmit="event.preventDefault(); loginWithEmail(this.email.value, this.password.value).catch(e => alert(e.message))">
+                        <div class="mb-3">
+                            <input type="email" name="email" class="form-control rounded-4 py-2" placeholder="E-post" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" name="password" class="form-control rounded-4 py-2" placeholder="Passord" required>
+                        </div>
+                        <button type="submit" class="btn text-white w-100 rounded-4 py-2 fw-bold" style="background: var(--primary-gradient);">Logg inn</button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                         <a href="#" class="small text-decoration-none" data-bs-toggle="modal" data-bs-target="#registerModal">Ny bruker? Registrer deg her</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-0 bg-success text-white p-4">
+                    <div>
+                        <h5 class="modal-title fw-bold">Registrer bruker</h5>
+                    </div>
+                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <form onsubmit="event.preventDefault(); registerWithEmail(this.email.value, this.password.value, this.name.value).then(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal')); if(modal) modal.hide(); }).catch(e => alert(e.message))">
+                        <div class="mb-3">
+                            <input type="text" name="name" class="form-control rounded-4 py-2" placeholder="Navn (vises i logger)" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" name="email" class="form-control rounded-4 py-2" placeholder="E-post" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" name="password" class="form-control rounded-4 py-2" placeholder="Passord" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 rounded-4 py-2 fw-bold">Registrer</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -2013,36 +2057,37 @@
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     
     <!-- Firebase Config -->
-    <script src="firebase-config.js?v=20"></script>
+    <script src="firebase-config.js?v=23"></script>
 
     <!-- App Config -->
-    <script src="config.js?v=20"></script>
+    <script src="config.js?v=23"></script>
     
     <!-- Medicine Info -->
-    <script src="medicine-info.js?v=20"></script>
+    <script src="medicine-info.js?v=23"></script>
     
     <!-- Utils (Helper functions) -->
-    <script src="utils.js?v=20"></script>
+    <script src="utils.js?v=23"></script>
 
     <!-- Data Management -->
-    <script src="data.js?v=20"></script>
+    <script src="data.js?v=23"></script>
 
     <!-- UI Rendering -->
-    <script src="ui.js?v=20"></script>
+    <script src="ui.js?v=23"></script>
     
     <!-- App JS -->
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=23"></script>
     
     <!-- Dosing Plan JS -->
-    <script src="dosing-plan.js?v=22"></script>
+    <script src="dosing-plan.js?v=23"></script>
     
     <!-- Timers JS -->
-    <script src="timers.js?v=22"></script>
+    <script src="timers.js?v=23"></script>
     
     <!-- QuaggaJS for Barcode Scanning -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
@@ -2051,7 +2096,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <!-- SplTools JS -->
-    <script src="spl-tools.js?v=22"></script>
+    <script src="spl-tools.js?v=23"></script>
     
     <!-- Service Worker Cleanup -->
     <script>
