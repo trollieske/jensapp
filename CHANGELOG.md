@@ -1,9 +1,24 @@
 # Endringslogg - Dosevakt (Jens Medisinapp)
 
-**Siste versjon:** v30  
+**Siste versjon:** v31  
 **Sist oppdatert:** 29. januar 2026  
 **Repository:** https://github.com/trollieske/jensapp  
 **Live URL:** https://jensapp-14069.web.app
+
+---
+
+## v31 (29. januar 2026) - iOS Style Home Screen & Consolidation
+
+### 📱 iOS "App" Design
+- **Nytt Dashboard**: Hjemskjermen er redesignet til å ligne hjemskjermen på en iPhone.
+- **App Ikoner**: Store, tydelige ikoner med avrundede hjørner ("squircle") og lekre fargegraderinger.
+- **Glass-effekt**: Ikonene har en subtil glans for en mer premium følelse.
+- **Animasjoner**: Ikonene trykkes litt ned ved klikk for taktil feedback.
+
+### 📂 Konsolidering & Mapper
+- **Verktøy-mappe**: Samlet alle verktøy (SplTools, Timere, MedisinDB, Skanner) i en egen "Verktøy"-mappe som åpner en lekker glass-modal.
+- **Journal-mappe**: Samlet historikk, loggvisning og statistikk i en "Journal"-mappe.
+- **Ryddigere Grid**: Redusert antall elementer på hjemskjermen for bedre oversikt (Sjekkliste, Ny Logg, Journal, Verktøy, Varsler).
 
 ---
 
