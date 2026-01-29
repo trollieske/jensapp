@@ -12,17 +12,35 @@ class SplTools {
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         const mockDb = [
-                            { name: 'Paracet 500mg', type: 'Smertestillende' },
-                            { name: 'Ibux 400mg', type: 'Betennelsesdempende' },
-                            { name: 'Nexium 20mg', type: 'Syrehemmende' },
-                            { name: 'Zyrtec 10mg', type: 'Allergimedisin' },
-                            { name: 'Metoprolol 50mg', type: 'Blodtrykk' }
+                            { name: 'Paracet 500mg', type: 'Smertestillende', ean: '7046260001854' },
+                            { name: 'Ibux 400mg', type: 'Betennelsesdempende', ean: '7046260001908' },
+                            { name: 'Nexium 20mg', type: 'Syrehemmende', ean: '1234567890123' },
+                            { name: 'Zyrtec 10mg', type: 'Allergimedisin', ean: '3216549870123' },
+                            { name: 'Metoprolol 50mg', type: 'Blodtrykk', ean: '9876543210123' },
+                            { name: 'C-Vitaminer', type: 'Kosttilskudd', ean: '7038310001234' }
                         ];
-                        // Return random or matching
-                        const match = mockDb.find(m => m.name.toLowerCase().includes(query.toLowerCase())) || 
-                                     mockDb[Math.floor(Math.random() * mockDb.length)];
+                        
+                        // Check if query is barcode (numeric)
+                        const isBarcode = /^\d+$/.test(query);
+                        
+                        let match;
+                        if (isBarcode) {
+                            match = mockDb.find(m => m.ean === query);
+                            // If no exact match but looks like a barcode, return a generic result
+                            if (!match) {
+                                 match = { name: `Ukjent Produkt (EAN: ${query})`, type: 'Ukjent', ean: query };
+                            }
+                        } else {
+                            match = mockDb.find(m => m.name.toLowerCase().includes(query.toLowerCase()));
+                        }
+                        
+                        // Fallback for random/demo if no match and not a barcode
+                        if (!match && !isBarcode) {
+                            match = mockDb[Math.floor(Math.random() * mockDb.length)];
+                        }
+
                         resolve(match);
-                    }, 1500); // Simulate network delay
+                    }, 800);
                 });
             },
 
@@ -420,59 +438,150 @@ class SplTools {
     }
 
     /**
-     * 5. Kamerafunksjon
+     * 5. Kamerafunksjon (QuaggaJS Barcode Scanner)
      */
     initScan() {
         this.videoElement = document.getElementById('camera-stream');
         if (this.videoElement && !this.cameraActive) {
-            this.startCamera();
+            this.startScanner();
         }
     }
 
-    async startCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
-            });
-            this.videoElement.srcObject = stream;
+    startScanner() {
+        if (!window.Quagga) {
+            console.error("QuaggaJS not loaded");
+            this.startCameraLegacy();
+            return;
+        }
+
+        const container = this.videoElement.parentElement;
+        
+        // Quagga requires the target to be relative/absolute for canvas overlay
+        if (getComputedStyle(container).position === 'static') {
+            container.style.position = 'relative';
+        }
+
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: container,
+                constraints: {
+                    facingMode: "environment"
+                }
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader"] // Common for meds
+            },
+            locate: true
+        }, (err) => {
+            if (err) {
+                console.error("Quagga init error:", err);
+                container.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-white p-3 text-center"><p>Kunne ikke starte skanner.<br>Sjekk at du har gitt tillatelse.</p></div>';
+                return;
+            }
+            console.log("Quagga initialization finished. Ready to start");
+            Quagga.start();
             this.cameraActive = true;
-        } catch (err) {
-            console.error("Camera error:", err);
-            const container = this.videoElement.parentElement;
-            container.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-white p-3 text-center"><p>Kunne ikke starte kamera.<br>Sjekk at du har gitt tillatelse.</p></div>';
-        }
+            
+            // Hide original video element since Quagga adds its own
+            this.videoElement.style.display = 'none';
+        });
+
+        Quagga.onDetected((data) => {
+            const code = data.codeResult.code;
+            if (this.lastScannedCode === code) return; // Simple debounce
+            
+            this.lastScannedCode = code;
+            console.log("Barcode detected:", code);
+            
+            // Visual feedback
+            if (Quagga.canvas && Quagga.canvas.dom.overlay) {
+                const drawingCanvas = Quagga.canvas.dom.overlay;
+                drawingCanvas.style.border = "4px solid #4CAF50";
+                setTimeout(() => drawingCanvas.style.border = "none", 300);
+            }
+
+            this.handleScanResult(code);
+        });
     }
 
-    async captureImage() {
-        if (!this.cameraActive) return;
+    startCameraLegacy() {
+        // Fallback if Quagga fails to load
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                this.videoElement.srcObject = stream;
+                this.cameraActive = true;
+            })
+            .catch(err => console.error("Camera error:", err));
+    }
 
-        // Visual feedback
-        this.videoElement.style.opacity = "0.5";
-        setTimeout(() => this.videoElement.style.opacity = "1", 200);
+    async handleScanResult(code) {
+        if (this.isProcessingScan) return;
+        this.isProcessingScan = true;
 
-        // Show processing state
         const resultContainer = document.getElementById('scan-result');
         const matchName = document.getElementById('scan-match-name');
         
-        resultContainer.classList.add('hidden');
-        
-        // Simulate scanning logic (OCR/Barcode)
-        // In a real app, we would grab a frame from the video stream here
-        
         try {
-            // Mock extracting text/barcode -> "Paracet"
-            // Using API stub
-            const result = await this.api.lookupMedicine("Paracet"); // Simulate finding something
+            const result = await this.api.lookupMedicine(code);
             
             if (result) {
                 matchName.textContent = result.name;
-                document.getElementById('scan-match-type').textContent = result.type; // Assuming we add this span
+                const typeEl = document.getElementById('scan-match-type');
+                if(typeEl) typeEl.textContent = result.type;
+                
                 resultContainer.classList.remove('hidden');
+                
+                // Auto-scroll to result
+                resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         } catch (err) {
-            console.error("Scan error:", err);
-            alert("Kunne ikke identifisere medisin.");
+            console.error("Lookup error:", err);
+        } finally {
+            // Allow scanning again after 3 seconds
+            setTimeout(() => { 
+                this.isProcessingScan = false; 
+                this.lastScannedCode = null; // Allow re-scan of same item
+            }, 3000); 
         }
+    }
+
+    captureImage() {
+        // Manual trigger button action - FALLBACK / DEMO
+        console.log("Manual capture triggered");
+        
+        // Show user this is a simulation
+        const resultContainer = document.getElementById('scan-result');
+        const matchName = document.getElementById('scan-match-name');
+        
+        // Cycle through mock EANs to ensure variety
+        const mockEans = [
+            '7038310001234', // C-Vitaminer
+            '7046260001908', // Ibux
+            '7046260001854', // Paracet
+            '1234567890123', // Nexium
+            '9999999999999'  // Ukjent
+        ];
+        
+        // Use a static counter to cycle
+        if (typeof this.demoCounter === 'undefined') this.demoCounter = 0;
+        const ean = mockEans[this.demoCounter % mockEans.length];
+        this.demoCounter++;
+        
+        // Show toast/alert about demo mode
+        const container = this.videoElement.parentElement;
+        const existingToast = container.querySelector('.demo-toast');
+        if (existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'demo-toast position-absolute top-50 start-50 translate-middle badge bg-warning text-dark shadow-lg p-3 rounded-pill';
+        toast.style.zIndex = 100;
+        toast.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>Simulert skann (Demo)';
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+
+        this.handleScanResult(ean);
     }
 
     addScannedMed() {
