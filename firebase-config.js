@@ -30,20 +30,43 @@ window.usersData = {}; // Cache of user data from Firestore
 
 function initializeFirebase() {
   if (typeof firebase !== 'undefined') {
-    app = firebase.initializeApp(firebaseConfig);
-    messaging = firebase.messaging();
-    db = firebase.firestore();
-    auth = firebase.auth();
+    // Check if Firebase is already initialized
+    if (!firebase.apps.length) {
+        app = firebase.initializeApp(firebaseConfig);
+    } else {
+        app = firebase.app();
+    }
     
-    // Enable offline persistence
-    db.enablePersistence()
-      .catch((err) => {
-        if (err.code == 'failed-precondition') {
-          console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-        } else if (err.code == 'unimplemented') {
-          console.log('The current browser does not support persistence.');
+    // Initialize services if not already done
+    if (!messaging) {
+        try {
+            messaging = firebase.messaging();
+        } catch (e) {
+            console.log('Messaging not supported');
         }
-      });
+    }
+    if (!db) db = firebase.firestore();
+    if (!auth) auth = firebase.auth();
+    
+    // Enable offline persistence (only if not already enabled)
+    // Note: enablePersistence can only be called once. 
+    // We assume if db is set, we might have already tried.
+    // But to be safe, we wrap in try-catch or check specific flag if we had one.
+    // For now, we'll just try it if we just initialized the app, or skip if we're re-initializing logic.
+    // Actually, calling enablePersistence on an already active Firestore instance might throw or be ignored.
+    // Let's keep the original logic but wrapped safely.
+    
+    if (firebase.apps.length === 0 || !window.firebasePersistenceEnabled) { // Custom flag to track
+         db.enablePersistence()
+          .then(() => window.firebasePersistenceEnabled = true)
+          .catch((err) => {
+            if (err.code == 'failed-precondition') {
+              console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+            } else if (err.code == 'unimplemented') {
+              console.log('The current browser does not support persistence.');
+            }
+          });
+    }
     
     console.log('Firebase initialized with Firestore & Auth');
 

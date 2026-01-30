@@ -1,5 +1,6 @@
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onRequest, onCall, HttpsError} = require("firebase-functions/v2/https");
+const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const {Resend} = require("resend");
@@ -231,6 +232,40 @@ exports.checkReminders = onSchedule(
       } catch (error) {
         console.error("Error checking reminders:", error);
         return null;
+      }
+    },
+);
+
+exports.updateAccess = onRequest(
+    {
+      cors: true,
+    },
+    async (req, res) => {
+      try {
+        const db = admin.firestore();
+        const patientId = "ORYrHe2nnvqFjOZtrvdw";
+        const docRef = db.collection("patients").doc(patientId);
+
+        const doc = await docRef.get();
+        if (!doc.exists) {
+          res.status(404).send("Patient not found");
+          return;
+        }
+
+        const newEmail = "tomeriklarsen1@gmail.com";
+        const variants = [
+            "tomeriklarsen1@gmail.com", 
+            "TomErikLarsen1@gmail.com",
+            "Tomeriklarsen1@gmail.com"
+        ];
+        
+        await docRef.update({
+            allowedEmails: admin.firestore.FieldValue.arrayUnion(...variants)
+        });
+
+        res.json({success: true, message: "Added variants: " + variants.join(", "), id: patientId});
+      } catch (error) {
+        res.status(500).json({error: error.message});
       }
     },
 );
@@ -623,281 +658,294 @@ async function generateAndSendReport(apiKey) {
     const emailResult = await resend.emails.send({
       from: "Dosevakt <noreply@larsendatasupport.no>",
       to: recipients,
-      subject: `\ud83d\udccb Dosevakt rapport - ${dateStr}`,
+      subject: `Dagsrapport for Jens - ${dateStr}`,
       html: htmlContent,
     });
 
-    console.log("Email sent successfully:", emailResult);
-    return {success: true, emailId: emailResult.id, recipients: recipients};
+    return {success: true, id: emailResult.id};
   } catch (error) {
-    console.error("Error sending daily report:", error);
+    console.error("Error generating report:", error);
     return {success: false, error: error.message};
   }
 }
 
 /**
- * Helper function to build HTML email content
- * @param {string} dateStr - Formatted date string
- * @param {Array} medicines - Array of medicine logs
- * @param {string} medicineHtml - HTML for medicine table rows
- * @param {string} missingHtml - HTML for missing medicines
- * @param {Array} sonde - Array of sondemat logs
- * @param {string} sondeHtml - HTML for sondemat list
- * @param {number} sondeTotal - Total sondemat in ml
- * @param {Array} bowel - Array of bowel movement logs
- * @param {string} bowelHtml - HTML for bowel list
- * @param {Array} urine - Array of urine logs
- * @return {string} Complete HTML email content
+ * Helper to build HTML email content
+ * @param {string} dateStr
+ * @param {Array} medicines
+ * @param {string} medicineHtml
+ * @param {string} missingHtml
+ * @param {Array} sonde
+ * @param {string} sondeHtml
+ * @param {number} sondeTotal
+ * @param {Array} bowel
+ * @param {string} bowelHtml
+ * @param {Array} urine
+ * @return {string}
  */
-function buildReportHtml(dateStr, medicines, medicineHtml, missingHtml, sonde, sondeHtml, sondeTotal, bowel, bowelHtml, urine) {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-body{font-family:-apple-system,sans-serif;background:#f5f5f5;margin:0;padding:20px}
-.container{max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1)}
-.header{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;padding:24px;text-align:center}
-.header h1{margin:0;font-size:24px}.header p{margin:8px 0 0;opacity:.9}
-.content{padding:24px}.section{margin-bottom:24px}
-.section-title{font-size:16px;font-weight:600;color:#333;margin-bottom:12px}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:8px;background:#f8f9fa;border-bottom:2px solid #dee2e6;font-size:14px}
-.warning{background:#FFF3E0;border-left:4px solid #FF9800;padding:12px;border-radius:4px;margin-top:12px}
-.stats{display:flex;gap:16px}.stat-box{flex:1;background:#f8f9fa;padding:16px;border-radius:8px;text-align:center}
-.stat-value{font-size:24px;font-weight:700;color:#4CAF50}.stat-label{font-size:12px;color:#666;margin-top:4px}
-.footer{background:#f8f9fa;padding:16px;text-align:center;font-size:12px;color:#888}
-ul{margin:0;padding-left:20px}li{margin-bottom:6px}
-</style></head><body><div class="container">
-<div class="header"><h1>\ud83d\udccb Dosevakt - Daglig rapport</h1><p>${dateStr}</p></div>
-<div class="content">
-<div class="section"><div class="section-title">\ud83d\udc8a Medisiner gitt i dag</div>
-${medicines.length > 0 ? `<table><thead><tr><th>Medisin</th><th>Dose</th><th>Tid</th><th>Gitt av</th></tr></thead><tbody>${medicineHtml}</tbody></table>` : "<p style='color:#888'>Ingen medisiner registrert i dag</p>"}
-${missingHtml ? `<div class="warning"><strong>\u26a0\ufe0f Ikke registrert:</strong><table style="margin-top:8px"><tbody>${missingHtml}</tbody></table></div>` : ""}</div>
-<div class="section"><div class="section-title">\ud83c\udf7c Sondemat</div>
-${sonde.length > 0 ? `<ul>${sondeHtml}</ul><p style="margin-top:8px"><strong>Totalt: ${sondeTotal} ml</strong> ${sondeTotal >= 1300 ? "\u2705" : "\u26a0\ufe0f (M\u00e5l: 1300 ml)"}</p>` : "<p style='color:#888'>Ingen sondemat registrert</p>"}</div>
-<div class="section"><div class="section-title">\ud83d\udca9 Avf\u00f8ring</div>${bowel.length > 0 ? `<ul>${bowelHtml}</ul>` : "<p style='color:#888'>Ingen registreringer</p>"}</div>
-<div class="section"><div class="section-title">\ud83d\udca7 Vannlating</div><p>${urine.length} registrering${urine.length !== 1 ? "er" : ""}</p></div>
-<div class="section"><div class="section-title">\ud83d\udcca Oppsummering</div>
-<div class="stats"><div class="stat-box"><div class="stat-value">${medicines.length}</div><div class="stat-label">Medisiner</div></div>
-<div class="stat-box"><div class="stat-value">${sondeTotal} ml</div><div class="stat-label">Sondemat</div></div>
-<div class="stat-box"><div class="stat-value">${bowel.length}</div><div class="stat-label">Avf\u00f8ringer</div></div></div></div></div>
-<div class="footer">Generert av Dosevakt<br><a href="https://jensapp-14069.web.app" style="color:#4CAF50">\u00c5pne appen</a></div>
-</div></body></html>`;
+function buildReportHtml(dateStr, medicines, medicineHtml, missingHtml,
+    sonde, sondeHtml, sondeTotal, bowel, bowelHtml, urine) {
+  return `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #2c3e50;">Dagsrapport for Jens</h1>
+        <p style="color: #7f8c8d; font-size: 1.1em;">${dateStr}</p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #2980b9; margin-top: 0;">\uD83D\uDC8A Medisiner</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="text-align: left; background: #ecf0f1;">
+                <th style="padding: 8px;">Navn</th>
+                <th style="padding: 8px;">Dose</th>
+                <th style="padding: 8px;">Tid</th>
+                <th style="padding: 8px;">Sign.</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${medicineHtml || "<tr><td colspan='4' style='padding:8px;text-align:center;color:#999'>Ingen medisiner registrert</td></tr>"}
+            </tbody>
+          </table>
+          
+          ${missingHtml ? `
+            <h4 style="color: #d32f2f; margin-bottom: 5px;">\u26A0\uFE0F Mangler:</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+              ${missingHtml}
+            </table>
+          ` : ""}
+        </div>
+
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #e67e22; margin-top: 0;">\uD83E\uDD64 Sondemat</h3>
+          <ul>
+            ${sondeHtml || "<li style='color:#999'>Ingen sondemat registrert</li>"}
+          </ul>
+          <p><strong>Totalt i dag: ${sondeTotal} ml</strong></p>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #8e44ad; margin-top: 0;">\uD83D\uDCA9 Avf\u00f8ring</h3>
+          <ul>
+            ${bowelHtml || "<li style='color:#999'>Ingen avf\u00f8ring registrert</li>"}
+          </ul>
+        </div>
+        
+        <div style="text-align: center; color: #bdc3c7; font-size: 0.8em; margin-top: 30px;">
+          Sendt automatisk fra Dosevakt App
+        </div>
+      </div>
+    `;
 }
 
-// Daily report email - runs at 22:00 Oslo time
-exports.sendDailyReport = onSchedule(
+// Notification for new access requests
+exports.notifyAccessRequest = onDocumentCreated(
     {
-      schedule: "0 22 * * *", // Every day at 22:00
-      timeZone: "Europe/Oslo",
+      document: "patients/{patientId}/access_requests/{requestId}",
       secrets: [resendApiKey],
+      region: "us-central1",
     },
     async (event) => {
-      console.log("Scheduled daily report triggered at 22:00...");
-      await generateAndSendReport(resendApiKey.value());
-      return null;
-    },
-);
+      const snapshot = event.data;
+      if (!snapshot) return;
 
-// Check for missed medicines - runs every minute
-// Sends alert if medicine reminder passed 10 min ago and not logged
-exports.checkMissedMedicines = onSchedule(
-    {
-      schedule: "every 1 minutes",
-      timeZone: "Europe/Oslo",
-      secrets: [resendApiKey],
-    },
-    async () => {
-      // Check for reminders that were 10 minutes ago (Europe/Oslo)
-      const checkTime = formatTimeHHMMInOslo(
-          new Date(Date.now() - 10 * 60 * 1000),
-      );
+      const requestData = snapshot.data();
+      const patientId = event.params.patientId;
 
-      console.log(`Checking missed meds for time: ${checkTime} (Europe/Oslo)`);
+      // Get patient data
+      const patientDoc = await admin.firestore().collection("patients").doc(patientId).get();
+      if (!patientDoc.exists) return;
+
+      const patientData = patientDoc.data();
+      const recipients = patientData.allowedEmails || [];
+
+      if (recipients.length === 0) {
+        console.log("No recipients for access notification");
+        return;
+      }
+
+      // Send email
+      const resend = new Resend(resendApiKey.value());
 
       try {
-        // Get reminders that match the time 10 minutes ago
-        const remindersSnapshot = await admin.firestore()
-            .collection("reminders")
-            .where("time", "==", checkTime)
-            .get();
-
-        if (remindersSnapshot.empty) {
-          console.log("No reminders at this time");
-          return null;
-        }
-
-        // Get today's medicine logs
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const todayEnd = new Date();
-        todayEnd.setHours(23, 59, 59, 999);
-
-        const logsSnapshot = await admin.firestore()
-            .collection("logs")
-            .where("type", "==", "Medisin")
-            .where("timestamp", ">=", todayStart.getTime())
-            .where("timestamp", "<=", todayEnd.getTime())
-            .get();
-
-        const givenMeds = [];
-        logsSnapshot.forEach((doc) => {
-          givenMeds.push(doc.data().name);
-        });
-
-        // Check each reminder
-        const missedMeds = [];
-        remindersSnapshot.forEach((doc) => {
-          const reminder = doc.data();
-          // Check if this medicine has been logged today
-          if (!givenMeds.includes(reminder.name)) {
-            missedMeds.push({name: reminder.name, time: reminder.time});
-          }
-        });
-
-        if (missedMeds.length === 0) {
-          console.log("All medicines given on time");
-          return null;
-        }
-
-        console.log(`Missed medicines: ${missedMeds.map((m) => m.name).join(", ")}`);
-
-        // Get users who want missed med alerts
-        const usersSnapshot = await admin.firestore()
-            .collection("users")
-            .where("missedMedAlert", "==", true)
-            .get();
-
-        const recipients = [];
-        usersSnapshot.forEach((doc) => {
-          const user = doc.data();
-          if (user.email) {
-            recipients.push(user.email);
-          }
-        });
-
-        if (recipients.length === 0) {
-          console.log("No users subscribed to missed med alerts");
-          return null;
-        }
-
-        // Send alert email
-        const resend = new Resend(resendApiKey.value());
-        const medList = missedMeds.map((m) =>
-          `\u2022 ${m.name} (skulle v\u00e6rt gitt kl. ${m.time})`).join("<br>");
-
-        const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-body{font-family:-apple-system,sans-serif;background:#f5f5f5;margin:0;padding:20px}
-.container{max-width:500px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1)}
-.header{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:20px;text-align:center}
-.content{padding:24px}
-.alert-box{background:#FFF3E0;border-left:4px solid #FF9800;padding:16px;border-radius:4px;margin:16px 0}
-.footer{background:#f8f9fa;padding:16px;text-align:center;font-size:12px;color:#888}
-</style></head><body><div class="container">
-<div class="header"><h2 style="margin:0">\u26a0\ufe0f Medisin ikke registrert</h2></div>
-<div class="content">
-<p>F\u00f8lgende medisin(er) er ikke registrert som gitt:</p>
-<div class="alert-box">${medList}</div>
-<p style="color:#666;font-size:14px">Det har g\u00e5tt 10 minutter siden p\u00e5minnelsen. Hvis medisinen er gitt, vennligst registrer den i appen.</p>
-<p style="text-align:center;margin-top:24px">
-<a href="https://jensapp-14069.web.app" style="display:inline-block;background:#4CAF50;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">\u00c5pne Dosevakt</a>
-</p>
-</div>
-<div class="footer">Automatisk varsel fra Dosevakt</div>
-</div></body></html>`;
-
-        const emailResult = await resend.emails.send({
+        await resend.emails.send({
           from: "Dosevakt <noreply@larsendatasupport.no>",
           to: recipients,
-          subject: `\u26a0\ufe0f Glemt medisin: ${missedMeds.map((m) => m.name).join(", ")}`,
-          html: htmlContent,
+          subject: `Ny forespørsel om tilgang: ${patientData.name}`,
+          html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2c3e50;">Ny tilgangsforespørsel</h2>
+                    <p style="font-size: 1.1em;">
+                        <strong>${requestData.userName}</strong> (${requestData.userEmail}) ønsker tilgang til pasientprofilen <strong>${patientData.name}</strong>.
+                    </p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p><strong>Pasient:</strong> ${patientData.name}</p>
+                        <p><strong>Forespurt av:</strong> ${requestData.userName}</p>
+                        <p><strong>E-post:</strong> ${requestData.userEmail}</p>
+                    </div>
+                    <p>Gå til <strong>Innstillinger</strong> i Dosevakt-appen for å godkjenne eller avslå denne forespørselen.</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                    <p style="color: #999; font-size: 0.8em;">Dette er en automatisk melding fra Dosevakt.</p>
+                </div>
+            `,
+        });
+        console.log(`Access notification sent to ${recipients.join(", ")}`);
+      } catch (error) {
+        console.error("Error sending access notification:", error);
+      }
+    },
+);
+// Temporary function to create superuser
+exports.createSuperUser = onRequest(
+    {
+      cors: true,
+      invoker: "public",
+    },
+    async (req, res) => {
+      const email = "superadmin@jensapp.no";
+      const password = "Intelinside8!";
+
+      try {
+        // Check if user exists
+        try {
+          await admin.auth().getUserByEmail(email);
+          res.json({message: "User already exists"});
+          return;
+        } catch (e) {
+          if (e.code !== "auth/user-not-found") {
+            throw e;
+          }
+        }
+
+        // Create user
+        const userRecord = await admin.auth().createUser({
+          email: email,
+          emailVerified: true,
+          password: password,
+          displayName: "Super Admin",
+          disabled: false,
         });
 
-        console.log("Missed med alert sent:", emailResult);
-        return null;
+        console.log("Successfully created new user:", userRecord.uid);
+        res.json({message: "Successfully created user", uid: userRecord.uid});
       } catch (error) {
-        console.error("Error checking missed medicines:", error);
-        return null;
+        console.error("Error creating user:", error);
+        res.status(500).json({error: error.message});
       }
     },
 );
 
-// AI Translation function
-exports.translateWithAI = onRequest(
+exports.migrateLegacyData = onRequest(
     {
       cors: true,
-      invoker: "public",
-      secrets: [geminiApiKey],
+      timeoutSeconds: 540,
+      secrets: [pushoverApiToken, pushoverUserKey],
     },
     async (req, res) => {
+      const secret = req.query.secret;
+      if (secret !== "Intelinside8!") {
+        res.status(403).send("Unauthorized");
+        return;
+      }
+
       try {
-        const {text, context} = req.body;
+        const db = admin.firestore();
 
-        if (!text) {
-          res.status(400).json({success: false, error: "Text is required"});
-          return;
-        }
-
-        const apiKey = geminiApiKey.value();
-        if (!apiKey) {
-          console.error("Gemini API key missing");
-          res.status(500).json({success: false, error: "Configuration error"});
-          return;
-        }
-
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const modelsToTry = [
-          "gemini-2.5-flash",
-          "gemini-2.0-flash",
-          "gemini-flash-latest",
-          "gemini-pro-latest",
-          "gemini-1.5-flash",
-          "gemini-1.5-flash-001",
-          "gemini-1.5-pro",
-          "gemini-1.5-pro-001",
-          "gemini-pro",
-          "gemini-1.0-pro",
-        ];
-        let translatedText = null;
-        let lastError = null;
-
-        const prompt = `Translate the following text to Norwegian. 
-        Context: This is ${context || "medical information"} from the FDA.
-        Goal: Provide a natural, grammatically correct translation that is easy to understand for a Norwegian patient.
-        - Translate "Indication" as "Indikasjon" or "Brukes mot".
-        - Keep specific medical terms in parentheses if the translation is uncommon.
-        - Fix any broken sentences or mixed languages (e.g. "Key værenefits").
-        - Output ONLY the translated text, no markdown code blocks or explanations.
-        
-        Text to translate:
-        "${text}"`;
-
-        for (const modelName of modelsToTry) {
-          try {
-            console.log(`Trying model: ${modelName}`);
-            const model = genAI.getGenerativeModel({model: modelName});
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            translatedText = response.text().trim();
-            break; // Success!
-          } catch (error) {
-            console.warn(`Model ${modelName} failed:`, error.message);
-            lastError = error;
-            if (error.message.includes("404") || error.message.includes("not found")) {
-              continue; // Try next model
-            }
-            // If it's another error (e.g. auth), stop trying
-            break;
+        // 1. Create Patient "Jens"
+        // Try to find owner from logs
+        let ownerId = null;
+        const logsSnap = await db.collection("logs").limit(1).get();
+        if (!logsSnap.empty) {
+          const data = logsSnap.docs[0].data();
+          if (data.loggedBy && data.loggedBy.uid) {
+            ownerId = data.loggedBy.uid;
           }
         }
 
-        if (!translatedText) {
-          throw lastError || new Error("All models failed");
+        // If still no owner, check reminders
+        if (!ownerId) {
+          const remSnap = await db.collection("reminders").limit(1).get();
+          if (!remSnap.empty) {
+            const data = remSnap.docs[0].data();
+            if (data.createdBy && data.createdBy.uid) {
+              ownerId = data.createdBy.uid;
+            }
+          }
         }
 
-        res.json({success: true, translatedText});
+        const patientData = {
+          name: "Jens",
+          birthDate: "2010-01-01", // Placeholder
+          notes: "Migrert data fra tidligere versjon.",
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          ownerId: ownerId || "legacy_migration",
+          allowedEmails: ["mari.knutsen@hotmail.com", "tomerik@larsendatasupport.no"],
+        };
+
+        const patientRef = await db.collection("patients").add(patientData);
+        const patientId = patientRef.id;
+        console.log("Created patient:", patientId);
+
+        // Helper to migrate collection
+        /**
+         * Migrate a collection from root to patient
+         * @param {string} sourceName
+         * @param {string} destName
+         * @return {Promise<number>}
+         */
+        const migrateCollection = async (sourceName, destName) => {
+          const sourceRef = db.collection(sourceName);
+          const destRef = patientRef.collection(destName);
+
+          const snapshot = await sourceRef.get();
+          if (snapshot.empty) return 0;
+
+          let batch = db.batch();
+          let count = 0;
+          let total = 0;
+
+          for (const doc of snapshot.docs) {
+            const newDocRef = destRef.doc(doc.id); // Keep ID
+            batch.set(newDocRef, doc.data());
+            count++;
+            total++;
+
+            if (count >= 400) {
+              await batch.commit();
+              batch = db.batch();
+              count = 0;
+            }
+          }
+
+          if (count > 0) {
+            await batch.commit();
+          }
+          console.log(`Migrated ${total} docs from ${sourceName} to ${destName}`);
+          return total;
+        }
+
+        const results = {};
+        results.logs = await migrateCollection("logs", "logs");
+        results.reminders = await migrateCollection("reminders", "reminders");
+        results.customMedicines = await migrateCollection("customMedicines", "customMedicines");
+        results.customPlans = await migrateCollection("customPlans", "customPlans");
+
+        // Migrate checklist/global
+        const checklistGlobal = await db.collection("checklist").doc("global").get();
+        if (checklistGlobal.exists) {
+          await patientRef.collection("checklist").doc("global").set(checklistGlobal.data());
+          results.checklist = 1;
+        } else {
+          results.checklist = 0;
+        }
+
+        res.json({
+          success: true,
+          patientId: patientId,
+          ownerId: ownerId,
+          results: results,
+        });
       } catch (error) {
-        console.error("Error translating with AI:", error);
-        res.status(500).json({success: false, error: error.message});
+        console.error("Migration failed:", error);
+        res.status(500).json({error: error.message});
       }
     },
 );

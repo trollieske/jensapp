@@ -67,17 +67,33 @@ function formatDate(dateStr) {
 
 // UI Helpers (depend on AppConfig)
 function getTypeIcon(type) {
+    if (!type) return '📝';
+    
     if (typeof AppConfig !== 'undefined') {
-        return AppConfig.ui.typeIcons[type] || '📝';
+        // Try exact match first
+        if (AppConfig.ui.typeIcons[type]) return AppConfig.ui.typeIcons[type];
+        
+        // Try case-insensitive match
+        const lowerType = type.toLowerCase();
+        const key = Object.keys(AppConfig.ui.typeIcons).find(k => k.toLowerCase() === lowerType);
+        if (key) return AppConfig.ui.typeIcons[key];
     }
     return '📝';
 }
 
 function getTypeColor(type) {
+    if (!type) return 'linear-gradient(135deg, #607D8B, #90A4AE)';
+
     if (typeof AppConfig !== 'undefined') {
-        return AppConfig.ui.typeColors[type] || 'linear-gradient(135deg, #607D8B, #90A4AE)';
+        // Try exact match first
+        if (AppConfig.ui.typeColors[type]) return AppConfig.ui.typeColors[type];
+        
+        // Try case-insensitive match
+        const lowerType = type.toLowerCase();
+        const key = Object.keys(AppConfig.ui.typeColors).find(k => k.toLowerCase() === lowerType);
+        if (key) return AppConfig.ui.typeColors[key];
     }
-    return '#607D8B';
+    return 'linear-gradient(135deg, #607D8B, #90A4AE)';
 }
 
 function getDetails(log) {

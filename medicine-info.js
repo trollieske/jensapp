@@ -1164,6 +1164,12 @@ function showMedicineInfoModal(info) {
                             <p style="color: #555; margin: 0; line-height: 1.6;">${info.storage}</p>
                         </div>
                         
+                        <div style="margin-top: 24px; display: grid;">
+                            <button class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm" onclick="addMedicineFromDB('${info.name}')">
+                                <i class="bi bi-plus-circle me-2"></i> Legg til i planlegger
+                            </button>
+                        </div>
+                        
                         <div style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 20px;">
                             <p style="color: #999; font-size: 0.8rem; margin: 0;">
                                 <i class="bi bi-info-circle"></i> Kilde: ${info.source}. 
@@ -1902,4 +1908,32 @@ window.mergeCustomMedicines = function(customMedicines) {
     }
     // populateMedicineDatalist(); // Legacy
     // No need to repopulate custom dropdown as it filters live
+};
+
+// Add medicine from database to planner
+window.addMedicineFromDB = function(name) {
+    // Close info modal
+    const infoModalEl = document.getElementById('medicineInfoModal');
+    if (infoModalEl) {
+        // Use Bootstrap's modal instance to hide if available
+        const modal = bootstrap.Modal.getInstance(infoModalEl);
+        if (modal) modal.hide();
+        else infoModalEl.remove(); // Fallback
+    }
+    
+    // Open Add Medicine Modal
+    const addModalEl = document.getElementById('addMedicineModal');
+    if (addModalEl) {
+        const modal = new bootstrap.Modal(addModalEl);
+        modal.show();
+        
+        // Pre-fill name
+        setTimeout(() => {
+            const nameInput = document.getElementById('newMedicineName');
+            if (nameInput) {
+                nameInput.value = name;
+                nameInput.focus();
+            }
+        }, 500); // Wait for transition
+    }
 };

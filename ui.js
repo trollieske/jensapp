@@ -3,6 +3,21 @@
 
 // --- Main Display Functions ---
 
+function updateHeaderDate() {
+    const dateEl = document.getElementById('headerDate');
+    if (dateEl) {
+        const now = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'long' };
+        // Norwegian locale
+        let dateStr = now.toLocaleDateString('no-NO', options);
+        // Remove dot if present (Steve Jobs style clean)
+        dateStr = dateStr.replace('.', '');
+        // Capitalize first letter (Torsdag) if not already
+        dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+        dateEl.textContent = dateStr;
+    }
+}
+
 // Display logs for today
 function displayToday() {
     const tbody = document.getElementById('todayTableBody');
@@ -78,8 +93,9 @@ function displayHistory() {
     
     const filteredLogs = (window.logs || []).filter(log => {
         const matchesDate = log.time.startsWith(selectedDate);
+        const typeStr = log.type || '';
         const matchesSearch = !searchTerm || 
-            log.type.toLowerCase().includes(searchTerm) || 
+            typeStr.toLowerCase().includes(searchTerm) || 
             (log.name && log.name.toLowerCase().includes(searchTerm)) ||
             (log.notes && log.notes.toLowerCase().includes(searchTerm));
         return matchesDate && matchesSearch;
@@ -149,7 +165,7 @@ function displayReminders() {
     
     reminders.forEach(reminder => {
         const item = document.createElement('div');
-        item.className = 'card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between bg-white';
+        item.className = 'card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between bg-white rounded-4 overflow-hidden mb-2';
         item.innerHTML = `
             <div class="d-flex align-items-center gap-3">
                 <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -218,7 +234,7 @@ function displayStats() {
 
 // Display checklist
 function displayChecklist() {
-    const container = document.getElementById('checklist');
+    const container = document.getElementById('medicineChecklist');
     if (!container) return;
     
     // We will render sections dynamically
@@ -228,23 +244,16 @@ function displayChecklist() {
         return;
     }
     
-    let html = `
-        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
-            <h5 class="fw-bold mb-0">Sjekkliste</h5>
-            <div class="dropdown">
-                <button class="btn btn-primary rounded-pill shadow-sm px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-plus-lg me-1"></i> Legg til
-                </button>
-                <ul class="dropdown-menu shadow border-0 rounded-4">
-                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#addMedicineModal">💊 Ny medisin</a></li>
-                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#addSondematModal">🍼 Ny sondemat</a></li>
-                </ul>
-            </div>
-        </div>
-    `;
+    let html = '';
     
     // Medicines Section
-    const medicines = window.checklistItems.medicines || [];
+    const today = new Date().getDay(); // 0-6
+    const allMedicines = window.checklistItems.medicines || [];
+    const medicines = allMedicines.filter(m => {
+        if (!m.days || m.days.length === 0) return true;
+        return m.days.includes(today);
+    });
+    
     const categories = {
         'dag': { title: 'Daglig (Morgen)', icon: '☀️', color: 'warning' },
         'kveld': { title: 'Kveld', icon: '🌙', color: 'indigo' },
@@ -266,55 +275,58 @@ function displayChecklist() {
         const cat = categories[catKey];
         html += `
             <div class="mb-4">
-                <h6 class="text-uppercase text-muted fw-bold small mb-2 ms-1">
-                    ${cat.icon} ${cat.title}
+                <h6 class="text-uppercase text-muted fw-bold small mb-2 ms-1" style="letter-spacing: 0.5px;">
+                    ${cat.title}
                 </h6>
                 <div class="d-flex flex-column gap-2">
         `;
         
         items.forEach((item, index) => {
             // Calculate global index for uniqueness
-            // We use a simple strategy: dag=0-99, kveld=100-199, spesiell=200-299, prn=300+
             let itemIndex = index;
             if (catKey === 'kveld') itemIndex += 100;
             else if (catKey === 'spesiell') itemIndex += 200;
             else if (catKey === 'prn') itemIndex += 300;
             
             html += `
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 0;">
-                            <div class="bg-${cat.color} bg-opacity-10 text-${cat.color} d-flex align-items-center justify-content-center flex-shrink-0" 
-                                 style="min-width: 42px; height: 42px; padding: 0 8px; border-radius: 12px;">
-                                <span class="fw-bold small" style="white-space: nowrap;">${item.dose ? item.dose : '💊'}</span>
-                            </div>
-                            <div class="w-100 pe-2">
-                                <div class="d-flex align-items-center gap-1 flex-wrap">
-                                    <span class="fw-bold text-dark text-break lh-sm">${item.name}</span>
-                                    <button class="btn btn-link text-info p-0 ms-1 d-inline-flex align-items-center" 
-                                            style="text-decoration: none;"
-                                            onclick="showMedicineInfo('${item.name}')">
-                                        <i class="bi bi-info-circle-fill fs-6"></i>
-                                    </button>
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-1" style="transition: transform 0.2s;">
+                    <div class="card-body p-3">
+                        <div class="row g-2 align-items-center">
+                            <!-- Icon & Info -->
+                            <div class="col d-flex align-items-center gap-3" style="min-width: 0;">
+                                <div class="bg-${cat.color} bg-opacity-10 text-${cat.color} d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle" 
+                                     style="width: 48px; height: 48px;">
+                                    <i class="bi bi-capsule fs-5"></i>
                                 </div>
-                                <div class="small text-muted text-break lh-sm mt-1">${item.description || item.times.join(', ')}</div>
+                                <div class="overflow-hidden w-100">
+                                    <div class="d-flex align-items-start gap-2 flex-column">
+                                        <div class="d-flex align-items-center gap-2 w-100">
+                                            <h6 class="mb-0 fw-bold text-dark text-wrap lh-sm" style="font-size: 1.05rem;">${item.name}</h6>
+                                            <div class="d-flex gap-1 flex-shrink-0">
+                                                <button class="btn btn-link text-muted p-0" onclick="editMedicineInChecklist('${item.name}', '${item.category}')">
+                                                    <i class="bi bi-pencil-square small"></i>
+                                                </button>
+                                                <button class="btn btn-link text-info p-0" onclick="showMedicineInfo('${item.name}')">
+                                                    <i class="bi bi-info-circle small"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-light text-dark border border-light-subtle fw-normal">${item.dose ? item.dose : 'Standard dose'}</span>
+                                            ${item.description ? `<span class="small text-muted text-truncate">${item.description}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <input type="number" class="form-control form-control-sm border-0 bg-light text-center fw-bold" 
-                                   id="dose-${itemIndex}" value="${parseFloat(item.dose) || ''}" 
-                                   style="width: 55px; height: 36px;" placeholder="#">
-                            <button class="btn btn-primary btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
-                                    style="width: 36px; height: 36px;" 
-                                    onclick="quickLogMedicineWithInput(${itemIndex}, '${item.name}', '${item.unit || 'ml'}')">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            ${item.isCustom ? `
-                            <button class="btn btn-light btn-sm rounded-circle text-danger ms-1" 
-                                    style="width: 32px; height: 32px;"
-                                    onclick="deleteMedicineFromChecklist('${item.name}', '${item.category}')">
-                                <i class="bi bi-x"></i>
-                            </button>` : ''}
+                            
+                            <!-- Actions -->
+                            <div class="col-auto d-flex align-items-center gap-2 align-self-center">
+                                <button class="btn btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                                        style="width: 48px; height: 48px;" 
+                                        onclick="quickLogMedicineWithInput(${itemIndex}, '${item.name}', '${item.unit || 'ml'}')">
+                                    <i class="bi bi-check-lg fs-4"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -328,85 +340,60 @@ function displayChecklist() {
         html += `</div></div>`;
     });
     
-    // Sonde Section
-    const sondeItems = window.checklistItems.sonde || [];
-    if (sondeItems.length > 0) {
-        html += `
-            <div class="mb-4">
-                <h6 class="text-uppercase text-muted fw-bold small mb-2 ms-1">
-                    🍼 Sondemat
-                </h6>
-                <div class="d-flex flex-column gap-2">
-        `;
+    // Sonde Section - Rendered into a different container if possible, but let's stick to this one for now or check index.html
+    // index.html has #sondeChecklist. We should populate that separately or append to it.
+    // Current implementation of ui.js was overwriting everything.
+    // Let's target #sondeChecklist for the sonde items!
+    
+    const sondeContainer = document.getElementById('sondeChecklist');
+    if (sondeContainer) {
+        const sondeItems = window.checklistItems.sonde || [];
+        let sondeHtml = '';
         
-        sondeItems.forEach((item, index) => {
-            const itemIndex = index + 1000; // Offset for sonde
-            html += `
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 0;">
-                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
-                                <i class="bi bi-droplet-half"></i>
+        if (sondeItems.length > 0) {
+             sondeItems.forEach((item, index) => {
+                const itemIndex = index + 1000; // Offset for sonde
+                sondeHtml += `
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-1">
+                        <div class="card-body p-3">
+                            <div class="row g-2 align-items-center">
+                                <!-- Icon & Info -->
+                                <div class="col d-flex align-items-center gap-3" style="min-width: 0;">
+                                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-droplet-half fs-5"></i>
+                                    </div>
+                                    <div class="overflow-hidden w-100">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <h6 class="mb-0 fw-bold text-dark text-wrap lh-sm" style="font-size: 1.05rem;">${item.name}</h6>
+                                            <button class="btn btn-link text-info p-0 ms-1" onclick="showMedicineInfo('${item.name}')">
+                                                <i class="bi bi-info-circle small"></i>
+                                            </button>
+                                        </div>
+                                        <div class="small text-muted text-wrap lh-sm">${item.description || ''}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="col-auto d-flex align-items-center gap-2 align-self-center">
+                                    <div class="position-relative">
+                                        <input type="number" class="form-control border-0 bg-light text-center fw-bold pe-1" 
+                                               id="dose-${itemIndex}" value="${parseFloat(item.dose) || ''}" 
+                                               style="width: 70px; height: 48px; border-radius: 16px;" placeholder="ml">
+                                    </div>
+                                    <button class="btn btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                                            style="width: 48px; height: 48px;" 
+                                            onclick="quickLogSondeWithInput(${itemIndex}, '${item.name}', '${item.unit || 'ml'}')">
+                                        <i class="bi bi-check-lg fs-4"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="overflow-hidden w-100 pe-2">
-                                <div class="fw-bold text-dark text-break lh-sm">${item.name}</div>
-                                <div class="small text-muted text-break lh-sm mt-1">${item.description || ''}</div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="number" class="form-control form-control-sm border-0 bg-light text-center fw-bold" 
-                                   id="dose-${itemIndex}" value="${parseFloat(item.dose) || ''}" 
-                                   style="width: 60px;" placeholder="ml">
-                            <button class="btn btn-primary btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
-                                    style="width: 36px; height: 36px;" 
-                                    onclick="quickLogSondeWithInput(${itemIndex}, '${item.name}', '${item.unit || 'ml'}')">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
                         </div>
                     </div>
-                </div>
-            `;
-        });
-        html += `</div></div>`;
+                `;
+            });
+        }
+        sondeContainer.innerHTML = sondeHtml;
     }
-    
-    // Quick Actions Section (Avføring, etc.)
-    html += `
-        <div class="mb-4">
-            <h6 class="text-uppercase text-muted fw-bold small mb-2 ms-1">
-                ⚡ Hurtighandlinger
-            </h6>
-            <div class="row g-2">
-                <div class="col-6">
-                    <button class="btn btn-white w-100 p-3 shadow-sm rounded-4 border-0 d-flex flex-column align-items-center gap-2 h-100" 
-                            data-bs-toggle="modal" data-bs-target="#bowelModal">
-                        <div class="bg-brown bg-opacity-10 text-brown rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; color: #795548;">
-                            <i class="bi bi-chat-square-text fs-4"></i>
-                        </div>
-                        <div class="fw-bold text-dark small">Avføring</div>
-                    </button>
-                </div>
-                <div class="col-6">
-                    <button class="btn btn-white w-100 p-3 shadow-sm rounded-4 border-0 d-flex flex-column align-items-center gap-2 h-100" 
-                            data-bs-toggle="modal" data-bs-target="#vannlatingModal">
-                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                            <i class="bi bi-droplet-fill fs-4"></i>
-                        </div>
-                        <div class="fw-bold text-dark small">Vannlating</div>
-                    </button>
-                </div>
-                <div class="col-6">
-                    <button class="btn btn-white w-100 p-3 shadow-sm rounded-4 border-0 d-flex flex-column align-items-center gap-2 h-100" 
-                            data-bs-toggle="modal" data-bs-target="#vomitModal">
-                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                            <i class="bi bi-emoji-dizzy fs-4"></i>
-                        </div>
-                        <div class="fw-bold text-dark small">Oppkast</div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
     
     container.innerHTML = html;
 }
@@ -461,6 +448,29 @@ function quickLogMedicineWithInput(index, name, unit) {
                 showToast(`✓ ${name} (${amount} ${unit}) logget av ${currentUser || 'deg'}!`);
                 if (item) {
                     doseInput.value = parseFloat(item.dose) || '';
+                    
+                    // Update stock if tracked
+                    if (item.stock !== undefined && item.stock !== null) {
+                        item.stock = Math.max(0, item.stock - 1);
+                        
+                        // Check threshold
+                        if (item.lowStockThreshold !== undefined && item.stock <= item.lowStockThreshold) {
+                            // Delay warning slightly so it appears after success toast
+                            setTimeout(() => {
+                                showToast(`⚠️ Lav beholdning for ${name}: ${item.stock} igjen`);
+                            }, 2000);
+                        }
+                        
+                        // Save updated stock to Firestore
+                        if (typeof saveChecklistItems === 'function') {
+                            saveChecklistItems();
+                        } else if (typeof saveChecklistToFirestore === 'function') {
+                            saveChecklistToFirestore(window.checklistItems);
+                        }
+                        
+                        // Refresh display to update stock badge
+                        displayChecklist();
+                    }
                 }
             })
             .catch((error) => {
@@ -664,6 +674,23 @@ function updateUserDisplay() {
     if (welcomeName) welcomeName.textContent = window.currentUser || 'Bruker';
     const offcanvasName = document.getElementById('offcanvasUserName');
     if (offcanvasName) offcanvasName.textContent = window.currentUser || 'Bruker';
+    
+    updateHeaderDate();
+}
+
+function updateHeaderDate() {
+    const dateEl = document.getElementById('headerDate');
+    if (dateEl) {
+        const now = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'long' };
+        // Norwegian locale
+        let dateStr = now.toLocaleDateString('no-NO', options);
+        // Remove dot if present (Steve Jobs style clean)
+        dateStr = dateStr.replace('.', '');
+        // Capitalize first letter (Torsdag) if not already
+        dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+        dateEl.textContent = dateStr;
+    }
 }
 
 

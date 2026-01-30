@@ -3,6 +3,26 @@
  * Handles Firestore interactions, user management, and data synchronization
  */
 
+// Helper to get collection reference based on current patient
+function getCollectionRef(collectionName) {
+    if (!db) return null;
+    
+    // Legacy support / Fallback
+    // 'jens-legacy' is a reserved ID for the original root-level data
+    if (!window.currentPatientId || window.currentPatientId === 'jens-legacy') {
+        // console.log('Using root collection for legacy patient');
+        return db.collection(collectionName);
+    }
+    
+    // Patient-scoped collection
+    // checklist is special: patients/{id}/checklist/global
+    if (collectionName === 'checklist') {
+        return db.collection('patients').doc(window.currentPatientId).collection('checklist');
+    }
+    
+    return db.collection('patients').doc(window.currentPatientId).collection(collectionName);
+}
+
 // Save log to Firestore
 function saveLogToFirestore(log) {
     if (!db || !currentUser) {
@@ -16,7 +36,10 @@ function saveLogToFirestore(log) {
     log.loggedBy = currentUser;
     log.loggedAt = firebase.firestore.FieldValue.serverTimestamp();
     
-    return db.collection('logs').add(log)
+    const collection = getCollectionRef('logs');
+    if (!collection) return Promise.reject('Firestore error');
+    
+    return collection.add(log)
         .then((docRef) => {
             console.log('Log saved with ID:', docRef.id);
             return docRef.id;
@@ -39,7 +62,10 @@ function saveReminderToFirestore(reminder) {
     reminder.createdBy = currentUser;
     reminder.createdAt = firebase.firestore.FieldValue.serverTimestamp();
     
-    return db.collection('reminders').add(reminder)
+    const collection = getCollectionRef('reminders');
+    if (!collection) return Promise.reject('Firestore error');
+    
+    return collection.add(reminder)
         .then((docRef) => {
             console.log('Reminder saved with ID:', docRef.id);
             return docRef.id;
@@ -55,7 +81,10 @@ function deleteLogFromFirestore(logId) {
     
     console.log('Attempting to delete log with ID:', logId);
     
-    return db.collection('logs').doc(String(logId)).delete()
+    const collection = getCollectionRef('logs');
+    if (!collection) return Promise.reject('Firestore error');
+
+    return collection.doc(String(logId)).delete()
         .then(() => {
             console.log('Log deleted successfully:', logId);
         })
@@ -68,7 +97,10 @@ function deleteLogFromFirestore(logId) {
 function deleteReminderFromFirestore(reminderId) {
     if (!db) return Promise.reject('Firestore not initialized');
     
-    return db.collection('reminders').doc(reminderId).delete()
+    const collection = getCollectionRef('reminders');
+    if (!collection) return Promise.reject('Firestore error');
+    
+    return collection.doc(reminderId).delete()
         .then(() => {
             console.log('Reminder deleted:', reminderId);
         })
@@ -81,7 +113,10 @@ function deleteReminderFromFirestore(reminderId) {
 function updateReminderInFirestore(reminderId, updates) {
     if (!db) return Promise.reject('Firestore not initialized');
     
-    return db.collection('reminders').doc(reminderId).update(updates)
+    const collection = getCollectionRef('reminders');
+    if (!collection) return Promise.reject('Firestore error');
+
+    return collection.doc(reminderId).update(updates)
         .then(() => {
             console.log('Reminder updated:', reminderId);
         })
@@ -97,7 +132,10 @@ function saveChecklistToFirestore(items) {
         return;
     }
     
-    return db.collection('checklist').doc('global').set(items)
+    const collection = getCollectionRef('checklist');
+    if (!collection) return;
+    
+    return collection.doc('global').set(items)
         .then(() => {
             console.log('Checklist saved to Firestore');
         })
@@ -117,7 +155,10 @@ function saveCustomPlanToFirestore(plan) {
     plan.createdBy = currentUser;
     plan.createdAt = firebase.firestore.FieldValue.serverTimestamp();
     
-    return db.collection('customPlans').add(plan)
+    const collection = getCollectionRef('customPlans');
+    if (!collection) return Promise.reject('Firestore error');
+    
+    return collection.add(plan)
         .then((docRef) => {
             console.log('Custom plan saved with ID:', docRef.id);
             return docRef.id;
@@ -131,7 +172,10 @@ function saveCustomPlanToFirestore(plan) {
 function deleteCustomPlanFromFirestore(planId) {
     if (!db) return Promise.reject('Firestore not initialized');
     
-    return db.collection('customPlans').doc(planId).delete()
+    const collection = getCollectionRef('customPlans');
+    if (!collection) return Promise.reject('Firestore error');
+    
+    return collection.doc(planId).delete()
         .then(() => {
             console.log('Custom plan deleted:', planId);
         })
@@ -151,8 +195,11 @@ function saveCustomMedicineToFirestore(medicineInfo) {
         return Promise.reject('Invalid medicine info');
     }
     
+    const collection = getCollectionRef('customMedicines');
+    if (!collection) return Promise.reject('Firestore error');
+    
     // Use name as document ID for easy lookup and upsert
-    return db.collection('customMedicines').doc(medicineInfo.name).set(medicineInfo)
+    return collection.doc(medicineInfo.name).set(medicineInfo)
         .then(() => {
             console.log('Custom medicine saved:', medicineInfo.name);
         })
@@ -314,16 +361,35 @@ function updateUserDisplay() {
     }
 }
 
+// Global variable for unsubscribe functions
+window.unsubscribeListeners = [];
+
 // Firestore Sync Functions
 function startRealtimeSync() {
     if (!db || !currentUser) return;
     
-    // Check if we need to migrate localStorage data
-    // migrateLocalStorageToFirestore(); // Function removed as migration is complete
-
+    // Stop existing listeners if any
+    if (window.unsubscribeListeners && window.unsubscribeListeners.length > 0) {
+        console.log('Stopping previous sync listeners...');
+        window.unsubscribeListeners.forEach(unsub => unsub());
+        window.unsubscribeListeners = [];
+    }
     
+    const logsRef = getCollectionRef('logs');
+    const remindersRef = getCollectionRef('reminders');
+    const checklistRef = getCollectionRef('checklist');
+    const plansRef = getCollectionRef('customPlans');
+    const medsRef = getCollectionRef('customMedicines');
+    
+    if (!logsRef) {
+        console.warn('Sync aborted: No collection ref (no patient selected?)');
+        return;
+    }
+    
+    console.log('Starting realtime sync for patient:', window.currentPatientId || 'ROOT (Legacy)');
+
     // Listen to logs collection
-    db.collection('logs').onSnapshot((snapshot) => {
+    const unsubLogs = logsRef.onSnapshot((snapshot) => {
         window.logs = [];
         snapshot.forEach((doc) => {
             window.logs.push({ ...doc.data(), id: doc.id });
@@ -335,9 +401,10 @@ function startRealtimeSync() {
         if (typeof displayStats === 'function') displayStats();
         if (typeof displayChecklist === 'function') displayChecklist();
     });
+    window.unsubscribeListeners.push(unsubLogs);
     
     // Listen to reminders collection
-    db.collection('reminders').onSnapshot((snapshot) => {
+    const unsubReminders = remindersRef.onSnapshot((snapshot) => {
         window.reminders = [];
         snapshot.forEach((doc) => {
             window.reminders.push({ ...doc.data(), id: doc.id });
@@ -346,9 +413,10 @@ function startRealtimeSync() {
         if (typeof displayReminders === 'function') displayReminders();
         if (typeof scheduleReminders === 'function') scheduleReminders();
     });
+    window.unsubscribeListeners.push(unsubReminders);
     
     // Listen to checklist
-    db.collection('checklist').doc('global').onSnapshot((doc) => {
+    const unsubChecklist = checklistRef.doc('global').onSnapshot((doc) => {
         if (doc.exists) {
             if (typeof window.checklistItems !== 'undefined') {
                 window.checklistItems = doc.data();
@@ -356,9 +424,10 @@ function startRealtimeSync() {
             }
         }
     });
+    window.unsubscribeListeners.push(unsubChecklist);
 
     // Listen to custom plans
-    db.collection('customPlans').onSnapshot((snapshot) => {
+    const unsubPlans = plansRef.onSnapshot((snapshot) => {
         window.customPlans = [];
         snapshot.forEach((doc) => {
             window.customPlans.push({ ...doc.data(), id: doc.id });
@@ -366,9 +435,10 @@ function startRealtimeSync() {
         
         if (typeof displayCustomPlans === 'function') displayCustomPlans();
     });
+    window.unsubscribeListeners.push(unsubPlans);
 
     // Listen to custom medicines
-    db.collection('customMedicines').onSnapshot((snapshot) => {
+    const unsubMeds = medsRef.onSnapshot((snapshot) => {
         const customMeds = {};
         snapshot.forEach((doc) => {
             customMeds[doc.id] = doc.data();
@@ -380,6 +450,7 @@ function startRealtimeSync() {
             window.mergeCustomMedicines(customMeds);
         }
     });
+    window.unsubscribeListeners.push(unsubMeds);
 }
 
 // Messaging and Push Notifications

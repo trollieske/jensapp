@@ -39,11 +39,19 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'dosevakt-v31';
+const CACHE_NAME = 'jensapp-v25';
 const urlsToCache = [
   './',
   './index.html',
   './app.js',
+  './ui.js',
+  './data.js',
+  './utils.js',
+  './config.js',
+  './timers.js',
+  './spl-tools.js',
+  './patient-manager.js',
+  './background-service.js',
   './firebase-config.js',
   './dosing-plan.js',
   './medicine-info.js',

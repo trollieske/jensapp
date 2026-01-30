@@ -1,3 +1,4 @@
+
 // Data storage (now synced with Firestore)
 // window.logs and window.reminders are defined in firebase-config.js
 
@@ -34,6 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
+    // Ensure Firebase is initialized first
+    if (typeof initializeFirebase === 'function') {
+        initializeFirebase();
+    }
+
+    // Initialize Patient Manager
+    if (typeof initPatientManager === 'function') {
+        initPatientManager();
+    }
+
     displayToday();
     displayHistory();
     displayReminders();
@@ -298,205 +309,52 @@ function saveReminderTime(reminderId) {
     }
     
     const oldTime = reminder.time;
+    const updatedReminder = { ...reminder, time: newTime };
     
-    // Update in Firestore
     if (typeof updateReminderInFirestore === 'function') {
-        updateReminderInFirestore(String(reminderId), { time: newTime })
-        .then(() => {
-            showToast(`✓ Endret til ${newTime}`);
-            scheduleReminders();
-        })
-        .catch((error) => {
-            console.error('Error updating reminder:', error);
-            showToast('⚠️ Feil ved lagring');
-            // Revert UI if needed, but onSnapshot should handle it
-            input.value = oldTime; 
-        });
+        updateReminderInFirestore(updatedReminder)
+            .then(() => {
+                showToast(`✓ Tidspunkt endret fra ${oldTime} til ${newTime}`);
+                // Hide save button again
+                document.getElementById(`save-btn-${reminderId}`).style.display = 'none';
+            })
+            .catch(err => {
+                console.error('Error updating reminder:', err);
+                showToast('⚠️ Feil ved lagring');
+            });
     } else {
-        console.error('Firestore functions not loaded');
-        showToast('⚠️ Feil: Kunne ikke lagre (Firestore mangler)');
+        // Fallback for demo mode
+        reminder.time = newTime;
+        displayReminders();
+        showToast('✓ Tidspunkt oppdatert (lokalt)');
     }
 }
 
-// exportToCSV is now in utils.js
-
-// Check and display notification status
-function checkNotificationStatus() {
-    const statusText = document.getElementById('notificationStatusText');
-    const enableBtn = document.getElementById('enableNotificationsBtn');
-    const iosGuide = document.getElementById('iosGuide');
-    
-    if (!statusText) return; // Element not loaded yet
-    
-    // Detect if running as PWA (standalone mode)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        window.navigator.standalone === true;
-    
-    // Check if iOS (iPhone/iPad)
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
-    // Check if we have an FCM token (indicating real push setup)
-    const hasToken = window.fcmToken;
-    
+// Request permission for push notifications
+function requestNotificationPermission() {
     if (!('Notification' in window)) {
-        if (isIOS && !isStandalone) {
-            statusText.textContent = 'iOS: Legg til på hjemskjerm først 📱';
-            statusText.className = 'text-info';
-            if (iosGuide) iosGuide.style.display = 'block';
-        } else {
-            statusText.textContent = 'Ikke støttet på denne enheten';
-            statusText.className = 'text-danger';
-            if (iosGuide) iosGuide.style.display = 'none';
-        }
-        if (enableBtn) enableBtn.style.display = 'none';
+        console.log('This browser does not support desktop notification');
         return;
     }
-    
-    // Hide iOS guide if notifications are supported
-    if (iosGuide) iosGuide.style.display = 'none';
+
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+}
+
+function checkNotificationStatus() {
+    if (!('Notification' in window)) return;
     
     if (Notification.permission === 'granted') {
-        if (hasToken) {
-            statusText.textContent = 'Aktivert ✅';
-            statusText.className = 'text-success';
-        } else {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            if (isIOS) {
-                statusText.textContent = 'Aktivert via Pushover ✅';
-                statusText.className = 'text-success';
-                if (enableBtn) enableBtn.style.display = 'none';
-            } else {
-                statusText.textContent = 'Aktivert (mangler token) ⚠️';
-                statusText.className = 'text-warning';
-                if (enableBtn) {
-                    enableBtn.style.display = 'inline-block';
-                    enableBtn.textContent = 'Reparer varsler';
-                }
-                return;
-            }
-        }
-        if (enableBtn) enableBtn.style.display = 'none';
+        console.log('Notifications enabled');
     } else if (Notification.permission === 'denied') {
-        // Show platform-specific instructions
-        if (isIOS) {
-            statusText.textContent = 'Blokkert ❌ - Åpne Innstillinger → Safari/Chrome';
-        } else {
-            statusText.textContent = 'Blokkert ❌ - Åpne nettleserinnstillinger';
-        }
-        statusText.className = 'text-danger';
-        if (enableBtn) enableBtn.style.display = 'none';
-    } else {
-        statusText.textContent = 'Ikke aktivert';
-        statusText.className = 'text-warning';
-        if (enableBtn) enableBtn.style.display = 'inline-block';
+        console.log('Notifications denied');
     }
 }
 
-// Notification handling
-function requestNotificationPermission() {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        window.navigator.standalone === true;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+function showNotification(title, options) {
+    if (Notification.permission !== 'granted') return;
     
-    if (!('Notification' in window)) {
-        if (isIOS && !isStandalone) {
-            showToast('📱 iOS: Legg til appen på hjemskjermen først! Trykk Del-knappen → Legg til på Hjem-skjerm');
-        } else {
-            showToast('⚠️ Notifikasjoner støttes ikke på denne enheten');
-        }
-        return;
-    }
-    
-    if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                const hasToken = window.fcmToken;
-                const enable = (typeof enablePushNotifications === 'function')
-                    ? enablePushNotifications()
-                    : Promise.resolve(null);
-                enable.then(() => {
-                    showToast('Påminnelser aktivert! ✓');
-                    checkNotificationStatus();
-                }).catch(() => {
-                    showToast('⚠️ Kunne ikke hente push-token');
-                    checkNotificationStatus();
-                });
-            } else if (permission === 'denied') {
-                showToast('⚠️ Notifikasjoner blokkert - sjekk innstillinger');
-                checkNotificationStatus();
-            }
-        });
-    } else if (Notification.permission === 'granted') {
-        const hasToken = window.fcmToken;
-        if (hasToken) {
-            // Silent check - no toast on startup
-            // showToast('✅ Notifikasjoner allerede aktivert');
-        } else {
-            const enable = (typeof enablePushNotifications === 'function')
-                ? enablePushNotifications()
-                : Promise.resolve(null);
-            enable.then(() => {
-                // Silent check
-                // showToast('✓ Push-varsler aktivert!');
-                checkNotificationStatus();
-            }).catch(() => {
-                // Keep error toast
-                showToast('⚠️ Kunne ikke hente push-token');
-                checkNotificationStatus();
-            });
-        }
-    } else {
-        showToast('⚠️ Notifikasjoner er blokkert - sjekk nettleserinnstillinger');
-    }
-}
-
-function scheduleReminders() {
-    // If we have an FCM token, we rely on server-side push notifications (more reliable on mobile)
-    // The server checks every minute and sends push to all devices
-    if (window.fcmToken || Notification.permission === 'granted') {
-        console.log('🔔 Påminnelser håndteres av server (push-varsel)');
-        return;
-    }
-
-    console.log('ℹ️ Bruker lokal planlegging (app må være åpen)');
-    (window.reminders || []).forEach(reminder => {
-        const [hours, minutes] = reminder.time.split(':');
-        const now = new Date();
-        const reminderTime = new Date();
-        reminderTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        
-        // If time has passed today, schedule for tomorrow
-        if (reminderTime < now) {
-            reminderTime.setDate(reminderTime.getDate() + 1);
-        }
-        
-        const delay = reminderTime - now;
-        
-        if (delay > 0) {
-            setTimeout(() => {
-                showNotification(`⏰ ${reminder.name}`);
-                // Reschedule for next day
-                scheduleReminders();
-            }, delay);
-        }
-    });
-}
-
-function showNotification(message) {
-    if (!('Notification' in window) || Notification.permission !== 'granted') {
-        return;
-    }
-
-    const title = 'Påminnelse - Dosevakt';
-    const options = {
-        body: message,
-        icon: '/icon.png',
-        badge: '/icon.png',
-        tag: 'dosevakt-local-reminder',
-        requireInteraction: true
-    };
-
-    // Prefer Service Worker notifications (more reliable)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready
             .then((registration) => registration.showNotification(title, options))
@@ -514,8 +372,23 @@ function addNewMedicineToChecklist() {
     const name = document.getElementById('newMedicineName').value.trim();
     const dose = document.getElementById('newMedicineDose').value.trim();
     const timeInput = document.getElementById('newMedicineTime')?.value || '';
+    const stockInput = document.getElementById('newMedicineStock')?.value;
+    const thresholdInput = document.getElementById('newMedicineThreshold')?.value;
     const categoryRadio = document.querySelector('input[name="medicineCategory"]:checked');
     const category = categoryRadio ? categoryRadio.value : 'prn';
+    
+    // Parse days
+    let days = []; 
+    const daysTypeRadio = document.querySelector('input[name="medicineDaysType"]:checked');
+    if (daysTypeRadio && daysTypeRadio.value === 'specific') {
+        document.querySelectorAll('#specificDaysContainer input:checked').forEach(cb => {
+            days.push(parseInt(cb.value));
+        });
+        if (days.length === 0) {
+            showToast('⚠️ Vennligst velg minst én dag');
+            return;
+        }
+    }
     
     if (!name) {
         showToast('⚠️ Vennligst fyll inn medisinnavn');
@@ -549,7 +422,10 @@ function addNewMedicineToChecklist() {
             category: 'dag',
             times: times.length > 0 ? times : ['08:00'],
             description: 'Egendefinert medisin',
-            isCustom: true
+            isCustom: true,
+            days: days.length > 0 ? days : null,
+            stock: stockInput ? parseInt(stockInput) : null,
+            lowStockThreshold: thresholdInput ? parseInt(thresholdInput) : null
         });
         // Add evening dose
         checklistItems.medicines.push({
@@ -559,7 +435,10 @@ function addNewMedicineToChecklist() {
             category: 'kveld',
             times: ['20:00'],
             description: 'Egendefinert medisin',
-            isCustom: true
+            isCustom: true,
+            days: days.length > 0 ? days : null,
+            stock: stockInput ? parseInt(stockInput) : null, // Shared stock logic might be tricky here, but separate for now
+            lowStockThreshold: thresholdInput ? parseInt(thresholdInput) : null
         });
     } else {
         // Add single entry
@@ -570,7 +449,10 @@ function addNewMedicineToChecklist() {
             category: category,
             times: times,
             description: 'Egendefinert medisin',
-            isCustom: true
+            isCustom: true,
+            days: days.length > 0 ? days : null,
+            stock: stockInput ? parseInt(stockInput) : null,
+            lowStockThreshold: thresholdInput ? parseInt(thresholdInput) : null
         });
     }
     
@@ -585,14 +467,243 @@ function addNewMedicineToChecklist() {
     if (document.getElementById('newMedicineTime')) {
         document.getElementById('newMedicineTime').value = '';
     }
+    if (document.getElementById('newMedicineStock')) document.getElementById('newMedicineStock').value = '';
+    if (document.getElementById('newMedicineThreshold')) document.getElementById('newMedicineThreshold').value = '';
+
     // Reset category to default
     const prnRadio = document.querySelector('input[name="medicineCategory"][value="prn"]');
     if (prnRadio) prnRadio.checked = true;
+    
+    // Reset days
+    const daysEveryday = document.getElementById('daysEveryday');
+    if (daysEveryday) daysEveryday.checked = true;
+    const specificDaysContainer = document.getElementById('specificDaysContainer');
+    if (specificDaysContainer) {
+        specificDaysContainer.style.display = 'none';
+        specificDaysContainer.querySelectorAll('input').forEach(cb => cb.checked = false);
+    }
     
     // Refresh checklist display
     displayChecklist();
     
     showToast(`✅ ${name} lagt til i sjekklisten!`);
+}
+
+// Edit medicine in checklist
+function editMedicineInChecklist(name, category) {
+    const med = checklistItems.medicines.find(m => m.name === name && m.category === category);
+    if (!med) {
+        showToast('⚠️ Fant ikke medisinen');
+        return;
+    }
+
+    // Populate Modal
+    document.getElementById('newMedicineName').value = med.name;
+    document.getElementById('newMedicineDose').value = (med.dose || '') + (med.unit && !med.dose.includes(med.unit) ? ' ' + med.unit : '');
+    if (document.getElementById('newMedicineTime')) {
+        document.getElementById('newMedicineTime').value = med.times && med.times.length > 0 ? med.times[0] : '';
+    }
+    if (document.getElementById('newMedicineStock')) {
+        document.getElementById('newMedicineStock').value = med.stock !== undefined && med.stock !== null ? med.stock : '';
+    }
+    if (document.getElementById('newMedicineThreshold')) {
+        document.getElementById('newMedicineThreshold').value = med.lowStockThreshold !== undefined && med.lowStockThreshold !== null ? med.lowStockThreshold : '';
+    }
+
+    // Set Category
+    const catRadio = document.querySelector(`input[name="medicineCategory"][value="${category}"]`);
+    if (catRadio) catRadio.checked = true;
+
+    // Set Days
+    if (med.days && med.days.length > 0) {
+        const daysSpecific = document.getElementById('daysSpecific');
+        if (daysSpecific) {
+            daysSpecific.checked = true;
+            // Trigger change event to show container
+            daysSpecific.dispatchEvent(new Event('change'));
+        }
+        
+        // Reset all first
+        document.querySelectorAll('#specificDaysContainer input').forEach(cb => cb.checked = false);
+        // Check specific
+        med.days.forEach(day => {
+            const cb = document.getElementById(`day-${day}`);
+            if (cb) cb.checked = true;
+        });
+    } else {
+        const daysEveryday = document.getElementById('daysEveryday');
+        if (daysEveryday) {
+            daysEveryday.checked = true;
+            daysEveryday.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Change Modal Title and Button
+    const modalTitle = document.querySelector('#addMedicineModal .modal-title');
+    if (modalTitle) modalTitle.textContent = '✏️ Rediger medisin';
+
+    const saveBtn = document.querySelector('#addMedicineModal .modal-footer .btn-success');
+    const modalFooter = document.querySelector('#addMedicineModal .modal-footer');
+    
+    // Add Delete Button if it doesn't exist
+    let deleteBtn = document.getElementById('btn-delete-medicine');
+    if (!deleteBtn) {
+        deleteBtn = document.createElement('button');
+        deleteBtn.id = 'btn-delete-medicine';
+        deleteBtn.className = 'btn btn-danger me-auto'; // me-auto pushes it to the left
+        deleteBtn.innerHTML = '<i class="bi bi-trash"></i> Slett';
+        modalFooter.insertBefore(deleteBtn, modalFooter.firstChild);
+    }
+    deleteBtn.style.display = 'block'; // Ensure it's visible
+    deleteBtn.onclick = function() { 
+        if (confirm(`Er du sikker på at du vil slette "${name}"?`)) {
+            deleteMedicineFromChecklist(name, category);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addMedicineModal'));
+            if (modal) modal.hide();
+        }
+    };
+
+    if (saveBtn) {
+        saveBtn.textContent = '💾 Lagre endringer';
+        // Remove old event listener (not easy without reference), so we clone and replace
+        const newBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+        newBtn.onclick = function() { updateMedicineInChecklist(name, category); };
+    }
+
+    // Show Modal
+    const modalEl = document.getElementById('addMedicineModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Reset modal state on close
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        if (modalTitle) modalTitle.textContent = '💊 Legg til ny medisin';
+        const currentBtn = document.querySelector('#addMedicineModal .modal-footer .btn-success');
+        if (currentBtn) {
+            currentBtn.textContent = '✓ Legg til';
+            const resetBtn = currentBtn.cloneNode(true);
+            currentBtn.parentNode.replaceChild(resetBtn, currentBtn);
+            resetBtn.onclick = addNewMedicineToChecklist;
+        }
+        
+        // Hide delete button instead of removing to keep DOM stable
+        const delBtn = document.getElementById('btn-delete-medicine');
+        if (delBtn) delBtn.style.display = 'none';
+
+        document.getElementById('newMedicineName').value = '';
+        document.getElementById('newMedicineDose').value = '';
+        if (document.getElementById('newMedicineTime')) document.getElementById('newMedicineTime').value = '';
+        
+        const daysEveryday = document.getElementById('daysEveryday');
+        if (daysEveryday) {
+            daysEveryday.checked = true;
+            daysEveryday.dispatchEvent(new Event('change'));
+        }
+        
+        const prnRadio = document.querySelector('input[name="medicineCategory"][value="prn"]');
+        if (prnRadio) prnRadio.checked = true;
+    }, { once: true });
+}
+
+function updateMedicineInChecklist(oldName, oldCategory) {
+    const name = document.getElementById('newMedicineName').value.trim();
+    const dose = document.getElementById('newMedicineDose').value.trim();
+    const timeInput = document.getElementById('newMedicineTime')?.value || '';
+    const categoryRadio = document.querySelector('input[name="medicineCategory"]:checked');
+    const category = categoryRadio ? categoryRadio.value : 'prn';
+    
+    // Parse days
+    let days = []; 
+    const daysTypeRadio = document.querySelector('input[name="medicineDaysType"]:checked');
+    if (daysTypeRadio && daysTypeRadio.value === 'specific') {
+        document.querySelectorAll('#specificDaysContainer input:checked').forEach(cb => {
+            days.push(parseInt(cb.value));
+        });
+        if (days.length === 0) {
+            showToast('⚠️ Vennligst velg minst én dag');
+            return;
+        }
+    }
+
+    if (!name) {
+        showToast('⚠️ Vennligst fyll inn medisinnavn');
+        return;
+    }
+    
+    // Check if new name exists (if changed)
+    if (name.toLowerCase() !== oldName.toLowerCase()) {
+        const exists = checklistItems.medicines.some(m => m.name.toLowerCase() === name.toLowerCase());
+        if (exists) {
+            showToast('⚠️ Denne medisinen finnes allerede i listen');
+            return;
+        }
+    }
+    
+    // Parse dose to extract unit
+    let unit = '';
+    const doseMatch = dose.match(/([\d.,]+)\s*(.*)/);
+    if (doseMatch && doseMatch[2]) {
+        unit = doseMatch[2];
+    }
+    
+    // Parse time
+    const times = timeInput ? [timeInput] : [];
+
+    // Find index to update
+    const index = checklistItems.medicines.findIndex(m => m.name === oldName && m.category === oldCategory);
+    
+    if (index !== -1) {
+        // Update existing
+        checklistItems.medicines[index] = {
+            ...checklistItems.medicines[index],
+            name: name,
+            dose: dose || '',
+            unit: unit,
+            category: category,
+            times: times.length > 0 ? times : [],
+            days: days.length > 0 ? days : null,
+            stock: stockInput ? parseInt(stockInput) : null,
+            lowStockThreshold: thresholdInput ? parseInt(thresholdInput) : null
+        };
+        
+        // Handle "both" case if switched to it - complicated because we are editing one entry.
+        // If user selects "both", we should probably create another entry for the other time.
+        // But for simplicity, let's just stick to the single entry update unless user explicitly wants "both".
+        // If "both" is selected, we might need to add the second entry if it doesn't exist.
+        if (category === 'both') {
+            // Update current to 'dag'
+             checklistItems.medicines[index].category = 'dag';
+             checklistItems.medicines[index].times = times.length > 0 ? times : ['08:00'];
+             
+             // Check if evening exists
+             const eveningExists = checklistItems.medicines.some(m => m.name === name && m.category === 'kveld');
+             if (!eveningExists) {
+                 checklistItems.medicines.push({
+                    name: name,
+                    dose: dose || '',
+                    unit: unit,
+                    category: 'kveld',
+                    times: ['20:00'],
+                    description: 'Egendefinert medisin',
+                    isCustom: true,
+                    days: days.length > 0 ? days : null
+                });
+             }
+        }
+        
+        showToast('✅ Endringer lagret');
+    } else {
+        showToast('⚠️ Kunne ikke finne opprinnelig medisin');
+    }
+
+    // Save and refresh
+    saveChecklistItems();
+    displayChecklist();
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addMedicineModal'));
+    if (modal) modal.hide();
 }
 
 // Delete medicine from checklist
@@ -617,19 +728,35 @@ function deleteMedicineFromChecklist(medicineName, category) {
     }
 }
 
-// Migrate old medicines without category
+// Migrate old medicines without category or missing day schedule for Bactrim
 function migrateOldMedicines() {
     let migrated = false;
     checklistItems.medicines = checklistItems.medicines.map(m => {
-        if (!m.category) {
+        let changed = false;
+        let newMed = { ...m };
+        
+        if (!newMed.category) {
+            newMed.category = 'prn';
+            newMed.isCustom = true;
+            changed = true;
+        }
+        
+        // Migrate Bactrim to weekend only
+        if (newMed.name === 'Bactrim' && !newMed.days) {
+            newMed.days = [0, 6]; // Saturday, Sunday
+            changed = true;
+        }
+        
+        if (changed) {
             migrated = true;
-            return { ...m, category: 'prn', isCustom: true };
+            return newMed;
         }
         return m;
     });
+    
     if (migrated) {
         saveChecklistItems();
-        console.log('Migrated old medicines without category');
+        console.log('Migrated medicines (category/days)');
     }
 }
 
@@ -727,4 +854,3 @@ function checkWhatsNew() {
         setTimeout(tryShowModal, 500);
     }
 }
-

@@ -6,13 +6,13 @@ const AppConfig = {
     checklist: {
         medicines: [
             // DAGTID
-            { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'dag', schedule: 'weekendOnly', times: ['08:00'], description: 'Antibiotikum mot bakterielle infeksjoner - kun lørdag og søndag' },
+            { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'dag', days: [0, 6], times: ['08:00'], description: 'Antibiotikum mot bakterielle infeksjoner - kun lørdag og søndag' },
             { name: 'Nycoplus Multi Barn', dose: '1 tablett', unit: 'tablett', category: 'dag', times: ['08:00'], description: 'Multivitamin og mineraltilskudd' },
             { name: 'Nexium', dose: '1-2 poser', unit: 'pose', category: 'dag', times: ['08:00'], description: 'Protonpumpehemmer mot syrerelaterte mageproblemer' },
             { name: 'Emend', dose: '40 mg', unit: 'mg', category: 'dag', times: ['08:00'], description: 'Antiemetikum mot kvalme ved cellegift' },
             
             // KVELD
-            { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'kveld', schedule: 'weekendOnly', times: ['20:00'], description: 'Antibiotikum mot bakterielle infeksjoner - kun lørdag og søndag' },
+            { name: 'Bactrim', dose: '10 ml', unit: 'ml', category: 'kveld', days: [0, 6], times: ['20:00'], description: 'Antibiotikum mot bakterielle infeksjoner - kun lørdag og søndag' },
             { name: 'Zyprexa', dose: '1.25-2.5 mg', unit: 'mg', category: 'kveld', times: ['18:00'], description: 'Antipsykotikum, brukes også mot kvalme' },
             
             // SPESIELL DOSERING
@@ -59,12 +59,12 @@ const AppConfig = {
     // UI Configuration
     ui: {
         typeIcons: {
-            'Medisin': '💊',
-            'Sondemat': '🍼',
-            'Avføring': '💩',
-            'vannlating': '💧',
-            'Oppkast': '🤮',
-            'Annet': '📝'
+            'Medisin': '<i class="bi bi-capsule"></i>',
+            'Sondemat': '<i class="bi bi-droplet-half"></i>',
+            'Avføring': '<i class="bi bi-recycle"></i>',
+            'vannlating': '<i class="bi bi-droplet"></i>',
+            'Oppkast': '<i class="bi bi-emoji-dizzy"></i>',
+            'Annet': '<i class="bi bi-file-text"></i>'
         },
         typeColors: {
             'Medisin': 'linear-gradient(135deg, #4CAF50, #81C784)',
