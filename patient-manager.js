@@ -435,19 +435,26 @@ function updatePatientUI() {
             try {
                 // Handle both Firestore Timestamp and Date/string
                 let date = window.currentPatientData.pinnedMessageUpdatedAt;
+                let validDate = null;
+
                 if (date && typeof date.toDate === 'function') {
-                    date = date.toDate();
+                    validDate = date.toDate();
                 } else if (date) {
-                    date = new Date(date);
+                    const parsed = new Date(date);
+                    if (!isNaN(parsed.getTime())) {
+                        validDate = parsed;
+                    }
                 }
 
-                if (date) {
+                if (validDate) {
                     const now = new Date();
-                    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-                    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const dateStr = date.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
+                    const isToday = validDate.getDate() === now.getDate() && validDate.getMonth() === now.getMonth() && validDate.getFullYear() === now.getFullYear();
+                    const timeStr = validDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const dateStr = validDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
                     
                     pinnedTime.textContent = isToday ? `I dag ${timeStr}` : `${dateStr} ${timeStr}`;
+                } else {
+                    pinnedTime.textContent = "Nylig";
                 }
             } catch (e) {
                 console.error("Error formatting date:", e);
