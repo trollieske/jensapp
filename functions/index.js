@@ -88,6 +88,19 @@ exports.checkReminders = onSchedule(
       const currentTime = formatTimeHHMMInOslo(new Date());
       console.log(`Checking reminders at ${currentTime} (Europe/Oslo)`);
 
+      // Check if patient is hospitalized (Jens)
+      const jensPatientId = "ORYrHe2nnvqFjOZtrvdw";
+      try {
+        const patientDoc = await admin.firestore().collection("patients").doc(jensPatientId).get();
+        if (patientDoc.exists && patientDoc.data().isHospitalized) {
+          console.log(`Patient ${jensPatientId} is hospitalized. Skipping reminders.`);
+          return null;
+        }
+      } catch (err) {
+        console.error("Error checking patient hospitalization status:", err);
+        // Continue even if check fails, to ensure critical reminders aren't missed due to a read error
+      }
+
       try {
         // Only fetch reminders that match this minute
         const remindersSnapshot = await admin.firestore()

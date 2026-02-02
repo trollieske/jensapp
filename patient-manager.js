@@ -338,6 +338,38 @@ async function removePatientAccess(patientId, email) {
 
 // UI Updates
 function updatePatientUI() {
+    const banner = document.getElementById('hospitalizedBanner');
+    const checklistBanner = document.getElementById('hospitalizedBannerChecklist');
+    const medChecklist = document.getElementById('medicineChecklist');
+    const sondeChecklist = document.getElementById('sondeChecklist');
+    const isHospitalized = window.currentPatientData && window.currentPatientData.isHospitalized;
+
+    if (banner) {
+        if (isHospitalized) {
+            banner.classList.remove('d-none');
+        } else {
+            banner.classList.add('d-none');
+        }
+    }
+
+    if (checklistBanner) {
+        if (isHospitalized) {
+            checklistBanner.classList.remove('d-none');
+        } else {
+            checklistBanner.classList.add('d-none');
+        }
+    }
+
+    if (medChecklist) {
+        if (isHospitalized) medChecklist.classList.add('d-none');
+        else medChecklist.classList.remove('d-none');
+    }
+
+    if (sondeChecklist) {
+        if (isHospitalized) sondeChecklist.classList.add('d-none');
+        else sondeChecklist.classList.remove('d-none');
+    }
+
     const headerTitle = document.getElementById('header-patient-name');
     if (headerTitle && window.currentPatientData) {
         headerTitle.textContent = window.currentPatientData.name;
@@ -680,6 +712,18 @@ function showEditPatientModal(patientId) {
                                 <label class="form-label fw-bold">Andre Behov</label>
                                 <textarea class="form-control rounded-4" id="editPatientNeeds" rows="2">${patient.needs || ''}</textarea>
                             </div>
+                            
+                            <div class="mb-4 p-3 bg-danger bg-opacity-10 rounded-4 border border-danger">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="editPatientHospitalized" ${patient.isHospitalized ? 'checked' : ''} style="cursor: pointer; transform: scale(1.2);">
+                                    <label class="form-check-label fw-bold text-danger ms-2" for="editPatientHospitalized">Pasient er innlagt / Sykehus</label>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Aktivering vil skjule daglige gjøremål og stoppe varsler midlertidig.
+                                </div>
+                            </div>
+
                             <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
                                 Lagre Endringer
                             </button>
@@ -706,7 +750,8 @@ function showEditPatientModal(patientId) {
             birthDate: document.getElementById('editPatientDob').value,
             description: document.getElementById('editPatientDesc').value,
             medicationNotes: document.getElementById('editPatientMeds').value,
-            needs: document.getElementById('editPatientNeeds').value
+            needs: document.getElementById('editPatientNeeds').value,
+            isHospitalized: document.getElementById('editPatientHospitalized').checked
         };
         
         try {
