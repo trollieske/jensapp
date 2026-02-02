@@ -413,6 +413,51 @@ function updatePatientUI() {
     if (window.currentPatientData && (currentUser && (ownerId === currentUser.uid) || (currentUser && currentUser.email === 'superadmin@jensapp.no'))) {
         checkPendingRequests(window.currentPatientId);
     }
+
+    // Pinned Message Board UI
+    const pinnedContainer = document.getElementById('pinnedMessageContainer');
+    const pinnedPlaceholder = document.getElementById('pinnedMessagePlaceholder');
+    const pinnedContent = document.getElementById('pinnedMessageContent');
+    const pinnedAuthor = document.getElementById('pinnedMessageAuthor');
+    const pinnedTime = document.getElementById('pinnedMessageTime');
+
+    if (window.currentPatientData && window.currentPatientData.pinnedMessage) {
+        if (pinnedContainer) pinnedContainer.classList.remove('d-none');
+        if (pinnedPlaceholder) pinnedPlaceholder.classList.add('d-none');
+        
+        if (pinnedContent) pinnedContent.textContent = window.currentPatientData.pinnedMessage;
+        
+        if (pinnedAuthor && window.currentPatientData.pinnedMessageBy) {
+            pinnedAuthor.textContent = window.currentPatientData.pinnedMessageBy;
+        }
+        
+        if (pinnedTime && window.currentPatientData.pinnedMessageUpdatedAt) {
+            try {
+                // Handle both Firestore Timestamp and Date/string
+                let date = window.currentPatientData.pinnedMessageUpdatedAt;
+                if (date && typeof date.toDate === 'function') {
+                    date = date.toDate();
+                } else if (date) {
+                    date = new Date(date);
+                }
+
+                if (date) {
+                    const now = new Date();
+                    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const dateStr = date.toLocaleDateString([], {day: '2-digit', month: '2-digit'});
+                    
+                    pinnedTime.textContent = isToday ? `I dag ${timeStr}` : `${dateStr} ${timeStr}`;
+                }
+            } catch (e) {
+                console.error("Error formatting date:", e);
+                pinnedTime.textContent = "";
+            }
+        }
+    } else {
+        if (pinnedContainer) pinnedContainer.classList.add('d-none');
+        if (pinnedPlaceholder) pinnedPlaceholder.classList.remove('d-none');
+    }
 }
 
 async function checkPendingRequests(patientId) {
@@ -1043,3 +1088,44 @@ async function denyAccessRequest(patientId, requestId) {
         showToast('⚠️ Feil ved avvisning');
     }
 }
+
+// --- Pinned Message Board Functions ---
+
+window.openEditMessageModal = function() {
+    const currentMessage = window.currentPatientData ? (window.currentPatientData.pinnedMessage || '') : '';
+    const input = document.getElementById('messageInput');
+    if(input) {
+        input.value = currentMessage;
+        const modalEl = document.getElementById('editMessageModal');
+        if(modalEl) {
+            new bootstrap.Modal(modalEl).show();
+        }
+    }
+};
+
+window.savePinnedMessage = async function(content) {
+    if (!window.currentPatientId) return;
+
+    // Use empty string to clear if content is null/undefined
+    const messageContent = content || '';
+
+    const updates = {
+        pinnedMessage: messageContent,
+        pinnedMessageUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        pinnedMessageBy: currentUser ? (currentUser.displayName || currentUser.email) : 'Ukjent'
+    };
+
+    try {
+        await updatePatient(window.currentPatientId, updates);
+        
+        const modalEl = document.getElementById('editMessageModal');
+        if(modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+        }
+        showToast('📌 Beskjed lagret!');
+    } catch (error) {
+        console.error("Error saving message:", error);
+        showToast("Kunne ikke lagre melding");
+    }
+};
